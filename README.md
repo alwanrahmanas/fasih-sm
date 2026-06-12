@@ -1,18 +1,30 @@
-# BPS FASIH Scraper
+# BPS FASIH Scraper & Dashboard Monitoring SE2026
 
-Script otomatisasi berbasis Python dan Playwright untuk mengumpulkan data survei secara otomatis dari portal **BPS FASIH** (Flexible Authentic Survey Instrument in Harmony) berdasarkan daftar email mitra.
+Repositori ini berisi sistem pemantauan terpadu untuk Sensus Ekonomi 2026 BPS Kabupaten Kepulauan Sangihe, yang terdiri dari dua bagian utama:
+1. **Scraper Otomatis (Python + Playwright):** Mengumpulkan data prelist secara berkala dari portal BPS FASIH.
+2. **Dashboard Monitoring (Next.js + Tailwind CSS):** Visualisasi interaktif, pencarian cepat, dan filter dari data hasil scraping.
 
 ---
 
 ## 📂 Struktur Proyek
 
-Proyek ini telah dirapikan ke dalam struktur folder berikut agar lebih bersih dan profesional:
+Proyek ini terstruktur sebagai berikut:
 
 ```text
 scraper-fasih-sm/
 ├── data/
 │   ├── email_mitra.txt          # Daftar lengkap email mitra (untuk scrape produksi)
 │   └── email_mitra_test.txt     # Daftar email mitra untuk uji coba (3 email)
+├── dashboard/                   # Aplikasi Dashboard Monitoring (Next.js)
+│   ├── public/
+│   │   └── scraped_data.csv     # Data masukan untuk dashboard (disalin otomatis oleh scraper)
+│   ├── src/
+│   │   └── app/
+│   │       ├── globals.css      # Pengaturan tema Tailwind CSS
+│   │       ├── layout.tsx       # Layout dasar Next.js
+│   │       └── page.tsx         # Halaman utama dashboard monitoring (warna oranye dominan)
+│   ├── package.json
+│   └── tsconfig.json
 ├── legacy/                      # Script lama (login terpisah & scraper manual)
 │   ├── login.py
 │   └── scraper.py
@@ -21,87 +33,69 @@ scraper-fasih-sm/
 │   ├── inspect_pagination.py
 │   ├── FASIH_ Flexible Authentic Survey Instrument in Harmony.html
 │   └── FASIH_ Flexible Authentic Survey Instrument in Harmony_files/
-├── .gitignore                   # Konfigurasi pengabaian file sensitif / hasil scrape
+├── .gitignore                   # Konfigurasi pengabaian file sensitif / sementara
 ├── README.md                    # Dokumentasi panduan ini
-├── requirements.txt             # Dependensi pustaka Python
-└── run_scraper.py               # Script utama scraper terpadu (login + auto-detect + scrape)
+├── requirements.txt             # Dependensi Python untuk scraper
+├── run_scraper.py               # Script utama scraper terpadu (menimpa CSV & menyalin hasil ke dashboard)
+└── scraped_data.csv             # Backup data lokal hasil scraper terakhir
 ```
 
 ---
 
 ## ⚙️ Prasyarat & Instalasi
 
-Sebelum menjalankan scraper, pastikan Anda memiliki **Python 3.8+** dan jalankan perintah berikut di terminal proyek Anda untuk menginstal pustaka yang dibutuhkan:
-
+### 1. Persiapan Scraper (Python)
+Pastikan Anda memiliki Python 3.8+ terinstall, lalu jalankan perintah berikut di root folder:
 ```powershell
-# 1. Instal library pendukung (Playwright)
 pip install -r requirements.txt
-
-# 2. Instal browser Chromium untuk Playwright
 playwright install chromium
 ```
 
----
-
-## 🚀 Panduan Penggunaan
-
-Script `run_scraper.py` menggabungkan proses autentikasi (login) dan penarikan data secara otomatis.
-
-### Langkah-langkah Menjalankan:
-
-1. **Jalankan script** melalui terminal:
-   * **Mode Uji Coba (menggunakan 3 email dari `data/email_mitra_test.txt`):**
-     ```powershell
-     python run_scraper.py --test
-     ```
-   * **Mode Produksi (menggunakan seluruh email dari `data/email_mitra.txt`):**
-     ```powershell
-     python run_scraper.py
-     ```
-
-2. **Login & Navigasi:**
-   * Jendela browser Chromium akan otomatis terbuka dan memuat halaman login BPS FASIH.
-   * Silakan lakukan **login menggunakan akun SSO BPS** Anda (aktifkan VPN BPS jika diperlukan).
-   * **Buka halaman tabel survei** yang ingin Anda ambil datanya.
-   
-3. **Scraping Otomatis:**
-   * Setelah Anda berada di halaman tabel data survei, script di terminal akan mendeteksi kecocokan URL secara otomatis (`Target survey page detected`).
-   * Sesi login Anda akan disimpan ke dalam berkas `auth_state.json`. Untuk penjalanan berikutnya, Anda tidak perlu login ulang selama sesi tersebut masih valid.
-   * Browser akan dialihkan secara otomatis ke mode tampilan **50 baris per halaman** (`perPage=50`) untuk mempercepat penarikan.
-   * Script akan mulai mencari setiap email secara berurutan pada kotak pencarian, mengekstrak data dari tabel, melakukan paginasi otomatis jika hasil pencarian lebih dari 50 baris, dan menyimpan hasilnya.
-
-4. **Hasil Scraping:**
-   * Data yang terkumpul akan disimpan atau ditambahkan (append) secara otomatis ke berkas **`scraped_data.csv`** di root direktori proyek. Berkas ini dapat langsung dibuka menggunakan Excel, Google Sheets, atau diimpor ke aplikasi analisis lainnya.
+### 2. Persiapan Dashboard (Next.js)
+Masuk ke folder `dashboard/` dan pasang dependensi Node.js:
+```powershell
+cd dashboard
+npm install
+```
 
 ---
 
-## 🔒 Catatan Keamanan Penting
+## 🚀 Cara Menjalankan
+
+### Langkah 1: Jalankan Scraper (Python)
+Jalankan scraper untuk mengambil data terbaru dari BPS FASIH:
+* **Mode Uji Coba (3 email):** `python run_scraper.py --test`
+* **Mode Produksi (168 email):** `python run_scraper.py`
+
+*Catatan: Setiap kali scraper selesai dijalankan, berkas `scraped_data.csv` lama akan **ditimpa secara otomatis** dengan data status terbaru, kemudian disalin langsung ke folder `dashboard/public/scraped_data.csv`.*
+
+### Langkah 2: Jalankan Dashboard Secara Lokal (Next.js)
+Untuk melihat dashboard di browser Anda:
+```powershell
+cd dashboard
+npm run dev
+```
+Buka browser dan akses [http://localhost:3000](http://localhost:3000). Anda akan melihat visualisasi statistik target prelist, grafik kinerja petugas (pencacah), distribusi skala usaha, serta tabel data dengan pencarian dan filter cepat (warna dominan oranye).
+
+---
+
+## ☁️ Petunjuk Deployment ke Vercel
+
+Aplikasi dashboard ini siap untuk di-deploy ke Vercel secara gratis. Ikuti langkah berikut:
+
+1. Pastikan Anda telah mengunggah (push) seluruh repositori ini ke GitHub.
+2. Buka dashboard [Vercel](https://vercel.com) dan klik **Add New > Project**.
+3. Hubungkan ke repositori GitHub proyek ini (`fasih-sm-scrapper`).
+4. Di bagian konfigurasi project Vercel:
+   * **Root Directory:** Ubah / pilih folder `dashboard`.
+   * **Framework Preset:** Pilih **Next.js**.
+   * **Build Command:** `npm run build` (default).
+   * **Output Directory:** `.next` (default).
+5. Klik **Deploy**. Vercel akan otomatis mendeteksi aplikasi Next.js Anda di folder `dashboard` dan mempublikasikannya secara statis.
+
+---
+
+## 🔒 Catatan Keamanan
 
 > [!IMPORTANT]
-> Berkas `auth_state.json` berisi cookie, token, dan sesi login aktif Anda ke BPS FASIH. **JANGAN PERNAH** menghapus berkas ini dari `.gitignore` atau mengunggahnya ke GitHub, karena orang lain dapat masuk ke akun BPS Anda menggunakan berkas tersebut.
-
----
-
-## 📤 Langkah-langkah Push ke GitHub
-
-Untuk mengunggah kode sumber proyek yang sudah rapi ini ke repositori GitHub Anda (`https://github.com/danimat15/fasih-sm-scrapper.git`), ikuti perintah berikut di terminal:
-
-```powershell
-# 1. Inisialisasi repositori Git lokal
-git init
-
-# 2. Tambahkan semua file yang tidak di-ignore ke staging area
-git add .
-
-# 3. Lakukan commit pertama Anda
-git commit -m "Initial commit: restructured project with clean scraper flow"
-
-# 4. Tentukan branch utama sebagai 'main'
-git branch -M main
-
-# 5. Hubungkan repositori lokal dengan repositori GitHub Anda
-git remote add origin https://github.com/danimat15/fasih-sm-scrapper.git
-
-# 6. Push kode ke GitHub (tambahkan bendera -u untuk push pertama kali)
-git push -u origin main
-```
+> Berkas `auth_state.json` berisi sesi login aktif Anda ke BPS FASIH. Berkas ini telah diabaikan di `.gitignore` dan **jangan pernah** diunggah ke GitHub demi keamanan kredensial SSO BPS Anda.

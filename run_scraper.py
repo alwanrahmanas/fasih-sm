@@ -13,23 +13,56 @@ def load_emails(file_path):
         emails = [line.strip() for line in f if line.strip()]
     return emails
 
-def wait_for_table_load(page):
-    # Wait for network requests to finish
-    try:
-        page.wait_for_load_state("networkidle", timeout=5000)
-    except Exception:
-        pass
+def wait_for_table_load(page, searched_text=None, previous_first_row_text=None, timeout=30000):
+    start_time = time.time()
     
-    # Wait for loader spinners to disappear
+    # 1. Wait a brief moment for actions to register and loading states to trigger
+    page.wait_for_timeout(500)
+    
+    # 2. Wait for loader spinners to disappear (if they appear)
     try:
         loaders = page.locator("svg.tabler-icon-loader, svg.tabler-icon-loader-2")
         if loaders.count() > 0:
-            loaders.first.wait_for(state="hidden", timeout=5000)
+            loaders.first.wait_for(state="hidden", timeout=timeout)
     except Exception:
         pass
+
+    # 3. Dynamic verification loop
+    while time.time() - start_time < (timeout / 1000.0):
+        rows = page.locator("table tbody tr")
+        row_count = rows.count()
         
-    # Extra safety buffer for React state rendering
-    time.sleep(1.5)
+        if row_count > 0:
+            first_row_text = rows.first.text_content()
+            first_row_text_lower = first_row_text.lower()
+            
+            # Check for "No data" placeholder
+            is_no_data = "tidak ada data" in first_row_text_lower or "empty" in first_row_text_lower or "no data" in first_row_text_lower
+            
+            # Condition A: Waiting for new page content (first row text should differ from old page)
+            if previous_first_row_text is not None:
+                if first_row_text != previous_first_row_text:
+                    break
+            
+            # Condition B: Waiting for search results matching a term
+            elif searched_text is not None:
+                if is_no_data:
+                    break
+                
+                # Check if the search term exists within the table body text
+                tbody_text = page.locator("table tbody").text_content().lower()
+                if searched_text.lower() in tbody_text:
+                    break
+            
+            # Default: If no conditions specified, just wait for any row to be present
+            else:
+                break
+        
+        # Sleep and retry if table hasn't updated/loaded yet
+        time.sleep(0.5)
+        
+    # 4. Extra safety buffer for UI/React state settling
+    time.sleep(1.0)
 
 def scrape_page(page, searched_email, csv_writer):
     # Find all data rows in the table body
@@ -96,13 +129,12 @@ def run_scraper(use_test_emails=False):
         "Status", "Mode", "Petugas Saat Ini", "Keterangan"
     ]
     
-    file_exists = os.path.exists(output_csv)
-    csv_file = open(output_csv, "a", newline="", encoding="utf-8")
+    # Overwrite the CSV file on new runs to ensure fresh statuses
+    print(f"Overwriting/initializing '{output_csv}' with headers...")
+    csv_file = open(output_csv, "w", newline="", encoding="utf-8")
     csv_writer = csv.writer(csv_file)
-    
-    if not file_exists:
-        csv_writer.writerow(csv_headers)
-        csv_file.flush()
+    csv_writer.writerow(csv_headers)
+    csv_file.flush()
         
     print(f"Output will be saved/appended to '{output_csv}'")
     
@@ -171,7 +203,7 @@ def run_scraper(use_test_emails=False):
         # Wait for table to load
         print("Waiting for table to load...")
         try:
-            page.wait_for_selector("table", timeout=15000)
+            page.wait_for_selector("table", timeout=30000)
             print("Table loaded successfully. Starting scraper loop...")
         except Exception:
             print("Error: Table not found on target page. Aborting.")
@@ -189,7 +221,7 @@ def run_scraper(use_test_emails=False):
                 if search_input.count() == 0:
                     print("  Search input not found! Reloading survey page...")
                     page.goto(page.url)
-                    page.wait_for_selector("table", timeout=15000)
+                    page.wait_for_selector("table", timeout=30000)
                     search_input = page.locator('input[placeholder="Cari..."]')
                     
                 # Fill search box and press Enter
@@ -198,8 +230,8 @@ def run_scraper(use_test_emails=False):
                 search_input.fill(email)
                 search_input.press("Enter")
                 
-                # Wait for search results
-                wait_for_table_load(page)
+                # Wait for search results containing the searched email
+                wait_for_table_load(page, searched_text=email)
                 
                 # Scrape pages
                 page_num = 1
@@ -215,9 +247,12 @@ def run_scraper(use_test_emails=False):
                     next_button = page.locator('button[aria-label="Go to next page"]')
                     if next_button.count() > 0 and next_button.is_visible() and not next_button.is_disabled():
                         print(f"  Navigating to next page...")
+                        # Capture current first row content to detect page transition
+                        prev_row_text = page.locator("table tbody tr").first.text_content() if page.locator("table tbody tr").count() > 0 else None
+                        
                         next_button.click()
                         page_num += 1
-                        wait_for_table_load(page)
+                        wait_for_table_load(page, previous_first_row_text=prev_row_text)
                     else:
                         break
                         
@@ -230,6 +265,16 @@ def run_scraper(use_test_emails=False):
         csv_file.close()
         browser.close()
         print(f"\nAll scraping completed successfully! Data saved in '{output_csv}'")
+        
+        # Copy to Next.js dashboard public folder if it exists
+        public_dir = os.path.join("dashboard", "public")
+        if os.path.exists(public_dir):
+            import shutil
+            try:
+                shutil.copy2(output_csv, os.path.join(public_dir, "scraped_data.csv"))
+                print(f"Copied data to Next.js dashboard: {os.path.join(public_dir, 'scraped_data.csv')}")
+            except Exception as copy_err:
+                print(f"Warning: Could not copy data to dashboard public folder: {copy_err}")
 
 if __name__ == "__main__":
     # Check if user passed --test flag to use email_mitra_test.txt
