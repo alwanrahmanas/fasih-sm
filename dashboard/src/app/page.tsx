@@ -1008,12 +1008,26 @@ export default function DashboardPage() {
 
       {/* Footer */}
       <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 py-6 text-center text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <span>&copy; 2026 Badan Pusat Statistik Kabupaten Kepulauan Sangihe. Hak Cipta Dilindungi.</span>
-          <span className="font-semibold text-orange-500 flex items-center gap-1">
-            <TrendingUp className="w-3.5 h-3.5" />
-            Monitoring Sensus Ekonomi 2026
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="font-semibold text-orange-500 flex items-center gap-1">
+              <TrendingUp className="w-3.5 h-3.5" />
+              Monitoring Sensus Ekonomi 2026
+            </span>
+            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <span>
+              Pengembang:{" "}
+              <a
+                href="http://hamdani-portfolio.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+              >
+                Hamdani
+              </a>
+            </span>
+          </div>
         </div>
       </footer>
 

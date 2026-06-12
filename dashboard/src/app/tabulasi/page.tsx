@@ -990,8 +990,19 @@ export default function TabulasiPage() {
 
       {/* Footer */}
       <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-6 text-center text-xs text-slate-400">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p>© 2026 Badan Pusat Statistik (BPS) Kabupaten Kepulauan Sangihe. Hak Cipta Dilindungi.</p>
+          <p>
+            Pengembang:{" "}
+            <a
+              href="http://hamdani-portfolio.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+            >
+              Hamdani
+            </a>
+          </p>
         </div>
       </footer>
 
