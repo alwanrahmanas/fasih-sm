@@ -12,6 +12,7 @@ env/
 auth_state.json
 target_url.txt
 *.png
+!dashboard/**/*.png
 
 # Exclude temporary offline HTML logs / downloads from git tracking
 research/*.html
