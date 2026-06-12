@@ -44,6 +44,8 @@ interface ScraperRecord {
   mode: string;
   officer: string;
   notes: string;
+  nama_kec: string;
+  koseka: string;
 }
 
 export default function DashboardPage() {
@@ -61,6 +63,8 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [scaleFilter, setScaleFilter] = useState("all");
   const [selectedOfficer, setSelectedOfficer] = useState("all");
+  const [selectedSubdistrict, setSelectedSubdistrict] = useState("all");
+  const [selectedKoseka, setSelectedKoseka] = useState("all");
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -72,9 +76,9 @@ export default function DashboardPage() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch("/scraped_data.csv");
+      const response = await fetch("/update_data.csv");
       if (!response.ok) {
-        throw new Error("Gagal mengambil file scraped_data.csv. Pastikan file data hasil scrape tersedia.");
+        throw new Error("Gagal mengambil file update_data.csv. Pastikan file data hasil scrape tersedia.");
       }
       
       const text = await response.text();
@@ -124,6 +128,8 @@ export default function DashboardPage() {
               mode: row[13].replace(/"/g, "").trim(),
               officer: row[14].replace(/"/g, "").trim(),
               notes: row[15].replace(/"/g, "").trim(),
+              nama_kec: row[16] ? row[16].replace(/"/g, "").trim() : "",
+              koseka: row[17] ? row[17].replace(/"/g, "").trim() : "",
             });
           }
         }
@@ -133,15 +139,29 @@ export default function DashboardPage() {
       const parsedRecords = parseCSV(text);
       setRawData(parsedRecords);
       
-      // Set simulated last updated time (from file fetch header or current time)
-      const now = new Date();
-      setLastUpdated(now.toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      }) + " WITA");
+      // Set last updated time from text file, with fallback
+      let loadedTimestamp = "";
+      try {
+        const timeResponse = await fetch("/last_updated.txt");
+        if (timeResponse.ok) {
+          loadedTimestamp = (await timeResponse.text()).trim();
+        }
+      } catch (e) {
+        console.warn("Gagal mengambil file last_updated.txt, fallback ke waktu sekarang.");
+      }
+      
+      if (loadedTimestamp) {
+        setLastUpdated(loadedTimestamp);
+      } else {
+        const now = new Date();
+        setLastUpdated(now.toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        }) + " WITA");
+      }
       
     } catch (err: any) {
       console.error(err);
@@ -191,11 +211,15 @@ export default function DashboardPage() {
     const statuses = Array.from(new Set(rawData.map(r => r.status))).filter(Boolean);
     const scales = Array.from(new Set(rawData.map(r => r.scale))).filter(Boolean);
     const officers = Array.from(new Set(rawData.map(r => r.officer))).filter(Boolean).sort();
+    const subdistricts = Array.from(new Set(rawData.map(r => r.nama_kec))).filter(Boolean).sort();
+    const kosekas = Array.from(new Set(rawData.map(r => r.koseka))).filter(Boolean).sort();
 
     return {
       statuses,
       scales,
-      officers
+      officers,
+      subdistricts,
+      kosekas
     };
   }, [rawData]);
 
@@ -242,7 +266,9 @@ export default function DashboardPage() {
           r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           r.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
           r.officer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          r.notes.toLowerCase().includes(searchQuery.toLowerCase())
+          r.notes.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (r.nama_kec && r.nama_kec.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (r.koseka && r.koseka.toLowerCase().includes(searchQuery.toLowerCase()))
         : true;
 
       // Status filter
@@ -260,14 +286,24 @@ export default function DashboardPage() {
         ? true
         : r.officer === selectedOfficer;
 
-      return matchesSearch && matchesStatus && matchesScale && matchesOfficer;
+      // Kecamatan filter
+      const matchesSubdistrict = selectedSubdistrict === "all"
+        ? true
+        : r.nama_kec === selectedSubdistrict;
+
+      // Koseka filter
+      const matchesKoseka = selectedKoseka === "all"
+        ? true
+        : r.koseka === selectedKoseka;
+
+      return matchesSearch && matchesStatus && matchesScale && matchesOfficer && matchesSubdistrict && matchesKoseka;
     });
-  }, [rawData, searchQuery, statusFilter, scaleFilter, selectedOfficer]);
+  }, [rawData, searchQuery, statusFilter, scaleFilter, selectedOfficer, selectedSubdistrict, selectedKoseka]);
 
   // Reset page number on filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusFilter, scaleFilter, selectedOfficer]);
+  }, [searchQuery, statusFilter, scaleFilter, selectedOfficer, selectedSubdistrict, selectedKoseka]);
 
   // Paginated data for display
   const paginatedData = useMemo(() => {
@@ -280,7 +316,7 @@ export default function DashboardPage() {
   // Helper to generate export CSV url
   const handleExportCSV = () => {
     const headers = [
-      "Kode Identitas", "Nama Keluarga/Bangunan/Usaha", "Alamat Prelist", 
+      "Kode Identitas", "Nama Keluarga/Bangunan/Usaha", "Kecamatan", "Koseka", "Alamat Prelist", 
       "Skala Usaha", "Status", "Petugas Saat Ini", "Keterangan"
     ];
     const csvRows = [headers.join(",")];
@@ -289,6 +325,8 @@ export default function DashboardPage() {
       const values = [
         `"${r.idCode.replace(/"/g, '""')}"`,
         `"${r.name.replace(/"/g, '""')}"`,
+        `"${(r.nama_kec || "").replace(/"/g, '""')}"`,
+        `"${(r.koseka || "").replace(/"/g, '""')}"`,
         `"${r.address.replace(/"/g, '""')}"`,
         `"${r.scale.replace(/"/g, '""')}"`,
         `"${r.status.replace(/"/g, '""')}"`,
@@ -375,7 +413,22 @@ export default function DashboardPage() {
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <nav className="flex items-center gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50/50 dark:bg-slate-950/50">
+              <a 
+                href="/" 
+                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-500 text-white shadow-sm"
+              >
+                Dashboard
+              </a>
+              <a 
+                href="/tabulasi" 
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+              >
+                Tabulasi
+              </a>
+            </nav>
+
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
               className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
@@ -653,13 +706,43 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold">
                       <Clock className="w-3.5 h-3.5 text-slate-500" />
                       <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="py-2 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-medium"
+                         value={statusFilter}
+                         onChange={(e) => setStatusFilter(e.target.value)}
+                         className="py-2 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-medium"
                       >
                         <option value="all">Semua Status</option>
                         {filterOptions.statuses.map((s, idx) => (
                           <option key={idx} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Filter Kecamatan */}
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold">
+                      <MapPin className="w-3.5 h-3.5 text-slate-500" />
+                      <select
+                        value={selectedSubdistrict}
+                        onChange={(e) => setSelectedSubdistrict(e.target.value)}
+                        className="py-2 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-medium"
+                      >
+                        <option value="all">Semua Kecamatan</option>
+                        {filterOptions.subdistricts.map((sub, idx) => (
+                          <option key={idx} value={sub}>{sub}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Filter Koseka */}
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold">
+                      <Building className="w-3.5 h-3.5 text-slate-500" />
+                      <select
+                        value={selectedKoseka}
+                        onChange={(e) => setSelectedKoseka(e.target.value)}
+                        className="py-2 px-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-medium"
+                      >
+                        <option value="all">Semua Koseka</option>
+                        {filterOptions.kosekas.map((kos, idx) => (
+                          <option key={idx} value={kos}>{kos}</option>
                         ))}
                       </select>
                     </div>
@@ -709,7 +792,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Filter Summary Badge */}
-                {(searchQuery || statusFilter !== "all" || scaleFilter !== "all" || selectedOfficer !== "all") && (
+                {(searchQuery || statusFilter !== "all" || scaleFilter !== "all" || selectedOfficer !== "all" || selectedSubdistrict !== "all" || selectedKoseka !== "all") && (
                   <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-800/50 text-xs">
                     <span className="text-slate-400 font-medium">Filter Aktif:</span>
                     {searchQuery && (
@@ -736,12 +819,26 @@ export default function DashboardPage() {
                         <button onClick={() => setSelectedOfficer("all")}><X className="w-3 h-3 hover:text-orange-600" /></button>
                       </span>
                     )}
+                    {selectedSubdistrict !== "all" && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-500 font-medium">
+                        Kecamatan: {selectedSubdistrict}
+                        <button onClick={() => setSelectedSubdistrict("all")}><X className="w-3 h-3 hover:text-orange-600" /></button>
+                      </span>
+                    )}
+                    {selectedKoseka !== "all" && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-500 font-medium">
+                        Koseka: {selectedKoseka}
+                        <button onClick={() => setSelectedKoseka("all")}><X className="w-3 h-3 hover:text-orange-600" /></button>
+                      </span>
+                    )}
                     <button
                       onClick={() => {
                         setSearchQuery("");
                         setStatusFilter("all");
                         setScaleFilter("all");
                         setSelectedOfficer("all");
+                        setSelectedSubdistrict("all");
+                        setSelectedKoseka("all");
                       }}
                       className="text-slate-400 hover:text-orange-500 hover:underline font-bold ml-auto"
                     >
@@ -758,6 +855,8 @@ export default function DashboardPage() {
                     <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/30 text-xs font-bold text-slate-400 uppercase tracking-wider">
                       <th className="py-4 px-6">Kode Identitas</th>
                       <th className="py-4 px-6">Nama Keluarga/Bangunan/Usaha</th>
+                      <th className="py-4 px-6">Kecamatan</th>
+                      <th className="py-4 px-6">Koseka</th>
                       <th className="py-4 px-6">Alamat Prelist</th>
                       <th className="py-4 px-6">Skala Prelist</th>
                       <th className="py-4 px-6 text-center">Status</th>
@@ -777,8 +876,16 @@ export default function DashboardPage() {
                             {row.idCode}
                           </td>
                           {/* Name */}
-                          <td className="py-4 px-6 font-medium text-slate-900 dark:text-white truncate max-w-[200px]">
+                          <td className="py-4 px-6 font-medium text-slate-900 dark:text-white truncate max-w-[180px]">
                             {row.name || "-"}
+                          </td>
+                          {/* Kecamatan */}
+                          <td className="py-4 px-6 text-slate-500 dark:text-slate-400 truncate max-w-[150px]">
+                            {row.nama_kec || "-"}
+                          </td>
+                          {/* Koseka */}
+                          <td className="py-4 px-6 text-slate-500 dark:text-slate-400 font-semibold whitespace-nowrap">
+                            {row.koseka || "-"}
                           </td>
                           {/* Address */}
                           <td className="py-4 px-6 text-slate-500 dark:text-slate-400 truncate max-w-[180px]">
@@ -804,7 +911,7 @@ export default function DashboardPage() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={7} className="py-12 px-6 text-center text-slate-500 dark:text-slate-400">
+                        <td colSpan={9} className="py-12 px-6 text-center text-slate-500 dark:text-slate-400">
                           Tidak ditemukan data yang cocok dengan kriteria pencarian dan filter Anda.
                         </td>
                       </tr>

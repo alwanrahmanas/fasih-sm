@@ -266,15 +266,12 @@ def run_scraper(use_test_emails=False):
         browser.close()
         print(f"\nAll scraping completed successfully! Data saved in '{output_csv}'")
         
-        # Copy to Next.js dashboard public folder if it exists
-        public_dir = os.path.join("dashboard", "public")
-        if os.path.exists(public_dir):
-            import shutil
-            try:
-                shutil.copy2(output_csv, os.path.join(public_dir, "scraped_data.csv"))
-                print(f"Copied data to Next.js dashboard: {os.path.join(public_dir, 'scraped_data.csv')}")
-            except Exception as copy_err:
-                print(f"Warning: Could not copy data to dashboard public folder: {copy_err}")
+        # Run the data processing pipeline (which maps subdistricts, copies to dashboard, writes timestamp, and pushes to Git)
+        try:
+            import process_data
+            process_data.process_data()
+        except Exception as proc_err:
+            print(f"Warning: Error during post-scrape data processing: {proc_err}")
 
 if __name__ == "__main__":
     # Check if user passed --test flag to use email_mitra_test.txt
