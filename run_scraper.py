@@ -3,6 +3,7 @@ import re
 import csv
 import sys
 import time
+import json
 from playwright.sync_api import sync_playwright
 
 def load_emails(file_path):
@@ -117,10 +118,28 @@ def run_scraper(use_test_emails=False):
     email_file = os.path.join("data", "email_mitra_test.txt" if use_test_emails else "email_mitra.txt")
     auth_file = "auth_state.json"
     output_csv = "scraped_data.csv"
+    checkpoint_file = "checkpoint.json"
     
     emails = load_emails(email_file)
     print(f"Loaded {len(emails)} emails from '{email_file}' to scrape.")
     
+    # Check if we should start fresh
+    use_fresh = "--fresh" in sys.argv
+    resume_index = 0
+    
+    if not use_fresh and os.path.exists(checkpoint_file):
+        try:
+            with open(checkpoint_file, "r") as f:
+                cp = json.load(f)
+                resume_index = cp.get("last_index", 0)
+                if resume_index < len(emails):
+                    print(f"Resuming from checkpoint: starting at email #{resume_index + 1} ({emails[resume_index]})")
+                else:
+                    resume_index = 0
+                    print("Checkpoint index exceeds email list length. Starting fresh.")
+        except Exception as cp_err:
+            print(f"Warning: Could not read checkpoint file: {cp_err}. Starting fresh.")
+            
     # Prepare CSV file
     csv_headers = [
         "Searched Email", "Kode Identitas", "Nama Keluarga/Bangunan/Usaha", "Alamat Prelist",
@@ -129,12 +148,16 @@ def run_scraper(use_test_emails=False):
         "Status", "Mode", "Petugas Saat Ini", "Keterangan"
     ]
     
-    # Overwrite the CSV file on new runs to ensure fresh statuses
-    print(f"Overwriting/initializing '{output_csv}' with headers...")
-    csv_file = open(output_csv, "w", newline="", encoding="utf-8")
-    csv_writer = csv.writer(csv_file)
-    csv_writer.writerow(csv_headers)
-    csv_file.flush()
+    if resume_index > 0 and os.path.exists(output_csv):
+        print(f"Appending new results to existing '{output_csv}'...")
+        csv_file = open(output_csv, "a", newline="", encoding="utf-8")
+        csv_writer = csv.writer(csv_file)
+    else:
+        print(f"Overwriting/initializing '{output_csv}' with headers...")
+        csv_file = open(output_csv, "w", newline="", encoding="utf-8")
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(csv_headers)
+        csv_file.flush()
         
     print(f"Output will be saved/appended to '{output_csv}'")
     
@@ -212,8 +235,9 @@ def run_scraper(use_test_emails=False):
             return
             
         # Start search looping
-        for index, email in enumerate(emails, 1):
-            print(f"[{index}/{len(emails)}] Searching for: {email}")
+        for index in range(resume_index, len(emails)):
+            email = emails[index]
+            print(f"[{index + 1}/{len(emails)}] Searching for: {email}")
             
             try:
                 # Find search input
@@ -258,12 +282,32 @@ def run_scraper(use_test_emails=False):
                         
                 print(f"  Finished search for {email}. Total scraped: {total_scraped} rows.")
                 
+                # Save checkpoint
+                try:
+                    with open(checkpoint_file, "w") as f:
+                        json.dump({
+                            "last_index": index + 1,
+                            "last_email": email,
+                            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                        }, f, indent=2)
+                except Exception as cp_write_err:
+                    print(f"Warning: Could not save checkpoint: {cp_write_err}")
+                
             except Exception as e:
                 print(f"  Error processing email {email}: {e}")
                 
         # Cleanup
         csv_file.close()
         browser.close()
+        
+        # Remove checkpoint on successful completion of all emails
+        if os.path.exists(checkpoint_file):
+            try:
+                os.remove(checkpoint_file)
+                print("Scraping completed successfully. Checkpoint file removed.")
+            except Exception as rm_err:
+                print(f"Warning: Could not remove checkpoint file: {rm_err}")
+                
         print(f"\nAll scraping completed successfully! Data saved in '{output_csv}'")
         
         # Run the data processing pipeline (which maps subdistricts, copies to dashboard, writes timestamp, and pushes to Git)

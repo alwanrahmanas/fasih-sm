@@ -100,51 +100,107 @@ def process_data():
         print(f"Error reading koseka file: {e}")
         return False
 
-    # 2. Process scraped_data.csv
-    print(f"Processing and mapping '{scraped_file}'...")
+    # 2. Process scraped_data.csv and merge with existing output_file
+    print(f"Processing, mapping, and merging '{scraped_file}'...")
     rows_written = 0
     try:
+        # Load existing data from update_data.csv if it exists
+        existing_data = {}
+        headers = []
+        id_code_idx = 1
+        
+        if os.path.exists(output_file):
+            print(f"Found existing '{output_file}'. Loading data for merging...")
+            try:
+                with open(output_file, mode='r', encoding='utf-8') as f:
+                    reader = csv.reader(f)
+                    try:
+                        headers = next(reader)
+                        if 'Kode Identitas' in headers:
+                            id_code_idx = headers.index('Kode Identitas')
+                    except StopIteration:
+                        headers = []
+                    
+                    for row in reader:
+                        if not row or len(row) <= id_code_idx:
+                            continue
+                        id_code = row[id_code_idx].strip()
+                        if id_code:
+                            existing_data[id_code] = row
+                print(f"Loaded {len(existing_data)} existing records from '{output_file}'.")
+            except Exception as e:
+                print(f"Warning: Could not read existing output file for merging: {e}")
+        
+        # Read new scraped data
         with open(scraped_file, mode='r', encoding='utf-8') as infile:
             reader = csv.reader(infile)
-            headers = next(reader)
+            try:
+                new_headers = next(reader)
+                if not headers:
+                    headers = new_headers + ['nama_kec', 'koseka']
+                if 'Kode Identitas' in new_headers:
+                    new_id_code_idx = new_headers.index('Kode Identitas')
+                else:
+                    new_id_code_idx = 1
+            except StopIteration:
+                print("Error: scraped_data.csv is empty.")
+                return False
             
-            # Append new columns to header
-            new_headers = headers + ['nama_kec', 'koseka']
-            
-            # Find index of 'Kode Identitas'
-            id_code_idx = 1
-            if 'Kode Identitas' in headers:
-                id_code_idx = headers.index('Kode Identitas')
-            
-            rows_to_write = []
+            new_rows_count = 0
+            updated_rows_count = 0
             for row in reader:
-                if not row:
+                if not row or len(row) <= new_id_code_idx:
                     continue
                 
-                # Extract digits from the identity code to match with kd_kec
-                id_code = row[id_code_idx].strip()
+                id_code = row[new_id_code_idx].strip()
+                if not id_code:
+                    continue  # Skip empty/invalid identity codes
+                
+                # Extract digits to match with kd_kec
                 digits_only = "".join([c for c in id_code if c.isdigit()])
                 kd_kec_7 = digits_only[:7]
                 
                 nama_kec = ""
                 koseka = ""
-                
                 if kd_kec_7 in koseka_map:
                     nama_kec = koseka_map[kd_kec_7]['nama_kec']
                     koseka = koseka_map[kd_kec_7]['koseka']
                 
-                rows_to_write.append(row + [nama_kec, koseka])
+                mapped_row = row + [nama_kec, koseka]
                 
-        # Write to update_data.csv
+                if id_code in existing_data:
+                    updated_rows_count += 1
+                else:
+                    new_rows_count += 1
+                
+                existing_data[id_code] = mapped_row
+                
+        print(f"Scraped data processed: {updated_rows_count} records updated, {new_rows_count} new records added.")
+        
+        # Prepare list of rows to write
+        rows_to_write = list(existing_data.values())
+        
+        # Write merged/updated records back to update_data.csv
         with open(output_file, mode='w', newline='', encoding='utf-8') as outfile:
             writer = csv.writer(outfile)
-            writer.writerow(new_headers)
+            writer.writerow(headers)
             writer.writerows(rows_to_write)
             
         rows_written = len(rows_to_write)
-        print(f"Successfully mapped and created '{output_file}' with {rows_written} rows.")
+        print(f"Successfully merged and created '{output_file}' with {rows_written} rows.")
+        
+        # Also write the merged raw data back to scraped_data.csv (excluding the last two columns: nama_kec, koseka)
+        raw_headers = headers[:-2] if len(headers) > 2 else headers
+        raw_rows = [row[:-2] if len(row) > 2 else row for row in rows_to_write]
+        
+        with open(scraped_file, mode='w', newline='', encoding='utf-8') as sf:
+            writer = csv.writer(sf)
+            writer.writerow(raw_headers)
+            writer.writerows(raw_rows)
+        print(f"Successfully updated '{scraped_file}' with {len(raw_rows)} merged rows.")
+        
     except Exception as e:
-        print(f"Error mapping scraped data: {e}")
+        print(f"Error mapping and merging scraped data: {e}")
         return False
 
     # 3. Copy to Next.js dashboard public folder & write timestamp
