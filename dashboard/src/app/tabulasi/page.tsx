@@ -70,6 +70,14 @@ interface KecStats {
   total: CellStats;
 }
 
+interface SLSStats {
+  slsCode: string;
+  kec: string;
+  koseka: string;
+  categories: { [category: string]: CellStats };
+  total: CellStats;
+}
+
 export default function TabulasiPage() {
   // Theme state
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -85,7 +93,15 @@ export default function TabulasiPage() {
   const [selectedKec, setSelectedKec] = useState<string>("all");
   const [selectedPml, setSelectedPml] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"pcl" | "pml" | "kec">("pcl");
+  const [activeTab, setActiveTab] = useState<"pcl" | "pml" | "kec" | "sls">("pcl");
+
+  // SLS pagination states
+  const [slsPage, setSlsPage] = useState(1);
+  const slsPerPage = 25;
+
+  useEffect(() => {
+    setSlsPage(1);
+  }, [selectedKec, searchQuery, activeTab]);
 
   // Helper to normalize subdistrict/kecamatan names for comparison
   const normalizeKec = (name: string): string => {
@@ -501,6 +517,99 @@ export default function TabulasiPage() {
     };
   }, [rawData, pmlPplData, filteredPmlStats]);
 
+  // Calculate Table 4: SLS Overview stats
+  const slsStats = useMemo<SLSStats[]>(() => {
+    const statsMap: { [slsCode: string]: SLSStats } = {};
+
+    rawData.forEach(r => {
+      const digits = r.idCode.replace(/\D/g, "");
+      if (digits.length < 14) return;
+      const slsCode = digits.substring(0, 14);
+
+      if (!statsMap[slsCode]) {
+        statsMap[slsCode] = {
+          slsCode,
+          kec: formatKecName(r.nama_kec),
+          koseka: r.koseka,
+          categories: {},
+          total: createEmptyCellStats()
+        };
+        categories.forEach(cat => {
+          statsMap[slsCode].categories[cat] = createEmptyCellStats();
+        });
+      }
+
+      const cat = getScaleCategory(r.scale);
+      const status = r.status.toLowerCase().trim();
+
+      const isOpen = status === "open" || status === "";
+      const isDraft = status === "draft";
+      const isSubmit = status === "submit" || status === "submitted";
+      const isApprove = status === "approve" || status === "approved";
+      const isReject = status === "reject" || status === "rejected";
+      const isRealisasi = isSubmit || isApprove || isReject;
+
+      const addStats = (cell: CellStats) => {
+        cell.target++;
+        if (isRealisasi) cell.realisasi++;
+        if (isOpen) cell.open++;
+        if (isDraft) cell.draft++;
+        if (isSubmit) cell.submit++;
+        if (isApprove) cell.approve++;
+        if (isReject) cell.reject++;
+      };
+
+      if (cat && statsMap[slsCode].categories[cat]) {
+        addStats(statsMap[slsCode].categories[cat]);
+      }
+      addStats(statsMap[slsCode].total);
+    });
+
+    return Object.values(statsMap).sort((a, b) => a.slsCode.localeCompare(b.slsCode));
+  }, [rawData, categories]);
+
+  // Filtered Table 4 based on search query and selected filters
+  const filteredSlsStats = useMemo(() => {
+    return slsStats.filter(sls => {
+      const matchKec = selectedKec === "all" ? true : normalizeKec(sls.kec) === normalizeKec(selectedKec);
+      if (!matchKec) return false;
+
+      if (!searchQuery) return true;
+      const query = searchQuery.toLowerCase();
+      return sls.slsCode.includes(query) || sls.kec.toLowerCase().includes(query);
+    });
+  }, [slsStats, selectedKec, searchQuery]);
+
+  // Overview stats for SLS tab (prevents double counting)
+  const selectedSlsOverviewStats = useMemo(() => {
+    const totalStats = createEmptyCellStats();
+
+    filteredSlsStats.forEach(sls => {
+      const t = sls.total;
+      totalStats.target += t.target;
+      totalStats.realisasi += t.realisasi;
+      totalStats.open += t.open;
+      totalStats.draft += t.draft;
+      totalStats.submit += t.submit;
+      totalStats.approve += t.approve;
+      totalStats.reject += t.reject;
+    });
+
+    const completionRate = totalStats.target > 0 ? (totalStats.realisasi / totalStats.target) * 100 : 0;
+
+    return {
+      ...totalStats,
+      completionRate
+    };
+  }, [filteredSlsStats]);
+
+  const paginatedSlsStats = useMemo(() => {
+    const startIndex = (slsPage - 1) * slsPerPage;
+    return filteredSlsStats.slice(startIndex, startIndex + slsPerPage);
+  }, [filteredSlsStats, slsPage]);
+
+  const totalSlsPages = Math.ceil(filteredSlsStats.length / slsPerPage) || 1;
+
   // Calculate Table 2: Kecamatan Overview stats
   const kecamatanStats = useMemo<KecStats[]>(() => {
     const statsMap: { [kecName: string]: KecStats } = {};
@@ -598,7 +707,7 @@ export default function TabulasiPage() {
 
   // Export functions to CSV
   const handleExportCSV = () => {
-    let headers = ["Nama", "Kecamatan", "Jabatan / Koseka"];
+    let headers = ["Nama / Kode SLS", "Kecamatan", "Jabatan / Koseka"];
     
     // Add categories sub-headers
     categories.forEach(cat => {
@@ -683,6 +792,39 @@ export default function TabulasiPage() {
 
         csvRows.push(row.join(","));
       });
+    } else if (activeTab === "sls") {
+      filteredSlsStats.forEach(sls => {
+        const row: (string | number)[] = [
+          `"${sls.slsCode}"`,
+          `"${sls.kec}"`,
+          `"${sls.koseka}"`
+        ];
+
+        categories.forEach(cat => {
+          const stats = sls.categories[cat];
+          row.push(
+            stats.target,
+            stats.realisasi,
+            stats.open,
+            stats.draft,
+            stats.submit,
+            stats.approve,
+            stats.reject
+          );
+        });
+
+        row.push(
+          sls.total.target,
+          sls.total.realisasi,
+          sls.total.open,
+          sls.total.draft,
+          sls.total.submit,
+          sls.total.approve,
+          sls.total.reject
+        );
+
+        csvRows.push(row.join(","));
+      });
     } else {
       kecamatanStats.forEach(kec => {
         const row: (string | number)[] = [
@@ -725,7 +867,9 @@ export default function TabulasiPage() {
       ? `tabulasi_pcl_monitoring_se2026_${Date.now()}.csv`
       : activeTab === "pml"
         ? `tabulasi_pml_monitoring_se2026_${Date.now()}.csv`
-        : `tabulasi_kecamatan_monitoring_se2026_${Date.now()}.csv`;
+        : activeTab === "sls"
+          ? `tabulasi_sls_monitoring_se2026_${Date.now()}.csv`
+          : `tabulasi_kecamatan_monitoring_se2026_${Date.now()}.csv`;
     link.setAttribute("href", url);
     link.setAttribute("download", filename);
     document.body.appendChild(link);
@@ -919,6 +1063,17 @@ export default function TabulasiPage() {
                 Detail Pengawas (PML)
               </button>
               <button
+                onClick={() => { setActiveTab("sls"); setSelectedKec("all"); }}
+                className={`py-4 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
+                  activeTab === "sls"
+                    ? "border-orange-500 text-orange-500 dark:text-orange-400"
+                    : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                }`}
+              >
+                <Layers className="w-4 h-4" />
+                Rekapitulasi SLS
+              </button>
+              <button
                 onClick={() => { setActiveTab("kec"); setSelectedKec("all"); }}
                 className={`py-4 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
                   activeTab === "kec"
@@ -937,7 +1092,7 @@ export default function TabulasiPage() {
                 
                 {/* Left: Interactive Dropdown selectors */}
                 <div className="flex flex-wrap gap-4 w-full md:w-auto items-center">
-                  {(activeTab === "pcl" || activeTab === "pml") && (
+                  {(activeTab === "pcl" || activeTab === "pml" || activeTab === "sls") && (
                     <>
                       {/* Kecamatan Dropdown */}
                       <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold w-full sm:w-auto">
@@ -955,29 +1110,37 @@ export default function TabulasiPage() {
                       </div>
 
                       {/* PML Dropdown */}
-                      <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold w-full sm:w-auto">
-                        <SlidersHorizontal className="w-4 h-4 text-orange-500" />
-                        <select
-                          value={selectedPml}
-                          onChange={(e) => handlePmlChange(e.target.value)}
-                          className="w-full sm:w-auto py-2.5 px-3.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-bold"
-                        >
-                          <option value="all">Semua PML (Pengawas)</option>
-                          {pmlList.map((pml, idx) => (
-                            <option key={idx} value={pml.nama_petugas}>{pml.nama_petugas}</option>
-                          ))}
-                        </select>
-                      </div>
+                      {(activeTab === "pcl" || activeTab === "pml") && (
+                        <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold w-full sm:w-auto">
+                          <SlidersHorizontal className="w-4 h-4 text-orange-500" />
+                          <select
+                            value={selectedPml}
+                            onChange={(e) => handlePmlChange(e.target.value)}
+                            className="w-full sm:w-auto py-2.5 px-3.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-bold"
+                          >
+                            <option value="all">Semua PML (Pengawas)</option>
+                            {pmlList.map((pml, idx) => (
+                              <option key={idx} value={pml.nama_petugas}>{pml.nama_petugas}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
                     </>
                   )}
 
                   {/* Search Input */}
-                  {(activeTab === "pcl" || activeTab === "pml") && (
+                  {(activeTab === "pcl" || activeTab === "pml" || activeTab === "sls") && (
                     <div className="relative w-full sm:w-64">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <input
                         type="text"
-                        placeholder={activeTab === "pcl" ? "Cari nama PCL..." : "Cari nama PML..."}
+                        placeholder={
+                          activeTab === "pcl" 
+                            ? "Cari nama PCL..." 
+                            : activeTab === "pml" 
+                              ? "Cari nama PML..." 
+                              : "Cari SLS / Kecamatan..."
+                        }
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-semibold"
@@ -1054,6 +1217,32 @@ export default function TabulasiPage() {
                       <span className="text-xl font-extrabold text-orange-500">{selectedPmlOverviewStats.completionRate.toFixed(1)}%</span>
                       <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
                         <div className="bg-orange-500 h-full rounded-full" style={{ width: `${selectedPmlOverviewStats.completionRate}%` }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "sls" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+                  <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
+                    <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Total SLS Tampil</span>
+                    <span className="text-xl font-extrabold text-slate-900 dark:text-white mt-1 block">{filteredSlsStats.length} SLS</span>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
+                    <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Total Beban Target</span>
+                    <span className="text-xl font-extrabold text-slate-900 dark:text-white mt-1 block">{selectedSlsOverviewStats.target.toLocaleString("id-ID")}</span>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
+                    <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Total Realisasi</span>
+                    <span className="text-xl font-extrabold text-emerald-500 mt-1 block">{selectedSlsOverviewStats.realisasi.toLocaleString("id-ID")}</span>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
+                    <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Persentase Selesai</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xl font-extrabold text-orange-500">{selectedSlsOverviewStats.completionRate.toFixed(1)}%</span>
+                      <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div className="bg-orange-500 h-full rounded-full" style={{ width: `${selectedSlsOverviewStats.completionRate}%` }}></div>
                       </div>
                     </div>
                   </div>
@@ -1191,6 +1380,121 @@ export default function TabulasiPage() {
                       )}
                     </tbody>
                   </table>
+                ) : activeTab === "sls" ? (
+                  // =================== TABLE 4: DETAIL SLS ===================
+                  <>
+                    <table className="w-full border-collapse border border-slate-200 dark:border-slate-800 min-w-[1200px]">
+                      <thead>
+                        {/* Top Header Row */}
+                        <tr className="bg-orange-100/80 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 text-center">
+                          <th rowSpan={2} className="px-4 py-4 border-r border-slate-200 dark:border-slate-700 text-sm font-extrabold text-left w-56 sticky left-0 bg-orange-100 dark:bg-slate-800 z-10">
+                            Kode SLS (14 Digit)
+                          </th>
+                          <th colSpan={7} className="py-2 border-r border-slate-200 dark:border-slate-700 text-sm font-extrabold tracking-wide uppercase">
+                            Skala Prelist
+                          </th>
+                          <th rowSpan={2} className="px-4 py-4 text-sm font-extrabold uppercase">
+                            Total
+                          </th>
+                        </tr>
+                        {/* Sub Header Row */}
+                        <tr className="bg-slate-100/90 dark:bg-slate-800/40 text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700 text-center text-xs font-bold">
+                          <th className="px-2 py-2.5 border-r border-slate-200 dark:border-slate-700 w-36">Keluarga</th>
+                          <th className="px-2 py-2.5 border-r border-slate-200 dark:border-slate-700 w-36">UMK</th>
+                          <th className="px-2 py-2.5 border-r border-slate-200 dark:border-slate-700 w-36">UMKM/BANGUNAN LAIN</th>
+                          <th className="px-2 py-2.5 border-r border-slate-200 dark:border-slate-700 w-36">UM</th>
+                          <th className="px-2 py-2.5 border-r border-slate-200 dark:border-slate-700 w-36">UMKM/KELUARGA</th>
+                          <th className="px-2 py-2.5 border-r border-slate-200 dark:border-slate-700 w-36">UB</th>
+                          <th className="px-2 py-2.5 border-r border-slate-200 dark:border-slate-700 w-36">UMKM/DUMMY</th>
+                        </tr>
+                      </thead>
+                      
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                        {paginatedSlsStats.length === 0 ? (
+                          <tr>
+                            <td colSpan={9} className="px-4 py-16 text-center text-slate-400 font-medium text-sm">
+                              Tidak ada data SLS ditemukan untuk filter ini.
+                            </td>
+                          </tr>
+                        ) : (
+                          paginatedSlsStats.map((sls, idx) => (
+                            <tr 
+                              key={idx} 
+                              className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all border-b border-slate-100 dark:border-slate-800"
+                            >
+                              {/* SLS Code cell */}
+                              <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-950 dark:text-white sticky left-0 bg-white dark:bg-slate-900 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
+                                <div className="font-mono text-sm tracking-wider">{sls.slsCode}</div>
+                                <div className="text-[10px] text-slate-400 font-normal mt-0.5">{sls.kec} • Koseka: {sls.koseka}</div>
+                              </td>
+
+                              {/* Category cells */}
+                              {categories.map((cat, cIdx) => (
+                                <td key={cIdx} className="p-2 border-r border-slate-200 dark:border-slate-800 align-top">
+                                  <CellContent stats={sls.categories[cat]} />
+                                </td>
+                              ))}
+
+                              {/* Total cell */}
+                              <td className="p-2 align-top bg-orange-500/5 dark:bg-orange-500/0">
+                                <CellContent stats={sls.total} highlight={true} />
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+
+                    {/* Pagination Controls */}
+                    {filteredSlsStats.length > 0 && (
+                      <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                          Menampilkan <span className="font-bold text-slate-900 dark:text-white">{Math.min((slsPage - 1) * slsPerPage + 1, filteredSlsStats.length)}</span> - <span className="font-bold text-slate-900 dark:text-white">{Math.min(slsPage * slsPerPage, filteredSlsStats.length)}</span> dari <span className="font-bold text-slate-900 dark:text-white">{filteredSlsStats.length}</span> SLS
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setSlsPage(prev => Math.max(prev - 1, 1))}
+                            disabled={slsPage === 1}
+                            className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs font-bold transition-all hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-transparent"
+                          >
+                            Sebelumnya
+                          </button>
+                          {Array.from({ length: Math.min(5, totalSlsPages) }, (_, i) => {
+                            let pageNum = slsPage;
+                            if (slsPage <= 3) {
+                              pageNum = i + 1;
+                            } else if (slsPage >= totalSlsPages - 2) {
+                              pageNum = totalSlsPages - 4 + i;
+                            } else {
+                              pageNum = slsPage - 2 + i;
+                            }
+                            if (pageNum < 1 || pageNum > totalSlsPages) return null;
+
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => setSlsPage(pageNum)}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                  slsPage === pageNum
+                                    ? "bg-orange-500 text-white shadow-sm"
+                                    : "border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          })}
+                          <button
+                            onClick={() => setSlsPage(prev => Math.min(prev + 1, totalSlsPages))}
+                            disabled={slsPage === totalSlsPages}
+                            className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs font-bold transition-all hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-transparent"
+                          >
+                            Selanjutnya
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   // =================== TABLE 2: KECAMATAN OVERVIEW ===================
                   <table className="w-full border-collapse border border-slate-200 dark:border-slate-800 min-w-[1200px]">
