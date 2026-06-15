@@ -23,7 +23,10 @@ import {
   PieChart,
   X,
   Layers,
-  ChevronDown
+  ChevronDown,
+  FileText,
+  Send,
+  XCircle
 } from "lucide-react";
 
 // Types for CSV records
@@ -179,26 +182,40 @@ export default function DashboardPage() {
   const stats = useMemo(() => {
     const total = rawData.length;
     let openCount = 0;
+    let draftCount = 0;
+    let submitCount = 0;
+    let approveCount = 0;
+    let rejectCount = 0;
     let emptyCount = 0;
-    let otherCount = 0;
 
     rawData.forEach(r => {
-      const s = r.status.toLowerCase();
+      const s = r.status.toLowerCase().trim();
       if (s === "open") {
         openCount++;
+      } else if (s === "draft") {
+        draftCount++;
+      } else if (s === "submit" || s === "submitted") {
+        submitCount++;
+      } else if (s === "approve" || s === "approved") {
+        approveCount++;
+      } else if (s === "reject" || s === "rejected") {
+        rejectCount++;
       } else if (s === "kosong" || s === "") {
         emptyCount++;
-      } else {
-        otherCount++;
       }
     });
 
-    const completionRate = total > 0 ? ((otherCount) / total) * 100 : 0;
+    const otherCount = submitCount + approveCount + rejectCount;
+    const completionRate = total > 0 ? (otherCount / total) * 100 : 0;
     const activeOfficers = new Set(rawData.map(r => r.officer).filter(Boolean)).size;
 
     return {
       total,
       openCount,
+      draftCount,
+      submitCount,
+      approveCount,
+      rejectCount,
       emptyCount,
       otherCount,
       completionRate,
@@ -348,12 +365,40 @@ export default function DashboardPage() {
 
   // Status Badge Component
   const StatusBadge = ({ status }: { status: string }) => {
-    const s = status.toLowerCase();
+    const s = status.toLowerCase().trim();
     if (s === "open") {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20">
           <Clock className="w-3.5 h-3.5" />
           Terbuka (Open)
+        </span>
+      );
+    } else if (s === "draft") {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-500 border border-blue-500/20">
+          <FileText className="w-3.5 h-3.5" />
+          Draft
+        </span>
+      );
+    } else if (s === "submit" || s === "submitted") {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-500/10 text-teal-500 border border-teal-500/20">
+          <Send className="w-3.5 h-3.5" />
+          Submit
+        </span>
+      );
+    } else if (s === "approve" || s === "approved") {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          Approve
+        </span>
+      );
+    } else if (s === "reject" || s === "rejected") {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-500/10 text-red-500 border border-red-500/20">
+          <XCircle className="w-3.5 h-3.5" />
+          Reject
         </span>
       );
     } else if (s === "kosong" || s === "") {
@@ -365,8 +410,8 @@ export default function DashboardPage() {
       );
     } else {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-          <CheckCircle2 className="w-3.5 h-3.5" />
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">
+          <AlertCircle className="w-3.5 h-3.5" />
           {status}
         </span>
       );
@@ -506,8 +551,9 @@ export default function DashboardPage() {
         ) : (
           <>
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-5 mb-8">
               
+              {/* Total Target Prelist */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -515,7 +561,7 @@ export default function DashboardPage() {
                 className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Total Target Prelist</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Total Target Prelist</span>
                 <span className="text-3xl font-extrabold mt-2 block text-slate-900 dark:text-white">
                   {stats.total.toLocaleString("id-ID")}
                 </span>
@@ -525,6 +571,7 @@ export default function DashboardPage() {
                 </span>
               </motion.div>
 
+              {/* Status Terbuka (Open) */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -532,18 +579,19 @@ export default function DashboardPage() {
                 className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Status Terbuka (Open)</span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Status Terbuka (Open)</span>
                 <span className="text-3xl font-extrabold mt-2 block text-amber-500">
                   {stats.openCount.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center gap-2 mt-2">
                   <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-amber-500 h-full rounded-full" style={{ width: `${(stats.openCount / stats.total) * 100}%` }}></div>
+                    <div className="bg-amber-500 h-full rounded-full" style={{ width: `${stats.total > 0 ? (stats.openCount / stats.total) * 100 : 0}%` }}></div>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-400">{((stats.openCount / stats.total) * 100).toFixed(1)}%</span>
+                  <span className="text-[10px] font-bold text-slate-400">{stats.total > 0 ? ((stats.openCount / stats.total) * 100).toFixed(1) : "0.0"}%</span>
                 </div>
               </motion.div>
 
+              {/* Status Draft */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -551,18 +599,19 @@ export default function DashboardPage() {
                 className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Belum Diisi / Kosong</span>
-                <span className="text-3xl font-extrabold mt-2 block text-slate-400">
-                  {stats.emptyCount.toLocaleString("id-ID")}
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Status Draft</span>
+                <span className="text-3xl font-extrabold mt-2 block text-blue-500">
+                  {stats.draftCount.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center gap-2 mt-2">
                   <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-slate-400 h-full rounded-full" style={{ width: `${(stats.emptyCount / stats.total) * 100}%` }}></div>
+                    <div className="bg-blue-500 h-full rounded-full" style={{ width: `${stats.total > 0 ? (stats.draftCount / stats.total) * 100 : 0}%` }}></div>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-400">{((stats.emptyCount / stats.total) * 100).toFixed(1)}%</span>
+                  <span className="text-[10px] font-bold text-slate-400">{stats.total > 0 ? ((stats.draftCount / stats.total) * 100).toFixed(1) : "0.0"}%</span>
                 </div>
               </motion.div>
 
+              {/* Status Submit */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -570,14 +619,56 @@ export default function DashboardPage() {
                 className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Aktif Petugas (Pencacah)</span>
-                <span className="text-3xl font-extrabold mt-2 block text-orange-500">
-                  {stats.activeOfficers}
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Status Submit</span>
+                <span className="text-3xl font-extrabold mt-2 block text-teal-500">
+                  {stats.submitCount.toLocaleString("id-ID")}
                 </span>
-                <span className="text-xs text-slate-400 mt-2 block flex items-center gap-1">
-                  <User className="w-3.5 h-3.5 text-orange-500" />
-                  Mengisi data di lapangan
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div className="bg-teal-500 h-full rounded-full" style={{ width: `${stats.total > 0 ? (stats.submitCount / stats.total) * 100 : 0}%` }}></div>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400">{stats.total > 0 ? ((stats.submitCount / stats.total) * 100).toFixed(1) : "0.0"}%</span>
+                </div>
+              </motion.div>
+
+              {/* Status Approve */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
+              >
+                <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Status Approve</span>
+                <span className="text-3xl font-extrabold mt-2 block text-emerald-500">
+                  {stats.approveCount.toLocaleString("id-ID")}
                 </span>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${stats.total > 0 ? (stats.approveCount / stats.total) * 100 : 0}%` }}></div>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400">{stats.total > 0 ? ((stats.approveCount / stats.total) * 100).toFixed(1) : "0.0"}%</span>
+                </div>
+              </motion.div>
+
+              {/* Status Reject */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.25 }}
+                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
+              >
+                <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Status Reject</span>
+                <span className="text-3xl font-extrabold mt-2 block text-red-500">
+                  {stats.rejectCount.toLocaleString("id-ID")}
+                </span>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div className="bg-red-500 h-full rounded-full" style={{ width: `${stats.total > 0 ? (stats.rejectCount / stats.total) * 100 : 0}%` }}></div>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400">{stats.total > 0 ? ((stats.rejectCount / stats.total) * 100).toFixed(1) : "0.0"}%</span>
+                </div>
               </motion.div>
 
             </div>
