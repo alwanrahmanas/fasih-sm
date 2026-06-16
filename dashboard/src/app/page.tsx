@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -72,6 +72,38 @@ export default function DashboardPage() {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 50;
+
+  // Double scrollbar refs and state
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [tableWidth, setTableWidth] = useState(0);
+
+  const isScrollingTop = useRef(false);
+  const isScrollingTable = useRef(false);
+
+  const handleTopScroll = () => {
+    if (isScrollingTable.current) return;
+    isScrollingTop.current = true;
+    if (topScrollRef.current && tableContainerRef.current) {
+      tableContainerRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+    }
+    window.requestAnimationFrame(() => {
+      isScrollingTop.current = false;
+    });
+  };
+
+  const handleTableScroll = () => {
+    if (isScrollingTop.current) return;
+    isScrollingTable.current = true;
+    if (tableContainerRef.current && topScrollRef.current) {
+      topScrollRef.current.scrollLeft = tableContainerRef.current.scrollLeft;
+    }
+    window.requestAnimationFrame(() => {
+      isScrollingTable.current = false;
+    });
+  };
+
+
 
   // Fetch and parse CSV data
   const fetchData = async () => {
@@ -313,6 +345,25 @@ export default function DashboardPage() {
       return matchesSearch && matchesStatus && matchesScale && matchesOfficer && matchesSubdistrict && matchesKoseka;
     });
   }, [rawData, searchQuery, statusFilter, scaleFilter, selectedOfficer, selectedSubdistrict, selectedKoseka]);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (tableContainerRef.current) {
+        const table = tableContainerRef.current.querySelector("table");
+        if (table) {
+          setTableWidth(table.offsetWidth);
+        }
+      }
+    };
+
+    updateWidth();
+    const timer = setTimeout(updateWidth, 300);
+    window.addEventListener("resize", updateWidth);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", updateWidth);
+    };
+  }, [rawData, filteredData, currentPage]);
 
   // Reset page number on filter changes
   useEffect(() => {
@@ -643,94 +694,67 @@ export default function DashboardPage() {
 
             </div>
 
-            {/* Bento Section: Leaderboard and Distribution */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              
-              {/* Leaderboard Petugas */}
-              <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
-                      <BarChart3 className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-slate-900 dark:text-white">Kinerja Beban Kerja Petugas (Top 8)</h3>
-                      <p className="text-xs text-slate-500">Jumlah prelist terbanyak yang diolah oleh pencacah</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4 my-4">
-                    {officerLeaderboard.map((item, idx) => {
-                      const maxTotal = officerLeaderboard[0]?.total || 1;
-                      const percent = (item.total / maxTotal) * 100;
-                      return (
-                        <div key={idx} className="space-y-1.5">
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="font-medium truncate max-w-[200px] sm:max-w-[300px] text-slate-700 dark:text-slate-300">
-                              {idx + 1}. {item.name.replace(/Pencacah$/, "")}
-                            </span>
-                            <span className="font-bold text-slate-500 dark:text-slate-400">
-                              {item.total} <span className="font-normal text-[10px] text-slate-400">prelist</span>
-                            </span>
-                          </div>
-                          <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
-                            <div
-                              className="bg-gradient-to-r from-orange-500 to-amber-500 h-full rounded-full transition-all duration-500"
-                              style={{ width: `${percent}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
+            {/* Bento Section: Distribution Chart */}
+            <div className="mb-8">
               {/* Distribusi Skala Usaha */}
-              <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
-                      <PieChart className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-slate-900 dark:text-white">Distribusi Jenis Prelist / Skala</h3>
-                      <p className="text-xs text-slate-500">Pembagian sampel berdasarkan skala usaha</p>
-                    </div>
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="p-2.5 rounded-xl bg-orange-500/10 text-orange-500">
+                    <BarChart3 className="w-5 h-5" />
                   </div>
-
-                  <div className="flex flex-col gap-4 my-6">
-                    {scaleDistribution.map((item, idx) => {
-                      const total = stats.total || 1;
-                      const pct = (item.value / total) * 100;
-                      let color = "bg-orange-500";
-                      if (item.name.includes("KELUARGA")) color = "bg-blue-500";
-                      if (item.name.includes("UMK")) color = "bg-orange-500";
-                      if (item.name.includes("UMKM")) color = "bg-purple-500";
-
-                      return (
-                        <div key={idx} className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/50 pb-2">
-                          <div className="flex items-center gap-2.5">
-                            <span className={`w-3 h-3 rounded-full ${color}`}></span>
-                            <span className="text-xs font-semibold uppercase text-slate-700 dark:text-slate-300">
-                              {item.name}
-                            </span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-sm font-bold text-slate-800 dark:text-white">
-                              {item.value.toLocaleString("id-ID")}
-                            </span>
-                            <span className="text-[10px] text-slate-400 block font-medium">
-                              {pct.toFixed(1)}%
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div>
+                    <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white">Distribusi Jenis Prelist / Skala</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Pembagian sampel berdasarkan skala usaha (Bar Chart)</p>
                   </div>
                 </div>
-              </div>
 
+                <div className="space-y-5">
+                  {scaleDistribution.map((item, idx) => {
+                    const total = stats.total || 1;
+                    const pct = (item.value / total) * 100;
+                    
+                    let colorClass = "from-orange-500 to-amber-500";
+                    let bgClass = "bg-orange-500/10";
+                    let textClass = "text-orange-500";
+                    
+                    if (item.name.toUpperCase().includes("KELUARGA")) {
+                      colorClass = "from-blue-600 to-cyan-500";
+                      bgClass = "bg-blue-500/10";
+                      textClass = "text-blue-500";
+                    } else if (item.name.toUpperCase().includes("UMK")) {
+                      colorClass = "from-orange-500 to-amber-500";
+                      bgClass = "bg-orange-500/10";
+                      textClass = "text-orange-500";
+                    } else if (item.name.toUpperCase().includes("UMKM")) {
+                      colorClass = "from-purple-600 to-pink-500";
+                      bgClass = "bg-purple-500/10";
+                      textClass = "text-purple-500";
+                    }
+
+                    return (
+                      <div key={idx} className="space-y-2">
+                        <div className="flex justify-between items-center text-xs sm:text-sm font-semibold">
+                          <span className="uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                            {item.name}
+                          </span>
+                          <span className="font-bold text-slate-900 dark:text-white">
+                            {item.value.toLocaleString("id-ID")}{" "}
+                            <span className="font-medium text-xs text-slate-500 dark:text-slate-400 ml-1">
+                              ({pct.toFixed(1)}%)
+                            </span>
+                          </span>
+                        </div>
+                        <div className="h-4 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden flex shadow-inner">
+                          <div
+                            className={`bg-gradient-to-r ${colorClass} h-full rounded-full transition-all duration-500`}
+                            style={{ width: `${pct}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* Filter and Table Card */}
@@ -916,20 +940,34 @@ export default function DashboardPage() {
                 )}
               </div>
 
+              {/* Top scrollbar synced with table */}
+              <div 
+                ref={topScrollRef}
+                onScroll={handleTopScroll}
+                className="overflow-x-auto overflow-y-hidden w-full bg-slate-50/30 dark:bg-slate-900/30 border-b border-slate-200 dark:border-slate-800"
+                style={{ height: "10px" }}
+              >
+                <div style={{ width: `${tableWidth}px`, height: "10px" }} />
+              </div>
+
               {/* Data Table */}
-              <div className="overflow-x-auto w-full">
+              <div 
+                ref={tableContainerRef}
+                onScroll={handleTableScroll}
+                className="overflow-auto max-h-[650px] w-full"
+              >
                 <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/30 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                      <th className="py-4 px-6">Kode Identitas</th>
-                      <th className="py-4 px-6">Nama Keluarga/Bangunan/Usaha</th>
-                      <th className="py-4 px-6">Kecamatan</th>
-                      <th className="py-4 px-6">Koseka</th>
-                      <th className="py-4 px-6">Alamat Prelist</th>
-                      <th className="py-4 px-6">Skala Prelist</th>
-                      <th className="py-4 px-6 text-center">Status</th>
-                      <th className="py-4 px-6">Petugas</th>
-                      <th className="py-4 px-6">Keterangan</th>
+                  <thead className="sticky top-0 z-20 bg-slate-50 dark:bg-slate-900 shadow-[0_1px_0_0_rgba(226,232,240,1)] dark:shadow-[0_1px_0_0_rgba(30,41,59,1)]">
+                    <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      <th className="py-4 px-6 bg-slate-50 dark:bg-slate-900">Kode Identitas</th>
+                      <th className="py-4 px-6 bg-slate-50 dark:bg-slate-900">Nama Keluarga/Bangunan/Usaha</th>
+                      <th className="py-4 px-6 bg-slate-50 dark:bg-slate-900">Kecamatan</th>
+                      <th className="py-4 px-6 bg-slate-50 dark:bg-slate-900">Koseka</th>
+                      <th className="py-4 px-6 bg-slate-50 dark:bg-slate-900">Alamat Prelist</th>
+                      <th className="py-4 px-6 bg-slate-50 dark:bg-slate-900">Skala Prelist</th>
+                      <th className="py-4 px-6 text-center bg-slate-50 dark:bg-slate-900">Status</th>
+                      <th className="py-4 px-6 bg-slate-50 dark:bg-slate-900">Petugas</th>
+                      <th className="py-4 px-6 bg-slate-50 dark:bg-slate-900">Keterangan</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 dark:divide-slate-800/50 text-sm">

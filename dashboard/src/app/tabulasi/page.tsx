@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -102,6 +102,55 @@ export default function TabulasiPage() {
   useEffect(() => {
     setSlsPage(1);
   }, [selectedKec, searchQuery, activeTab]);
+
+  // Double scrollbar refs and state
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [tableWidth, setTableWidth] = useState(0);
+
+  const isScrollingTop = useRef(false);
+  const isScrollingTable = useRef(false);
+
+  const handleTopScroll = () => {
+    if (isScrollingTable.current) return;
+    isScrollingTop.current = true;
+    if (topScrollRef.current && tableContainerRef.current) {
+      tableContainerRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+    }
+    window.requestAnimationFrame(() => {
+      isScrollingTop.current = false;
+    });
+  };
+
+  const handleTableScroll = () => {
+    if (isScrollingTop.current) return;
+    isScrollingTable.current = true;
+    if (tableContainerRef.current && topScrollRef.current) {
+      topScrollRef.current.scrollLeft = tableContainerRef.current.scrollLeft;
+    }
+    window.requestAnimationFrame(() => {
+      isScrollingTable.current = false;
+    });
+  };
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (tableContainerRef.current) {
+        const table = tableContainerRef.current.querySelector("table");
+        if (table) {
+          setTableWidth(table.offsetWidth);
+        }
+      }
+    };
+
+    updateWidth();
+    const timer = setTimeout(updateWidth, 300);
+    window.addEventListener("resize", updateWidth);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", updateWidth);
+    };
+  }, [rawData, activeTab, selectedKec, selectedPml, searchQuery, slsPage]);
 
   // Helper to normalize subdistrict/kecamatan names for comparison
   const normalizeKec = (name: string): string => {
@@ -1239,15 +1288,29 @@ export default function TabulasiPage() {
 
             {/* Content Table Card */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-lg overflow-hidden">
-              <div className="overflow-x-auto">
+              {/* Top scrollbar synced with table */}
+              <div 
+                ref={topScrollRef}
+                onScroll={handleTopScroll}
+                className="overflow-x-auto overflow-y-hidden w-full bg-slate-50/30 dark:bg-slate-900/30 border-b border-slate-200 dark:border-slate-800"
+                style={{ height: "10px" }}
+              >
+                <div style={{ width: `${tableWidth}px`, height: "10px" }} />
+              </div>
+
+              <div 
+                ref={tableContainerRef}
+                onScroll={handleTableScroll}
+                className="overflow-auto max-h-[700px] w-full"
+              >
                 
                 {activeTab === "pcl" ? (
                   // =================== TABLE 1: DETAIL PCL ===================
                   <table className="w-full border-collapse border border-slate-200 dark:border-slate-800 min-w-[1200px]">
-                    <thead>
+                    <thead className="sticky top-0 z-20 bg-slate-50 dark:bg-slate-900 shadow-[0_1px_0_0_rgba(226,232,240,1)] dark:shadow-[0_1px_0_0_rgba(30,41,59,1)]">
                       {/* Top Header Row */}
                       <tr className="bg-orange-100/80 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 text-center">
-                        <th rowSpan={2} className="px-4 py-4 border-r border-slate-200 dark:border-slate-700 text-sm font-extrabold text-left w-56 sticky left-0 bg-orange-100 dark:bg-slate-800 z-10">
+                        <th rowSpan={2} className="px-4 py-4 border-r border-slate-200 dark:border-slate-700 text-sm font-extrabold text-left w-56 sticky left-0 bg-orange-100 dark:bg-slate-800 z-30">
                           Nama PCL
                         </th>
                         <th colSpan={7} className="py-2 border-r border-slate-200 dark:border-slate-700 text-sm font-extrabold tracking-wide uppercase">
@@ -1307,10 +1370,10 @@ export default function TabulasiPage() {
                 ) : activeTab === "pml" ? (
                   // =================== TABLE 3: DETAIL PML ===================
                   <table className="w-full border-collapse border border-slate-200 dark:border-slate-800 min-w-[1200px]">
-                    <thead>
+                    <thead className="sticky top-0 z-20 bg-slate-50 dark:bg-slate-900 shadow-[0_1px_0_0_rgba(226,232,240,1)] dark:shadow-[0_1px_0_0_rgba(30,41,59,1)]">
                       {/* Top Header Row */}
                       <tr className="bg-orange-100/80 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 text-center">
-                        <th rowSpan={2} className="px-4 py-4 border-r border-slate-200 dark:border-slate-700 text-sm font-extrabold text-left w-56 sticky left-0 bg-orange-100 dark:bg-slate-800 z-10">
+                        <th rowSpan={2} className="px-4 py-4 border-r border-slate-200 dark:border-slate-700 text-sm font-extrabold text-left w-56 sticky left-0 bg-orange-100 dark:bg-slate-800 z-30">
                           Nama PML (Pengawas)
                         </th>
                         <th colSpan={7} className="py-2 border-r border-slate-200 dark:border-slate-700 text-sm font-extrabold tracking-wide uppercase">
@@ -1371,10 +1434,10 @@ export default function TabulasiPage() {
                   // =================== TABLE 4: DETAIL SLS ===================
                   <>
                     <table className="w-full border-collapse border border-slate-200 dark:border-slate-800 min-w-[1200px]">
-                      <thead>
+                      <thead className="sticky top-0 z-20 bg-slate-50 dark:bg-slate-900 shadow-[0_1px_0_0_rgba(226,232,240,1)] dark:shadow-[0_1px_0_0_rgba(30,41,59,1)]">
                         {/* Top Header Row */}
                         <tr className="bg-orange-100/80 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 text-center">
-                          <th rowSpan={2} className="px-4 py-4 border-r border-slate-200 dark:border-slate-700 text-sm font-extrabold text-left w-56 sticky left-0 bg-orange-100 dark:bg-slate-800 z-10">
+                          <th rowSpan={2} className="px-4 py-4 border-r border-slate-200 dark:border-slate-700 text-sm font-extrabold text-left w-56 sticky left-0 bg-orange-100 dark:bg-slate-800 z-30">
                             Kode SLS (14 Digit)
                           </th>
                           <th colSpan={7} className="py-2 border-r border-slate-200 dark:border-slate-700 text-sm font-extrabold tracking-wide uppercase">
@@ -1485,10 +1548,10 @@ export default function TabulasiPage() {
                 ) : (
                   // =================== TABLE 2: KECAMATAN OVERVIEW ===================
                   <table className="w-full border-collapse border border-slate-200 dark:border-slate-800 min-w-[1200px]">
-                    <thead>
+                    <thead className="sticky top-0 z-20 bg-slate-50 dark:bg-slate-900 shadow-[0_1px_0_0_rgba(226,232,240,1)] dark:shadow-[0_1px_0_0_rgba(30,41,59,1)]">
                       {/* Top Header Row */}
                       <tr className="bg-orange-100/80 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 text-center">
-                        <th rowSpan={2} className="px-4 py-4 border-r border-slate-200 dark:border-slate-700 text-sm font-extrabold text-left w-56 sticky left-0 bg-orange-100 dark:bg-slate-800 z-10">
+                        <th rowSpan={2} className="px-4 py-4 border-r border-slate-200 dark:border-slate-700 text-sm font-extrabold text-left w-56 sticky left-0 bg-orange-100 dark:bg-slate-800 z-30">
                           Nama Kecamatan
                         </th>
                         <th colSpan={7} className="py-2 border-r border-slate-200 dark:border-slate-700 text-sm font-extrabold tracking-wide uppercase">
