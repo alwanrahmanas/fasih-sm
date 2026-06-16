@@ -61,6 +61,16 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string>("");
 
+  // Summary states from CSV files
+  const [totalPrelistSummary, setTotalPrelistSummary] = useState<number>(0);
+  const [summaryStatusCounts, setSummaryStatusCounts] = useState({
+    open: 0,
+    submit: 0,
+    approve: 0,
+    draft: 0,
+    reject: 0
+  });
+
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -110,6 +120,63 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       setError(null);
+
+      // Fetch and parse ringkasan_Assign.csv
+      try {
+        const assignResponse = await fetch("/ringkasan_Assign.csv");
+        if (assignResponse.ok) {
+          const assignText = await assignResponse.text();
+          const assignLines = assignText.split("\n").map(l => l.trim()).filter(Boolean);
+          if (assignLines.length > 1) {
+            const headers = assignLines[0].split(",");
+            const values = assignLines[1].split(",");
+            const assignedIdx = headers.indexOf("assigned");
+            const haveNotAssignedIdx = headers.indexOf("have-not-assigned");
+            let assigned = 0;
+            let haveNotAssigned = 0;
+            if (assignedIdx !== -1) assigned = parseInt(values[assignedIdx]) || 0;
+            if (haveNotAssignedIdx !== -1) haveNotAssigned = parseInt(values[haveNotAssignedIdx]) || 0;
+            setTotalPrelistSummary(assigned + haveNotAssigned);
+          }
+        }
+      } catch (e) {
+        console.warn("Gagal memuat ringkasan_Assign.csv, menggunakan data detail sebagai fallback:", e);
+      }
+
+      // Fetch and parse ringkasan_Progres.csv
+      try {
+        const progresResponse = await fetch("/ringkasan_Progres.csv");
+        if (progresResponse.ok) {
+          const progresText = await progresResponse.text();
+          const progresLines = progresText.split("\n").map(l => l.trim()).filter(Boolean);
+          if (progresLines.length > 1) {
+            const headers = progresLines[0].split(",");
+            const values = progresLines[1].split(",");
+            const openIdx = headers.indexOf("OPEN");
+            const submitIdx = headers.indexOf("SUBMITTED BY Pencacah");
+            const draftIdx = headers.indexOf("DRAFT");
+            const rejectIdx = headers.indexOf("REJECTED BY Pengawas");
+            const approveIdx = headers.indexOf("APPROVED BY Pengawas");
+            
+            let openVal = 0, submitVal = 0, draftVal = 0, rejectVal = 0, approveVal = 0;
+            if (openIdx !== -1) openVal = parseInt(values[openIdx]) || 0;
+            if (submitIdx !== -1) submitVal = parseInt(values[submitIdx]) || 0;
+            if (draftIdx !== -1) draftVal = parseInt(values[draftIdx]) || 0;
+            if (rejectIdx !== -1) rejectVal = parseInt(values[rejectIdx]) || 0;
+            if (approveIdx !== -1) approveVal = parseInt(values[approveIdx]) || 0;
+            
+            setSummaryStatusCounts({
+              open: openVal,
+              submit: submitVal,
+              draft: draftVal,
+              reject: rejectVal,
+              approve: approveVal
+            });
+          }
+        }
+      } catch (e) {
+        console.warn("Gagal memuat ringkasan_Progres.csv, menggunakan data detail sebagai fallback:", e);
+      }
       
       const response = await fetch("/update_data.csv");
       if (!response.ok) {
@@ -254,6 +321,18 @@ export default function DashboardPage() {
       activeOfficers
     };
   }, [rawData]);
+
+  // Derived display stats that fall back to dynamic rawData-based stats
+  const { displayTotal, displayOpen, displaySubmit, displayApprove, displayDraft, displayReject } = useMemo(() => {
+    return {
+      displayTotal: totalPrelistSummary || stats.total,
+      displayOpen: summaryStatusCounts.open || stats.openCount,
+      displaySubmit: summaryStatusCounts.submit || stats.submitCount,
+      displayApprove: summaryStatusCounts.approve || stats.approvedCount,
+      displayDraft: summaryStatusCounts.draft || stats.draftCount,
+      displayReject: summaryStatusCounts.reject || stats.rejectCount,
+    };
+  }, [totalPrelistSummary, summaryStatusCounts, stats]);
 
   // Unique filters data
   const filterOptions = useMemo(() => {
@@ -625,11 +704,11 @@ export default function DashboardPage() {
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Total Target Prelist</span>
                 <span className="text-3xl font-extrabold mt-2 block text-slate-900 dark:text-white">
-                  {stats.total.toLocaleString("id-ID")}
+                  {displayTotal.toLocaleString("id-ID")}
                 </span>
                 <span className="text-xs text-slate-400 mt-2 block flex items-center gap-1">
                   <FileSpreadsheet className="w-3.5 h-3.5 text-orange-500" />
-                  Baris data valid terkumpul
+                  {totalPrelistSummary ? "Target resmi dari BPS FASIH" : "Baris data valid terkumpul"}
                 </span>
               </motion.div>
 
@@ -643,13 +722,13 @@ export default function DashboardPage() {
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Status Terbuka (Open)</span>
                 <span className="text-3xl font-extrabold mt-2 block text-amber-500">
-                  {stats.openCount.toLocaleString("id-ID")}
+                  {displayOpen.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center gap-2 mt-2">
                   <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-amber-500 h-full rounded-full" style={{ width: `${stats.total > 0 ? (stats.openCount / stats.total) * 100 : 0}%` }}></div>
+                    <div className="bg-amber-500 h-full rounded-full" style={{ width: `${displayTotal > 0 ? (displayOpen / displayTotal) * 100 : 0}%` }}></div>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-400">{stats.total > 0 ? ((stats.openCount / stats.total) * 100).toFixed(1) : "0.0"}%</span>
+                  <span className="text-[10px] font-bold text-slate-400">{displayTotal > 0 ? ((displayOpen / displayTotal) * 100).toFixed(1) : "0.0"}%</span>
                 </div>
               </motion.div>
 
@@ -663,13 +742,13 @@ export default function DashboardPage() {
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Submitted by Pencacah</span>
                 <span className="text-3xl font-extrabold mt-2 block text-teal-500">
-                  {stats.submitCount.toLocaleString("id-ID")}
+                  {displaySubmit.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center gap-2 mt-2">
                   <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-teal-500 h-full rounded-full" style={{ width: `${stats.total > 0 ? (stats.submitCount / stats.total) * 100 : 0}%` }}></div>
+                    <div className="bg-teal-500 h-full rounded-full" style={{ width: `${displayTotal > 0 ? (displaySubmit / displayTotal) * 100 : 0}%` }}></div>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-400">{stats.total > 0 ? ((stats.submitCount / stats.total) * 100).toFixed(1) : "0.0"}%</span>
+                  <span className="text-[10px] font-bold text-slate-400">{displayTotal > 0 ? ((displaySubmit / displayTotal) * 100).toFixed(1) : "0.0"}%</span>
                 </div>
               </motion.div>
 
@@ -683,13 +762,13 @@ export default function DashboardPage() {
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Approved by Pengawas</span>
                 <span className="text-3xl font-extrabold mt-2 block text-emerald-500">
-                  {stats.approvedCount.toLocaleString("id-ID")}
+                  {displayApprove.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center gap-2 mt-2">
                   <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${stats.total > 0 ? (stats.approvedCount / stats.total) * 100 : 0}%` }}></div>
+                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${displayTotal > 0 ? (displayApprove / displayTotal) * 100 : 0}%` }}></div>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-400">{stats.total > 0 ? ((stats.approvedCount / stats.total) * 100).toFixed(1) : "0.0"}%</span>
+                  <span className="text-[10px] font-bold text-slate-400">{displayTotal > 0 ? ((displayApprove / displayTotal) * 100).toFixed(1) : "0.0"}%</span>
                 </div>
               </motion.div>
 
@@ -703,13 +782,13 @@ export default function DashboardPage() {
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Status Draft</span>
                 <span className="text-3xl font-extrabold mt-2 block text-blue-500">
-                  {stats.draftCount.toLocaleString("id-ID")}
+                  {displayDraft.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center gap-2 mt-2">
                   <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-blue-500 h-full rounded-full" style={{ width: `${stats.total > 0 ? (stats.draftCount / stats.total) * 100 : 0}%` }}></div>
+                    <div className="bg-blue-500 h-full rounded-full" style={{ width: `${displayTotal > 0 ? (displayDraft / displayTotal) * 100 : 0}%` }}></div>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-400">{stats.total > 0 ? ((stats.draftCount / stats.total) * 100).toFixed(1) : "0.0"}%</span>
+                  <span className="text-[10px] font-bold text-slate-400">{displayTotal > 0 ? ((displayDraft / displayTotal) * 100).toFixed(1) : "0.0"}%</span>
                 </div>
               </motion.div>
 
@@ -723,13 +802,13 @@ export default function DashboardPage() {
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Rejected by Pengawas</span>
                 <span className="text-3xl font-extrabold mt-2 block text-red-500">
-                  {stats.rejectCount.toLocaleString("id-ID")}
+                  {displayReject.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center gap-2 mt-2">
                   <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-red-500 h-full rounded-full" style={{ width: `${stats.total > 0 ? (stats.rejectCount / stats.total) * 100 : 0}%` }}></div>
+                    <div className="bg-red-500 h-full rounded-full" style={{ width: `${displayTotal > 0 ? (displayReject / displayTotal) * 100 : 0}%` }}></div>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-400">{stats.total > 0 ? ((stats.rejectCount / stats.total) * 100).toFixed(1) : "0.0"}%</span>
+                  <span className="text-[10px] font-bold text-slate-400">{displayTotal > 0 ? ((displayReject / displayTotal) * 100).toFixed(1) : "0.0"}%</span>
                 </div>
               </motion.div>
 

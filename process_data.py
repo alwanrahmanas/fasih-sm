@@ -35,8 +35,12 @@ def run_git_commands(timestamp_str):
             "scraped_data.csv",
             "update_data.csv",
             os.path.join("data", "pml_ppl.csv"),
+            os.path.join("data", "ringkasan_Assign.csv"),
+            os.path.join("data", "ringkasan_Progres.csv"),
             os.path.join("dashboard", "public", "update_data.csv"),
             os.path.join("dashboard", "public", "pml_ppl.csv"),
+            os.path.join("dashboard", "public", "ringkasan_Assign.csv"),
+            os.path.join("dashboard", "public", "ringkasan_Progres.csv"),
             os.path.join("dashboard", "public", "last_updated.txt")
         ]
         
@@ -217,6 +221,18 @@ def process_data():
             if os.path.exists(pml_ppl_src):
                 shutil.copy2(pml_ppl_src, os.path.join(public_dir, "pml_ppl.csv"))
                 print(f"Copied '{pml_ppl_src}' to dashboard public folder.")
+            
+            # Copy ringkasan_Assign.csv
+            assign_src = os.path.join("data", "ringkasan_Assign.csv")
+            if os.path.exists(assign_src):
+                shutil.copy2(assign_src, os.path.join(public_dir, "ringkasan_Assign.csv"))
+                print(f"Copied '{assign_src}' to dashboard public folder.")
+            
+            # Copy ringkasan_Progres.csv
+            progres_src = os.path.join("data", "ringkasan_Progres.csv")
+            if os.path.exists(progres_src):
+                shutil.copy2(progres_src, os.path.join(public_dir, "ringkasan_Progres.csv"))
+                print(f"Copied '{progres_src}' to dashboard public folder.")
             
             # Generate and write timestamp
             timestamp = get_wita_timestamp()
