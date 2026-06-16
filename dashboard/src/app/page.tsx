@@ -217,6 +217,7 @@ export default function DashboardPage() {
     let draftCount = 0;
     let submitCount = 0;
     let rejectCount = 0;
+    let approvedCount = 0;
     let emptyCount = 0;
 
     rawData.forEach(r => {
@@ -229,12 +230,14 @@ export default function DashboardPage() {
         submitCount++;
       } else if (s === "rejected by pengawas" || s === "reject" || s === "rejected") {
         rejectCount++;
+      } else if (s === "approved by pengawas" || s === "approve" || s === "approved") {
+        approvedCount++;
       } else if (s === "kosong" || s === "") {
         emptyCount++;
       }
     });
 
-    const otherCount = submitCount + rejectCount;
+    const otherCount = submitCount + rejectCount + approvedCount;
     const completionRate = total > 0 ? (otherCount / total) * 100 : 0;
     const activeOfficers = new Set(rawData.map(r => r.officer).filter(Boolean)).size;
 
@@ -244,6 +247,7 @@ export default function DashboardPage() {
       draftCount,
       submitCount,
       rejectCount,
+      approvedCount,
       emptyCount,
       otherCount,
       completionRate,
@@ -281,7 +285,17 @@ export default function DashboardPage() {
       const s = r.status.toLowerCase().trim();
       if (s === "open" || s === "draft" || s === "kosong" || s === "") {
         counts[r.officer].open++;
-      } else if (s === "submitted by pencacah" || s === "rejected by pengawas" || s === "submit" || s === "submitted" || s === "reject" || s === "rejected") {
+      } else if (
+        s === "submitted by pencacah" ||
+        s === "rejected by pengawas" ||
+        s === "approved by pengawas" ||
+        s === "submit" ||
+        s === "submitted" ||
+        s === "reject" ||
+        s === "rejected" ||
+        s === "approve" ||
+        s === "approved"
+      ) {
         counts[r.officer].selesai++;
       }
     });
@@ -442,6 +456,13 @@ export default function DashboardPage() {
           Rejected by Pengawas
         </span>
       );
+    } else if (s === "approved by pengawas" || s === "approve" || s === "approved") {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          Approved by Pengawas
+        </span>
+      );
     } else if (s === "kosong" || s === "") {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">
@@ -592,7 +613,7 @@ export default function DashboardPage() {
         ) : (
           <>
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-5 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-5 mb-8">
               
               {/* Total Target Prelist */}
               <motion.div
@@ -649,6 +670,26 @@ export default function DashboardPage() {
                     <div className="bg-teal-500 h-full rounded-full" style={{ width: `${stats.total > 0 ? (stats.submitCount / stats.total) * 100 : 0}%` }}></div>
                   </div>
                   <span className="text-[10px] font-bold text-slate-400">{stats.total > 0 ? ((stats.submitCount / stats.total) * 100).toFixed(1) : "0.0"}%</span>
+                </div>
+              </motion.div>
+
+              {/* Status Approved by Pengawas */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.12 }}
+                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
+              >
+                <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Approved by Pengawas</span>
+                <span className="text-3xl font-extrabold mt-2 block text-emerald-500">
+                  {stats.approvedCount.toLocaleString("id-ID")}
+                </span>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${stats.total > 0 ? (stats.approvedCount / stats.total) * 100 : 0}%` }}></div>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400">{stats.total > 0 ? ((stats.approvedCount / stats.total) * 100).toFixed(1) : "0.0"}%</span>
                 </div>
               </motion.div>
 
@@ -816,6 +857,7 @@ export default function DashboardPage() {
                         else if (s.toLowerCase() === "draft") label = "Draft";
                         else if (s.toLowerCase() === "submitted by pencacah") label = "Submitted by Pencacah";
                         else if (s.toLowerCase() === "rejected by pengawas") label = "Rejected by Pengawas";
+                        else if (s.toLowerCase() === "approved by pengawas") label = "Approved by Pengawas";
                         return (
                           <option key={idx} value={s}>{label}</option>
                         );

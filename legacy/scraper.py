@@ -12,10 +12,10 @@ def load_emails(file_path):
         emails = [line.strip() for line in f if line.strip()]
     return emails
 
-def wait_for_table_load(page):
+def wait_for_table_load(page, timeout=45000):
     # Wait for network requests to finish
     try:
-        page.wait_for_load_state("networkidle", timeout=5000)
+        page.wait_for_load_state("networkidle", timeout=timeout)
     except Exception:
         pass
     
@@ -23,7 +23,7 @@ def wait_for_table_load(page):
     try:
         loaders = page.locator("svg.tabler-icon-loader, svg.tabler-icon-loader-2")
         if loaders.count() > 0:
-            loaders.first.wait_for(state="hidden", timeout=5000)
+            loaders.first.wait_for(state="hidden", timeout=timeout)
     except Exception:
         pass
         
@@ -148,7 +148,7 @@ def main():
         # Wait for table to appear (up to 10 seconds)
         try:
             print("Waiting for table to load...")
-            page.wait_for_selector("table", timeout=10000)
+            page.wait_for_selector("table", timeout=45000)
             print("Table loaded successfully.")
         except Exception as e:
             print(f"Warning: Table not found! Current URL: {page.url}")
@@ -170,50 +170,89 @@ def main():
         for index, email in enumerate(emails, 1):
             print(f"[{index}/{len(emails)}] Searching for: {email}")
             
-            try:
-                # Locate search input
-                search_input = page.locator('input[placeholder="Cari..."]')
-                if search_input.count() == 0:
-                    print("  Search input not found! Reloading page...")
-                    page.goto(target_url)
-                    wait_for_table_load(page)
+            attempts = 2
+            total_scraped = 0
+            success = False
+            
+            for attempt in range(1, attempts + 1):
+                if attempt > 1:
+                    print(f"  [Retry] Melakukan percobaan ulang ke-{attempt} untuk {email}...")
+                try:
+                    # Locate search input
                     search_input = page.locator('input[placeholder="Cari..."]')
-                    
-                # Fill search input and press Enter
-                search_input.click()
-                search_input.fill("") # Clear input first
-                search_input.fill(email)
-                search_input.press("Enter")
-                
-                # Wait for results to load
-                wait_for_table_load(page)
-                
-                # Scrape current page and loop for next pages
-                page_num = 1
-                total_scraped = 0
-                
-                while True:
-                    print(f"  Scraping page {page_num}...")
-                    scraped_in_page = scrape_page(page, email, csv_writer)
-                    total_scraped += scraped_in_page
-                    csv_file.flush() # Flush data to disk immediately
-                    
-                    # Check if there is a next page button and if it is enabled
-                    # The next button contains the SVG 'tabler-icon-chevron-right'
-                    next_button = page.locator('button[aria-label="Go to next page"]')
-                    
-                    if next_button.count() > 0 and next_button.is_visible() and not next_button.is_disabled():
-                        print(f"  Navigating to next page...")
-                        next_button.click()
-                        page_num += 1
+                    if search_input.count() == 0:
+                        print("  Search input not found! Reloading page...")
+                        page.goto(target_url)
                         wait_for_table_load(page)
-                    else:
-                        break
+                        search_input = page.locator('input[placeholder="Cari..."]')
                         
-                print(f"  Finished search for {email}. Total scraped: {total_scraped} rows.")
-                
-            except Exception as e:
-                print(f"  Error processing email {email}: {e}")
+                    # Fill search input and press Enter
+                    search_input.click()
+                    search_input.fill("") # Clear input first
+                    search_input.fill(email)
+                    search_input.press("Enter")
+                    
+                    # Wait for results to load
+                    wait_for_table_load(page)
+                    
+                    # Scrape current page and loop for next pages
+                    page_num = 1
+                    current_scraped = 0
+                    
+                    while True:
+                        print(f"  Scraping page {page_num}...")
+                        scraped_in_page = scrape_page(page, email, csv_writer)
+                        current_scraped += scraped_in_page
+                        csv_file.flush() # Flush data to disk immediately
+                        
+                        # Check if there is a next page button and if it is enabled
+                        # The next button contains the SVG 'tabler-icon-chevron-right'
+                        next_button = page.locator('button[aria-label="Go to next page"]')
+                        
+                        if next_button.count() > 0 and next_button.is_visible() and not next_button.is_disabled():
+                            print(f"  Navigating to next page...")
+                            next_button.click()
+                            page_num += 1
+                            wait_for_table_load(page)
+                        else:
+                            break
+                            
+                    total_scraped = current_scraped
+                    
+                    if total_scraped > 0:
+                        print(f"  Finished search for {email}. Total scraped: {total_scraped} rows.")
+                        success = True
+                        break
+                    else:
+                        print(f"  Peringatan: Total baris yang terambil adalah 0 untuk {email}.")
+                        first_row_text = page.locator("table tbody tr").first.text_content().lower() if page.locator("table tbody tr").count() > 0 else ""
+                        is_genuine_no_data = "tidak ada data" in first_row_text or "empty" in first_row_text or "no data" in first_row_text
+                        
+                        if is_genuine_no_data:
+                            print(f"  Tabel menunjukkan secara valid bahwa tidak ada data untuk {email}.")
+                            
+                        if attempt < attempts:
+                            print(f"  Mencoba kembali 1 kali lagi untuk memastikan...")
+                            try:
+                                page.goto(target_url)
+                                page.wait_for_selector("table", timeout=45000)
+                            except Exception:
+                                pass
+                        else:
+                            print(f"  Selesai mencari untuk {email} setelah {attempts} percobaan. Total scraped: {total_scraped} rows.")
+                            success = True
+                            
+                except Exception as e:
+                    print(f"  Error processing email {email} (Percobaan {attempt}/{attempts}): {e}")
+                    if attempt < attempts:
+                        print(f"  Mencoba kembali karena terjadi error...")
+                        try:
+                            page.goto(target_url)
+                            page.wait_for_selector("table", timeout=45000)
+                        except Exception:
+                            pass
+                    else:
+                        print(f"  Gagal memproses email {email} setelah {attempts} percobaan.")
                 # Optional: pause script to let user inspect
                 # input("Press Enter to continue to next email...")
                 
