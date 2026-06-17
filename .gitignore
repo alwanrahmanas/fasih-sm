@@ -11,6 +11,7 @@ env/
 # Project Specific
 auth_state.json
 target_url.txt
+.env
 *.png
 !dashboard/**/*.png
 
