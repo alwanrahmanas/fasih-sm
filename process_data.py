@@ -4,10 +4,13 @@ import shutil
 import subprocess
 from datetime import datetime, timezone, timedelta
 
+# Capture execution start time (WITA is UTC+8)
+wita_tz = timezone(timedelta(hours=8))
+START_TIME = datetime.now(wita_tz)
+
 def get_wita_timestamp():
     # Central Indonesian Time (WITA) is UTC+8
-    wita_tz = timezone(timedelta(hours=8))
-    now = datetime.now(wita_tz)
+    now = START_TIME
     
     months = {
         1: "Januari", 2: "Februari", 3: "Maret", 4: "April", 5: "Mei", 6: "Juni",

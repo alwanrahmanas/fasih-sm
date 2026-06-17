@@ -68,12 +68,84 @@ const normalizeScale = (scaleStr: string): string => {
   return "Keluarga";
 };
 
+// Interface for processed dashboard scraped data records
+interface DashboardRecord {
+  category: string;       // Pencacah or Pengawas
+  email: string;          // Officer email
+  slsCode: string;        // SLS Code
+  open: number;           // OPEN count
+  draft: number;          // DRAFT count
+  submit: number;         // SUBMITTED BY Pencacah count
+  reject: number;         // REJECTED BY Pengawas count
+  approve: number;        // APPROVED BY Pengawas count
+  namaPetugas: string;    // Name of officer
+  jabatanPetugas: string; // PPL or PML
+  namaKec: string;        // Kecamatan name
+  koseka: string;         // Koseka name
+}
+
+const formatKecName = (name: string): string => {
+  if (!name) return "-";
+  let cleaned = name.replace(/\(\d+\)/g, "").trim();
+  return cleaned
+    .toLowerCase()
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+const parseDashboardScrapedCSV = (csvText: string): DashboardRecord[] => {
+  const lines = csvText.split("\n");
+  const parsed: DashboardRecord[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    const row: string[] = [];
+    let insideQuote = false;
+    let entry = "";
+
+    for (let j = 0; j < line.length; j++) {
+      const char = line[j];
+      if (char === '"') {
+        insideQuote = !insideQuote;
+      } else if (char === "," && !insideQuote) {
+        row.push(entry);
+        entry = "";
+      } else {
+        entry += char;
+      }
+    }
+    row.push(entry);
+
+    if (row.length >= 8) {
+      parsed.push({
+        category: row[0].replace(/"/g, "").trim(),
+        email: row[1].replace(/"/g, "").trim(),
+        slsCode: row[2].replace(/"/g, "").trim(),
+        open: parseInt(row[3]) || 0,
+        draft: parseInt(row[4]) || 0,
+        submit: parseInt(row[5]) || 0,
+        reject: parseInt(row[6]) || 0,
+        approve: parseInt(row[7]) || 0,
+        namaPetugas: row[8] ? row[8].replace(/"/g, "").trim() : "",
+        jabatanPetugas: row[9] ? row[9].replace(/"/g, "").trim() : "",
+        namaKec: row[10] ? row[10].replace(/"/g, "").trim() : "",
+        koseka: row[11] ? row[11].replace(/"/g, "").trim() : "",
+      });
+    }
+  }
+  return parsed;
+};
+
 export default function DashboardPage() {
   // Theme state
   const [isDarkMode, setIsDarkMode] = useState(true);
 
   // Data states
   const [rawData, setRawData] = useState<ScraperRecord[]>([]);
+  const [dashboardRawData, setDashboardRawData] = useState<DashboardRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string>("");
@@ -257,6 +329,18 @@ export default function DashboardPage() {
 
       const parsedRecords = parseCSV(text);
       setRawData(parsedRecords);
+
+      // Fetch and parse dashboard_scraped_data.csv for Kecamatan realization ranking
+      try {
+        const dashboardResponse = await fetch("/dashboard_scraped_data.csv");
+        if (dashboardResponse.ok) {
+          const dashboardText = await dashboardResponse.text();
+          const parsedDashboard = parseDashboardScrapedCSV(dashboardText);
+          setDashboardRawData(parsedDashboard);
+        }
+      } catch (e) {
+        console.warn("Gagal memuat dashboard_scraped_data.csv:", e);
+      }
       
       // Set last updated time from text file, with fallback
       let loadedTimestamp = "";
@@ -421,6 +505,70 @@ export default function DashboardPage() {
 
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [rawData]);
+
+  // Kecamatan stats and ranking for realization percentage (derived from dashboardRawData)
+  const kecamatanRealisasiStats = useMemo(() => {
+    const map: {
+      [kecName: string]: {
+        namaKec: string;
+        slsCount: number;
+        open: number;
+        draft: number;
+        submit: number;
+        reject: number;
+        approve: number;
+        total: number;
+        progress: number;
+        realisasi: number;
+      };
+    } = {};
+
+    dashboardRawData.forEach(record => {
+      if (record.category.toLowerCase() !== "pengawas") return;
+      const kec = record.namaKec || "-";
+      const email = record.email.toLowerCase().trim();
+      if (!email) return;
+
+      if (!map[kec]) {
+        map[kec] = {
+          namaKec: kec,
+          slsCount: 0,
+          open: 0,
+          draft: 0,
+          submit: 0,
+          reject: 0,
+          approve: 0,
+          total: 0,
+          progress: 0,
+          realisasi: 0,
+        };
+      }
+
+      const k = map[kec];
+      const slsTotal = record.open + record.draft + record.submit + record.reject + record.approve;
+      const slsProgress = record.draft + record.submit + record.reject + record.approve;
+
+      k.open += record.open;
+      k.draft += record.draft;
+      k.submit += record.submit;
+      k.reject += record.reject;
+      k.approve += record.approve;
+      k.total += slsTotal;
+      k.progress += slsProgress;
+      k.realisasi += slsProgress;
+      k.slsCount += 1;
+    });
+
+    return Object.values(map)
+      .map(k => {
+        const pctRealisasi = k.total > 0 ? (k.realisasi / k.total) * 100 : 0;
+        return {
+          ...k,
+          pctRealisasi,
+        };
+      })
+      .sort((a, b) => b.pctRealisasi - a.pctRealisasi);
+  }, [dashboardRawData]);
 
   // Filtered and Searched data
   const filteredData = useMemo(() => {
@@ -898,6 +1046,87 @@ export default function DashboardPage() {
                 </div>
               </motion.div>
 
+            </div>
+
+            {/* Kecamatan Realization Ranking Card */}
+            <div className="mb-8 animate-fade-in">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-orange-500/30 transition-all duration-300">
+                <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2.5 rounded-xl bg-orange-500/10 text-orange-500">
+                      <TrendingUp className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white">Peringkat Realisasi Kecamatan</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Distribusi persentase realisasi target prelist per Kecamatan (Draft + Submit + Approve + Reject)</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2.5 py-1 rounded-lg font-bold">
+                    Diurutkan dari Tertinggi
+                  </span>
+                </div>
+
+                {loading && dashboardRawData.length === 0 ? (
+                  <div className="flex justify-center py-6 text-slate-400 text-xs">Memuat rekapitulasi kecamatan...</div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                    {kecamatanRealisasiStats.map((item, idx) => {
+                      const pct = item.pctRealisasi;
+                      
+                      let colorClass = "from-orange-500 to-amber-500";
+                      let bgClass = "bg-orange-500/10";
+                      let textClass = "text-orange-500";
+                      
+                      if (pct >= 80) {
+                        colorClass = "from-emerald-500 to-teal-500";
+                        bgClass = "bg-emerald-500/10";
+                        textClass = "text-emerald-500";
+                      } else if (pct >= 40) {
+                        colorClass = "from-blue-600 to-cyan-500";
+                        bgClass = "bg-blue-500/10";
+                        textClass = "text-blue-500";
+                      }
+
+                      return (
+                        <div key={item.namaKec} className="flex flex-col gap-1.5 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                          <div className="flex justify-between items-center text-xs font-semibold">
+                            <span className="flex items-center gap-2">
+                              <span className={`w-5 h-5 flex items-center justify-center rounded-lg text-[10px] font-bold ${
+                                idx === 0 
+                                  ? "bg-amber-500 text-white" 
+                                  : idx === 1 
+                                  ? "bg-slate-300 text-slate-800" 
+                                  : idx === 2 
+                                  ? "bg-amber-700 text-white" 
+                                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                              }`}>
+                                {idx + 1}
+                              </span>
+                              <span className="uppercase tracking-wider text-slate-700 dark:text-slate-300 truncate max-w-[150px]">
+                                {formatKecName(item.namaKec)}
+                              </span>
+                            </span>
+                            <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">
+                                {item.realisasi.toLocaleString("id-ID")} / {item.total.toLocaleString("id-ID")}
+                              </span>
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${bgClass} ${textClass}`}>
+                                {pct.toFixed(2)}%
+                              </span>
+                            </span>
+                          </div>
+                          <div className="h-3 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden flex shadow-inner">
+                            <div
+                              className={`bg-gradient-to-r ${colorClass} h-full rounded-full transition-all duration-500`}
+                              style={{ width: `${pct}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Bento Section: Distribution Chart */}
