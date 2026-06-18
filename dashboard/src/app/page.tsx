@@ -143,6 +143,7 @@ const parseDashboardScrapedCSV = (csvText: string): DashboardRecord[] => {
 export default function DashboardPage() {
   // Theme state
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
 
   // Data states
   const [rawData, setRawData] = useState<ScraperRecord[]>([]);
@@ -760,59 +761,61 @@ export default function DashboardPage() {
       
       {/* Header Bar */}
       <header className="sticky top-0 z-30 border-b backdrop-blur-md transition-colors bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-0 md:h-16 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-0">
+          <div className="flex items-center gap-3 self-start md:self-auto">
             {/* Visual BPS Logo Icon */}
-            <div className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 rounded-xl p-1 shadow-md border border-slate-200 dark:border-slate-700">
+            <div className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 rounded-xl p-1 shadow-md border border-slate-200 dark:border-slate-700 shrink-0">
               <img src="/icon.png" alt="Logo BPS" className="w-8 h-8 object-contain" />
             </div>
             <div>
-              <h1 className="text-sm sm:text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+              <h1 className="text-xs sm:text-sm md:text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                 BPS Kabupaten Kepulauan Sangihe
               </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400">
                 Dashboard Monitoring Sensus Ekonomi 2026
               </p>
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
-            <nav className="flex items-center gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50/50 dark:bg-slate-950/50">
+          <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto">
+            <nav className="flex items-center gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50/50 dark:bg-slate-950/50 flex-1 md:flex-none justify-center">
               <a 
                 href="/" 
-                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-500 text-white shadow-sm"
+                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-500 text-white shadow-sm shrink-0"
               >
                 Dashboard
               </a>
               <a 
                 href="/tabulasi" 
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
               >
                 Tabulasi
               </a>
               <a 
                 href="/petugas" 
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
               >
                 Petugas
               </a>
             </nav>
 
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
-              title="Ganti Tema"
-            >
-              {isDarkMode ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
-            </button>
-            <button
-              onClick={fetchData}
-              disabled={loading}
-              className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors disabled:opacity-50"
-              title="Segarkan Data"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-orange-500" : ""}`} />
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors cursor-pointer"
+                title="Ganti Tema"
+              >
+                {isDarkMode ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
+              </button>
+              <button
+                onClick={fetchData}
+                disabled={loading}
+                className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors disabled:opacity-50 cursor-pointer"
+                title="Segarkan Data"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-orange-500" : ""}`} />
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -839,11 +842,11 @@ export default function DashboardPage() {
               </p>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 self-start md:self-auto flex flex-col items-end border border-white/10 text-right">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 self-stretch md:self-auto flex flex-col items-start md:items-end border border-white/10 text-left md:text-right">
               <span className="text-xs text-orange-200">Terakhir Diperbarui</span>
-              <span className="text-base font-bold flex items-center gap-1.5 mt-0.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                {loading ? "Menyinkronkan..." : lastUpdated || "Belum ada data"}
+              <span className="text-sm sm:text-base font-bold flex items-center gap-1.5 mt-0.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping flex-shrink-0"></span>
+                <span className="truncate">{loading ? "Menyinkronkan..." : lastUpdated || "Belum ada data"}</span>
               </span>
             </div>
           </div>
@@ -875,23 +878,23 @@ export default function DashboardPage() {
         ) : (
           <>
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 mb-8">
               
               {/* Total Target Prelist */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
+                className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Total Target Prelist</span>
-                <span className="text-3xl font-extrabold mt-2 block text-slate-900 dark:text-white">
+                <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Total Target Prelist</span>
+                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-slate-900 dark:text-white">
                   {displayTotal.toLocaleString("id-ID")}
                 </span>
-                <span className="text-xs text-slate-400 mt-2 block flex items-center gap-1">
-                  <FileSpreadsheet className="w-3.5 h-3.5 text-orange-500" />
-                  {totalPrelistSummary ? "Target resmi dari BPS FASIH" : "Baris data valid terkumpul"}
+                <span className="text-[9px] sm:text-xs text-slate-400 mt-2 block flex items-center gap-1">
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />
+                  <span className="truncate">{totalPrelistSummary ? "Target resmi BPS" : "Baris data valid"}</span>
                 </span>
               </motion.div>
 
@@ -900,24 +903,24 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.03 }}
-                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300 flex flex-col justify-between"
+                className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300 flex flex-col justify-between"
               >
                 <div>
                   <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Total Realisasi</span>
-                  <span className="text-3xl font-extrabold mt-2 block text-emerald-500">
+                  <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Total Realisasi</span>
+                  <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-emerald-500">
                     {displayRealisasi.toLocaleString("id-ID")}
                   </span>
                 </div>
                 <div>
                   <div className="flex items-center justify-between mt-3 gap-2">
-                    <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                       <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${displayTotal > 0 ? (displayRealisasi / displayTotal) * 100 : 0}%` }}></div>
                     </div>
-                    <span className="text-xs sm:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayRealisasi / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
+                    <span className="text-[10px] sm:text-xs md:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayRealisasi / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
                   </div>
-                  <span className="text-[9px] text-slate-400 dark:text-slate-500 mt-2 block font-medium leading-tight">
-                    * Selain status Open (Draft + Submit + Approve + Reject)
+                  <span className="text-[8px] sm:text-[9px] text-slate-400 dark:text-slate-500 mt-2 block font-medium leading-tight">
+                    * Selain status Open (Draft+Sub+App+Rej)
                   </span>
                 </div>
               </motion.div>
@@ -927,24 +930,24 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.06 }}
-                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300 flex flex-col justify-between"
+                className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300 flex flex-col justify-between"
               >
                 <div>
                   <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Realisasi via Fasih SM</span>
-                  <span className="text-3xl font-extrabold mt-2 block text-teal-500">
+                  <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Realisasi via Fasih SM</span>
+                  <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-teal-500">
                     {displayRealisasiFasih.toLocaleString("id-ID")}
                   </span>
                 </div>
                 <div>
                   <div className="flex items-center justify-between mt-3 gap-2">
-                    <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                       <div className="bg-teal-500 h-full rounded-full" style={{ width: `${displayTotal > 0 ? (displayRealisasiFasih / displayTotal) * 100 : 0}%` }}></div>
                     </div>
-                    <span className="text-xs sm:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayRealisasiFasih / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
+                    <span className="text-[10px] sm:text-xs md:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayRealisasiFasih / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
                   </div>
-                  <span className="text-[9px] text-slate-400 dark:text-slate-500 mt-2 block font-medium leading-tight">
-                    * Selain Open & Draft (Submit + Approve + Reject)
+                  <span className="text-[8px] sm:text-[9px] text-slate-400 dark:text-slate-500 mt-2 block font-medium leading-tight">
+                    * Selain Open & Draft (Sub+App+Rej)
                   </span>
                 </div>
               </motion.div>
@@ -954,18 +957,18 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.09 }}
-                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
+                className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Status Terbuka (Open)</span>
-                <span className="text-3xl font-extrabold mt-2 block text-amber-500">
+                <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Status Terbuka (Open)</span>
+                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-amber-500">
                   {displayOpen.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center justify-between mt-3 gap-2">
-                  <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                     <div className="bg-amber-500 h-full rounded-full" style={{ width: `${displayTotal > 0 ? (displayOpen / displayTotal) * 100 : 0}%` }}></div>
                   </div>
-                  <span className="text-xs sm:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayOpen / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
+                  <span className="text-[10px] sm:text-xs md:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayOpen / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
                 </div>
               </motion.div>
 
@@ -974,18 +977,18 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.12 }}
-                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
+                className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Submitted by Pencacah</span>
-                <span className="text-3xl font-extrabold mt-2 block text-teal-500">
+                <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Submitted by Pencacah</span>
+                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-teal-500">
                   {displaySubmit.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center justify-between mt-3 gap-2">
-                  <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                     <div className="bg-teal-500 h-full rounded-full" style={{ width: `${displayTotal > 0 ? (displaySubmit / displayTotal) * 100 : 0}%` }}></div>
                   </div>
-                  <span className="text-xs sm:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displaySubmit / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
+                  <span className="text-[10px] sm:text-xs md:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displaySubmit / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
                 </div>
               </motion.div>
 
@@ -994,18 +997,18 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.15 }}
-                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
+                className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Approved by Pengawas</span>
-                <span className="text-3xl font-extrabold mt-2 block text-emerald-500">
+                <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Approved by Pengawas</span>
+                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-emerald-500">
                   {displayApprove.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center justify-between mt-3 gap-2">
-                  <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                     <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${displayTotal > 0 ? (displayApprove / displayTotal) * 100 : 0}%` }}></div>
                   </div>
-                  <span className="text-xs sm:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayApprove / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
+                  <span className="text-[10px] sm:text-xs md:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayApprove / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
                 </div>
               </motion.div>
 
@@ -1014,18 +1017,18 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.18 }}
-                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
+                className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Status Draft</span>
-                <span className="text-3xl font-extrabold mt-2 block text-blue-500">
+                <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Status Draft</span>
+                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-blue-500">
                   {displayDraft.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center justify-between mt-3 gap-2">
-                  <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                     <div className="bg-blue-500 h-full rounded-full" style={{ width: `${displayTotal > 0 ? (displayDraft / displayTotal) * 100 : 0}%` }}></div>
                   </div>
-                  <span className="text-xs sm:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayDraft / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
+                  <span className="text-[10px] sm:text-xs md:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayDraft / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
                 </div>
               </motion.div>
 
@@ -1034,18 +1037,18 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.21 }}
-                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
+                className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Rejected by Pengawas</span>
-                <span className="text-3xl font-extrabold mt-2 block text-red-500">
+                <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Rejected by Pengawas</span>
+                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-red-500">
                   {displayReject.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center justify-between mt-3 gap-2">
-                  <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
                     <div className="bg-red-500 h-full rounded-full" style={{ width: `${displayTotal > 0 ? (displayReject / displayTotal) * 100 : 0}%` }}></div>
                   </div>
-                  <span className="text-xs sm:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayReject / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
+                  <span className="text-[10px] sm:text-xs md:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayReject / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
                 </div>
               </motion.div>
 
@@ -1199,8 +1202,8 @@ export default function DashboardPage() {
             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
               
               {/* Filter Section */}
-              <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-                <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+              <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
                   
                   {/* Search input */}
                   <div className="relative w-full md:max-w-md">
@@ -1210,12 +1213,12 @@ export default function DashboardPage() {
                       placeholder="Cari nama, ID prelist, alamat, atau petugas..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-sm transition-all"
+                      className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-xs sm:text-sm transition-all"
                     />
                     {searchQuery && (
                       <button
                         onClick={() => setSearchQuery("")}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -1223,10 +1226,18 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Actions / Export Button */}
-                  <div className="w-full md:w-auto flex items-center justify-end">
+                  <div className="w-full md:w-auto flex items-center gap-2 justify-end">
+                    <button
+                      onClick={() => setShowFilters(!showFilters)}
+                      className="flex-1 md:flex-none px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold bg-white dark:bg-slate-950 cursor-pointer"
+                      title="Tampilkan / Sembunyikan Filter Lanjutan"
+                    >
+                      <Filter className="w-4 h-4 text-orange-500" />
+                      <span>{showFilters ? "Tutup Filter" : "Filter Lanjutan"}</span>
+                    </button>
                     <button
                       onClick={handleExportCSV}
-                      className="w-full md:w-auto px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors flex items-center justify-center gap-2 text-sm font-semibold bg-white dark:bg-slate-950 cursor-pointer"
+                      className="flex-1 md:flex-none px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm font-semibold bg-white dark:bg-slate-950 cursor-pointer"
                       title="Ekspor CSV Hasil Filter"
                     >
                       <Download className="w-4 h-4 text-orange-500" />
@@ -1237,7 +1248,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Dropdowns Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mt-4">
+                <div className={`${showFilters ? "grid" : "hidden md:grid"} grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-800/50`}>
                   
                   {/* Filter Status */}
                   <div className="relative w-full">
@@ -1405,15 +1416,15 @@ export default function DashboardPage() {
                 <table className="w-full text-left border-collapse">
                   <thead className="sticky top-0 z-20 bg-slate-50 dark:bg-slate-900 shadow-[0_1px_0_0_rgba(226,232,240,1)] dark:shadow-[0_1px_0_0_rgba(30,41,59,1)]">
                     <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                      <th className="py-4 px-6 bg-slate-50 dark:bg-slate-900">Kode Identitas</th>
-                      <th className="py-4 px-6 bg-slate-50 dark:bg-slate-900">Nama Keluarga/Bangunan/Usaha</th>
-                      <th className="py-4 px-6 bg-slate-50 dark:bg-slate-900">Kecamatan</th>
-                      <th className="py-4 px-6 bg-slate-50 dark:bg-slate-900">Koseka</th>
-                      <th className="py-4 px-6 bg-slate-50 dark:bg-slate-900">Alamat Prelist</th>
-                      <th className="py-4 px-6 bg-slate-50 dark:bg-slate-900">Skala Prelist</th>
-                      <th className="py-4 px-6 text-center bg-slate-50 dark:bg-slate-900">Status</th>
-                      <th className="py-4 px-6 bg-slate-50 dark:bg-slate-900">Petugas</th>
-                      <th className="py-4 px-6 bg-slate-50 dark:bg-slate-900">Keterangan</th>
+                      <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Kode Identitas</th>
+                      <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Nama Keluarga/Bangunan/Usaha</th>
+                      <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Kecamatan</th>
+                      <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Koseka</th>
+                      <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Alamat Prelist</th>
+                      <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Skala Prelist</th>
+                      <th className="py-3 px-3 sm:px-4 sm:py-4 text-center bg-slate-50 dark:bg-slate-900">Status</th>
+                      <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Petugas</th>
+                      <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Keterangan</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 dark:divide-slate-800/50 text-sm">
@@ -1428,7 +1439,7 @@ export default function DashboardPage() {
                           }`}
                         >
                           {/* ID Code */}
-                          <td className="py-4 px-6 font-mono text-xs font-semibold text-slate-800 dark:text-slate-300 whitespace-nowrap">
+                          <td className="py-3 px-3 sm:px-4 sm:py-4 font-mono text-xs font-semibold text-slate-800 dark:text-slate-300 whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <span>{row.idCode}</span>
                               {row.isPrioritas === "Ya" && (
@@ -1439,35 +1450,35 @@ export default function DashboardPage() {
                             </div>
                           </td>
                           {/* Name */}
-                          <td className="py-4 px-6 font-medium text-slate-900 dark:text-white truncate max-w-[180px]">
+                          <td className="py-3 px-3 sm:px-4 sm:py-4 font-medium text-slate-900 dark:text-white truncate max-w-[180px]">
                             {row.name || "-"}
                           </td>
                           {/* Kecamatan */}
-                          <td className="py-4 px-6 text-slate-500 dark:text-slate-400 truncate max-w-[150px]">
+                          <td className="py-3 px-3 sm:px-4 sm:py-4 text-slate-500 dark:text-slate-400 truncate max-w-[150px]">
                             {row.nama_kec || "-"}
                           </td>
                           {/* Koseka */}
-                          <td className="py-4 px-6 text-slate-500 dark:text-slate-400 font-semibold whitespace-nowrap">
+                          <td className="py-3 px-3 sm:px-4 sm:py-4 text-slate-500 dark:text-slate-400 font-semibold whitespace-nowrap">
                             {row.koseka || "-"}
                           </td>
                           {/* Address */}
-                          <td className="py-4 px-6 text-slate-500 dark:text-slate-400 truncate max-w-[180px]">
+                          <td className="py-3 px-3 sm:px-4 sm:py-4 text-slate-500 dark:text-slate-400 truncate max-w-[180px]">
                             {row.address || "-"}
                           </td>
                           {/* Scale */}
-                          <td className="py-4 px-6">
+                          <td className="py-3 px-3 sm:px-4 sm:py-4">
                             <ScaleBadge scale={row.scale} />
                           </td>
                           {/* Status */}
-                          <td className="py-4 px-6 text-center whitespace-nowrap">
+                          <td className="py-3 px-3 sm:px-4 sm:py-4 text-center whitespace-nowrap">
                             <StatusBadge status={row.status} />
                           </td>
                           {/* Officer */}
-                          <td className="py-4 px-6 text-slate-600 dark:text-slate-400 font-medium truncate max-w-[150px]">
+                          <td className="py-3 px-3 sm:px-4 sm:py-4 text-slate-600 dark:text-slate-400 font-medium truncate max-w-[150px]">
                             {row.officer ? row.officer.replace(/Pencacah$/, "") : "-"}
                           </td>
                           {/* Notes */}
-                          <td className="py-4 px-6 text-xs text-slate-400 truncate max-w-[120px]">
+                          <td className="py-3 px-3 sm:px-4 sm:py-4 text-xs text-slate-400 truncate max-w-[120px]">
                             {row.notes || "-"}
                           </td>
                         </tr>

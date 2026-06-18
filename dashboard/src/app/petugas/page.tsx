@@ -101,6 +101,7 @@ interface KecamatanStats {
 
 export default function PetugasPage() {
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
   const [rawData, setRawData] = useState<DashboardRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -763,58 +764,61 @@ export default function PetugasPage() {
       
       {/* Header Bar */}
       <header className="sticky top-0 z-30 border-b backdrop-blur-md transition-colors bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 rounded-xl p-1 shadow-md border border-slate-200 dark:border-slate-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-0 md:h-16 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-0">
+          <div className="flex items-center gap-3 self-start md:self-auto">
+            {/* Visual BPS Logo Icon */}
+            <div className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 rounded-xl p-1 shadow-md border border-slate-200 dark:border-slate-700 shrink-0">
               <img src="/icon.png" alt="Logo BPS" className="w-8 h-8 object-contain" />
             </div>
             <div>
-              <h1 className="text-sm sm:text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+              <h1 className="text-xs sm:text-sm md:text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                 BPS Kabupaten Kepulauan Sangihe
               </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400">
                 Dashboard Monitoring Sensus Ekonomi 2026
               </p>
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
-            <nav className="flex items-center gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50/50 dark:bg-slate-950/50">
+          <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto">
+            <nav className="flex items-center gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50/50 dark:bg-slate-950/50 flex-1 md:flex-none justify-center">
               <a 
                 href="/" 
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
               >
                 Dashboard
               </a>
               <a 
                 href="/tabulasi" 
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
               >
                 Tabulasi
               </a>
               <a 
                 href="/petugas" 
-                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-500 text-white shadow-sm"
+                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-500 text-white shadow-sm shrink-0"
               >
                 Petugas
               </a>
             </nav>
 
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
-              title="Ganti Tema"
-            >
-              {isDarkMode ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
-            </button>
-            <button
-              onClick={fetchData}
-              disabled={loading}
-              className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors disabled:opacity-50"
-              title="Segarkan Data"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-orange-500" : ""}`} />
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors cursor-pointer"
+                title="Ganti Tema"
+              >
+                {isDarkMode ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
+              </button>
+              <button
+                onClick={fetchData}
+                disabled={loading}
+                className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors disabled:opacity-50 cursor-pointer"
+                title="Segarkan Data"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-orange-500" : ""}`} />
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -840,11 +844,11 @@ export default function PetugasPage() {
               </p>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 self-start md:self-auto flex flex-col items-end border border-white/10 text-right">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 self-stretch md:self-auto flex flex-col items-start md:items-end border border-white/10 text-left md:text-right">
               <span className="text-xs text-orange-200">Terakhir Diperbarui</span>
-              <span className="text-base font-bold flex items-center gap-1.5 mt-0.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                {loading ? "Menyinkronkan..." : lastUpdated || "Belum ada data"}
+              <span className="text-sm sm:text-base font-bold flex items-center gap-1.5 mt-0.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping flex-shrink-0"></span>
+                <span className="truncate">{loading ? "Menyinkronkan..." : lastUpdated || "Belum ada data"}</span>
               </span>
             </div>
           </div>
@@ -879,16 +883,16 @@ export default function PetugasPage() {
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 mb-8 shadow-sm flex flex-col gap-4">
               
               {/* Tab Selector & Actions */}
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 dark:border-slate-800/60 pb-4">
+              <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 border-b border-slate-100 dark:border-slate-800/60 pb-4">
                 
                 {/* Tabs */}
-                <div className="flex gap-1.5 p-1 bg-slate-100 dark:bg-slate-950 rounded-xl w-full sm:w-auto">
+                <div className="flex gap-1.5 p-1 bg-slate-100 dark:bg-slate-950 rounded-xl overflow-x-auto whitespace-nowrap scrollbar-none w-full lg:w-auto">
                   <button
                     onClick={() => {
                       setActiveTab("pcl");
                       setExpandedRows(new Set());
                     }}
-                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${
+                    className={`shrink-0 flex-1 lg:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${
                       activeTab === "pcl"
                         ? "bg-white dark:bg-slate-900 text-orange-500 shadow-sm"
                         : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
@@ -902,7 +906,7 @@ export default function PetugasPage() {
                       setActiveTab("pml");
                       setExpandedRows(new Set());
                     }}
-                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${
+                    className={`shrink-0 flex-1 lg:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${
                       activeTab === "pml"
                         ? "bg-white dark:bg-slate-900 text-orange-500 shadow-sm"
                         : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
@@ -916,7 +920,7 @@ export default function PetugasPage() {
                       setActiveTab("kecamatan");
                       setExpandedRows(new Set());
                     }}
-                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${
+                    className={`shrink-0 flex-1 lg:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${
                       activeTab === "kecamatan"
                         ? "bg-white dark:bg-slate-900 text-orange-500 shadow-sm"
                         : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
@@ -930,7 +934,7 @@ export default function PetugasPage() {
                       setActiveTab("prioritas");
                       setExpandedRows(new Set());
                     }}
-                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${
+                    className={`shrink-0 flex-1 lg:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${
                       activeTab === "prioritas"
                         ? "bg-white dark:bg-slate-900 text-orange-500 shadow-sm"
                         : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
@@ -942,20 +946,29 @@ export default function PetugasPage() {
                 </div>
 
                 {/* Actions */}
-                <button
-                  onClick={handleExportCSV}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm shadow-emerald-600/10"
-                >
-                  <Download className="w-4 h-4" />
-                  Ekspor CSV
-                </button>
+                <div className="flex gap-2 w-full lg:w-auto">
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition-all shadow-sm bg-white dark:bg-slate-950 cursor-pointer"
+                  >
+                    <Filter className="w-4 h-4 text-orange-500" />
+                    <span>{showFilters ? "Tutup Filter" : "Filter Lanjutan"}</span>
+                  </button>
+                  <button
+                    onClick={handleExportCSV}
+                    className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm shadow-emerald-600/10 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" />
+                    Ekspor CSV
+                  </button>
+                </div>
               </div>
 
               {/* Filters Panel */}
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                 
                 {/* Search Bar */}
-                <div className="md:col-span-6 relative">
+                <div className="col-span-12 md:col-span-6 relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <Search className="w-4 h-4" />
                   </div>
@@ -964,12 +977,12 @@ export default function PetugasPage() {
                     placeholder="Cari nama petugas, email, kecamatan, atau nama Koseka..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border bg-slate-50/50 dark:bg-slate-950/50 text-xs focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/80 outline-none transition-all border-slate-200 dark:border-slate-800"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border bg-slate-50/50 dark:bg-slate-950/50 text-xs focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/80 outline-none transition-all border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200"
                   />
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery("")}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
                     >
                       ×
                     </button>
@@ -977,14 +990,14 @@ export default function PetugasPage() {
                 </div>
 
                 {/* Kecamatan Selector */}
-                <div className="md:col-span-3 relative">
+                <div className={`${showFilters ? "col-span-12 md:col-span-3 block" : "hidden md:block md:col-span-3"} relative`}>
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <Filter className="w-4 h-4" />
                   </div>
                   <select
                     value={selectedKec}
                     onChange={(e) => setSelectedKec(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border bg-slate-50/50 dark:bg-slate-950/50 text-xs focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/80 outline-none transition-all border-slate-200 dark:border-slate-800 appearance-none text-slate-700 dark:text-slate-200"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border bg-slate-50/50 dark:bg-slate-950/50 text-xs focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/80 outline-none transition-all border-slate-200 dark:border-slate-800 appearance-none text-slate-700 dark:text-slate-200 cursor-pointer"
                   >
                     <option value="all">Semua Kecamatan</option>
                     {subdistrictOptions.map(kec => (
@@ -999,14 +1012,14 @@ export default function PetugasPage() {
                 </div>
 
                 {/* Sort Selector */}
-                <div className="md:col-span-3 relative">
+                <div className={`${showFilters ? "col-span-12 md:col-span-3 block" : "hidden md:block md:col-span-3"} relative`}>
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <TrendingUp className="w-4 h-4" />
                   </div>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as any)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border bg-slate-50/50 dark:bg-slate-950/50 text-xs focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/80 outline-none transition-all border-slate-200 dark:border-slate-800 appearance-none text-slate-700 dark:text-slate-200"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border bg-slate-50/50 dark:bg-slate-950/50 text-xs focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/80 outline-none transition-all border-slate-200 dark:border-slate-800 appearance-none text-slate-700 dark:text-slate-200 cursor-pointer"
                   >
                     <option value="nama">
                       {activeTab === "prioritas"
