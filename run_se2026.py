@@ -228,8 +228,19 @@ def run_unified_scraper():
         page = context.new_page()
         
         # 2. Automated Login via SSO
-        print("Navigating to BPS FASIH website...")
-        page.goto("https://fasih-sm.bps.go.id/")
+        max_attempts = 5
+        for attempt in range(1, max_attempts + 1):
+            try:
+                print(f"Navigating to BPS FASIH website (Attempt {attempt}/{max_attempts})...")
+                page.goto("https://fasih-sm.bps.go.id/", timeout=120000)
+                break
+            except Exception as e:
+                print(f"Error navigating to BPS FASIH website: {e}")
+                if attempt == max_attempts:
+                    raise
+                wait_sec = attempt * 10
+                print(f"Waiting {wait_sec} seconds before retrying...")
+                page.wait_for_timeout(wait_sec * 1000)
         page.wait_for_timeout(3000)
         
         # Check if we need to log in

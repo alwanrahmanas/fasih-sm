@@ -120,7 +120,9 @@ def load_priority_sls():
         print(f"Error loading priority SLS codes: {e}")
         return set()
 
-def process_dashboard_scraped_data(priority_sls):
+def process_dashboard_scraped_data(priority_sls=None):
+    if priority_sls is None:
+        priority_sls = load_priority_sls()
     scraped_file = "dashboard_scraped_data.csv"
     koseka_file = os.path.join("data", "koseka.csv")
     pml_ppl_file = os.path.join("data", "pml_ppl.csv")

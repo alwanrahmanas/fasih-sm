@@ -94,6 +94,8 @@ interface KecamatanStats {
     reject: number;
     approve: number;
     total: number;
+    progress: number;
+    realisasi: number;
   }[];
 }
 
@@ -290,6 +292,8 @@ export default function PetugasPage() {
             reject: number;
             approve: number;
             total: number;
+            progress: number;
+            realisasi: number;
           };
         };
       };
@@ -342,6 +346,8 @@ export default function PetugasPage() {
           reject: 0,
           approve: 0,
           total: 0,
+          progress: 0,
+          realisasi: 0
         };
       }
       const p = k.pmlMap[email];
@@ -352,6 +358,8 @@ export default function PetugasPage() {
       p.approve += record.approve;
       p.total += slsTotal;
       p.slsCount += 1;
+      p.progress += slsProgress;
+      p.realisasi += slsProgress;
     });
 
     return Object.values(map).map(k => {
@@ -1078,6 +1086,7 @@ export default function PetugasPage() {
                         <>
                           <th className="py-4 px-4 bg-slate-50 dark:bg-slate-900">Kecamatan</th>
                           <th className="py-4 px-4 bg-slate-50 dark:bg-slate-900">Koseka</th>
+                          <th className="py-4 px-4 text-center bg-slate-50 dark:bg-slate-900">SLS</th>
                         </>
                       )}
                       {activeTab === "kecamatan" && (
@@ -1182,31 +1191,44 @@ export default function PetugasPage() {
                                               <th className="pb-2 text-center font-bold">Submit</th>
                                               <th className="pb-2 text-center font-bold">Reject</th>
                                               <th className="pb-2 text-center font-bold">Approve</th>
+                                              <th className="pb-2 text-center font-bold">Progres</th>
+                                              <th className="pb-2 text-center font-bold">Realisasi</th>
                                               <th className="pb-2 text-center font-bold">% Realisasi</th>
                                             </tr>
                                           </thead>
                                           <tbody>
                                             {k.pmlList.map((pml) => {
-                                              const pmlPct = pml.total > 0 ? (((pml.total - pml.open) / pml.total) * 100).toFixed(2) : "0.00";
+                                              const pmlPct = pml.total > 0 ? ((pml.realisasi / pml.total) * 100).toFixed(2) : "0.00";
                                               const isPmlRedRow = pml.approve === 0 && pml.reject === 0;
                                               return (
-                                                <tr key={pml.email} className={`border-b border-slate-100 dark:border-slate-800/40 py-2 ${isPmlRedRow ? "text-red-500/80 font-medium" : ""}`}>
+                                                <tr
+                                                  key={pml.email}
+                                                  className={`border-b border-slate-100 dark:border-slate-800/40 py-2 hover:bg-slate-50/50 dark:hover:bg-slate-950/10 transition-colors ${
+                                                    isPmlRedRow
+                                                      ? "bg-red-500/5 dark:bg-red-500/10 text-red-600 dark:text-red-400 font-medium"
+                                                      : ""
+                                                  }`}
+                                                >
                                                   <td className="py-2 font-semibold">{pml.namaPetugas}</td>
                                                   <td className="py-2 text-slate-400 font-normal">{pml.email}</td>
                                                   <td className="py-2 text-center">{pml.slsCount}</td>
-                                                  <td className="py-2 text-center font-semibold">{pml.total}</td>
+                                                  <td className="py-2 text-center font-semibold text-slate-800 dark:text-slate-200">{pml.total}</td>
                                                   <td className="py-2 text-center text-amber-500/90">{pml.open}</td>
                                                   <td className="py-2 text-center text-blue-500/90">{pml.draft}</td>
                                                   <td className="py-2 text-center text-teal-500/90">{pml.submit}</td>
                                                   <td className="py-2 text-center text-red-500/90">{pml.reject}</td>
                                                   <td className="py-2 text-center text-emerald-500/90">{pml.approve}</td>
+                                                  <td className="py-2 text-center font-semibold text-slate-700 dark:text-slate-300">{pml.progress}</td>
+                                                  <td className="py-2 text-center font-semibold text-slate-700 dark:text-slate-300">{pml.realisasi}</td>
                                                   <td className="py-2 text-center">
-                                                    <span className={`px-2 py-0.5 rounded font-extrabold text-xs ${
+                                                    <span className={`inline-flex px-2 py-0.5 rounded-full font-extrabold text-[10px] ${
                                                       isPmlRedRow
-                                                        ? "bg-red-500/10 text-red-500"
+                                                        ? "bg-red-500/10 text-red-500 border border-red-500/20"
                                                         : parseFloat(pmlPct) >= 80
-                                                        ? "bg-emerald-500/10 text-emerald-500"
-                                                        : "bg-slate-500/10 text-slate-400"
+                                                        ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                                                        : parseFloat(pmlPct) >= 40
+                                                        ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                                                        : "bg-slate-500/10 text-slate-400 border border-slate-500/20"
                                                     }`}>
                                                       {pmlPct}%
                                                     </span>
@@ -1411,11 +1433,13 @@ export default function PetugasPage() {
                                                   <span>Submit:</span>
                                                   <span className="font-bold">{sls.submit}</span>
                                                 </div>
-                                                <div className="flex justify-between text-red-500 col-span-2">
-                                                  <span>Reject / Approve:</span>
-                                                  <span className="font-bold">
-                                                    {sls.reject} / {sls.approve}
-                                                  </span>
+                                                <div className="flex justify-between text-red-500">
+                                                  <span>Reject:</span>
+                                                  <span className="font-bold">{sls.reject}</span>
+                                                </div>
+                                                <div className="flex justify-between text-emerald-500">
+                                                  <span>Approve:</span>
+                                                  <span className="font-bold">{sls.approve}</span>
                                                 </div>
                                               </div>
                                             </div>
