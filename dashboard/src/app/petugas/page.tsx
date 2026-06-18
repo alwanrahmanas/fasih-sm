@@ -560,8 +560,14 @@ export default function PetugasPage() {
   };
 
   const isPclRed = (o: OfficerStats) => {
-    // PCL merah jika status open masih 0
-    return o.category.toLowerCase() === "pencacah" && o.open === 0;
+    // PCL merah jika Draft, Submit, Reject, dan Approve = 0
+    return (
+      o.category.toLowerCase() === "pencacah" &&
+      o.draft === 0 &&
+      o.submit === 0 &&
+      o.reject === 0 &&
+      o.approve === 0
+    );
   };
 
   return (
@@ -821,7 +827,7 @@ export default function PetugasPage() {
                 <ul className="list-disc list-inside mt-1 flex flex-col gap-0.5">
                   {activeTab === "pcl" ? (
                     <li>
-                      Untuk <span className="font-bold">Pencacah (PCL)</span>: Baris diwarnai <span className="text-red-500 font-bold">merah</span> jika status <span className="font-bold">OPEN</span>-nya masih 0 (sudah tidak memiliki sisa berkas terbuka).
+                      Untuk <span className="font-bold">Pencacah (PCL)</span>: Baris diwarnai <span className="text-red-500 font-bold">merah</span> jika status <span className="font-bold">DRAFT</span>, <span className="font-bold">SUBMIT</span>, <span className="font-bold">REJECT</span>, dan <span className="font-bold">APPROVE</span>-nya 0 (belum mulai bekerja).
                     </li>
                   ) : activeTab === "pml" ? (
                     <li>
