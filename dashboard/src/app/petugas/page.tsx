@@ -40,6 +40,7 @@ interface DashboardRecord {
   jabatanPetugas: string; // PPL or PML
   namaKec: string;        // Kecamatan name
   koseka: string;         // Koseka name
+  isPrioritas: string;    // Priority SLS flag
 }
 
 // Interface for aggregated officer stats
@@ -59,6 +60,7 @@ interface OfficerStats {
     approve: number;
     total: number;
     progress: number;
+    isPrioritas: boolean;
   }[];
   open: number;
   draft: number;
@@ -187,6 +189,7 @@ export default function PetugasPage() {
           jabatanPetugas: row[9] ? row[9].replace(/"/g, "").trim() : "",
           namaKec: row[10] ? row[10].replace(/"/g, "").trim() : "",
           koseka: row[11] ? row[11].replace(/"/g, "").trim() : "",
+          isPrioritas: row[12] ? row[12].replace(/"/g, "").trim() : "Tidak",
         });
       }
     }
@@ -244,7 +247,8 @@ export default function PetugasPage() {
         reject: record.reject,
         approve: record.approve,
         total: slsTotal,
-        progress: slsProgress
+        progress: slsProgress,
+        isPrioritas: record.isPrioritas === "Ya"
       });
 
       // Sum metrics
@@ -1084,15 +1088,29 @@ export default function PetugasPage() {
                                           return (
                                             <div
                                               key={sls.slsCode}
-                                              className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex flex-col gap-2.5 shadow-sm hover:shadow transition-shadow"
+                                              className={`p-3.5 rounded-xl border flex flex-col gap-2.5 shadow-sm hover:shadow transition-all ${
+                                                sls.isPrioritas
+                                                  ? "border-orange-500/60 dark:border-orange-500/40 bg-orange-500/[0.02] dark:bg-orange-500/[0.01] ring-1 ring-orange-500/20"
+                                                  : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950"
+                                              }`}
                                             >
                                               <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-1.5">
-                                                <span className="font-bold text-xs text-slate-900 dark:text-slate-200 font-mono tracking-tight">
+                                                <span className="font-bold text-xs text-slate-900 dark:text-slate-200 font-mono tracking-tight flex items-center gap-1.5">
                                                   {sls.slsCode}
+                                                  {sls.isPrioritas && (
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" title="SLS Prioritas"></span>
+                                                  )}
                                                 </span>
-                                                <span className="text-xs font-extrabold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded">
-                                                  {slsPct}%
-                                                </span>
+                                                <div className="flex items-center gap-1.5">
+                                                  {sls.isPrioritas && (
+                                                    <span className="text-[8px] font-black text-orange-600 dark:text-orange-400 bg-orange-500/10 px-1 py-0.2 rounded uppercase tracking-wider">
+                                                      Prio
+                                                    </span>
+                                                  )}
+                                                  <span className="text-xs font-extrabold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded">
+                                                    {slsPct}%
+                                                  </span>
+                                                </div>
                                               </div>
                                               <div className="grid grid-cols-2 gap-y-1.5 gap-x-2 text-[10px] text-slate-500">
                                                 <div className="flex justify-between">

@@ -35,6 +35,7 @@ interface ScraperRecord {
   officer: string;
   nama_kec: string;
   koseka: string;
+  isPrioritas: string;
 }
 
 interface PMLPPLRecord {
@@ -74,6 +75,7 @@ interface SLSStats {
   slsCode: string;
   kec: string;
   koseka: string;
+  isPrioritas: boolean;
   categories: { [category: string]: CellStats };
   total: CellStats;
 }
@@ -243,6 +245,7 @@ export default function TabulasiPage() {
               officer: row[14].replace(/"/g, "").trim(),
               nama_kec: row[16] ? row[16].replace(/"/g, "").trim() : "",
               koseka: row[17] ? row[17].replace(/"/g, "").trim() : "",
+              isPrioritas: row[18] ? row[18].replace(/"/g, "").trim() : "Tidak",
             });
           }
         }
@@ -589,6 +592,7 @@ export default function TabulasiPage() {
           slsCode,
           kec: formatKecName(r.nama_kec),
           koseka: r.koseka,
+          isPrioritas: r.isPrioritas === "Ya",
           categories: {},
           total: createEmptyCellStats()
         };
@@ -1498,11 +1502,26 @@ export default function TabulasiPage() {
                           paginatedSlsStats.map((sls, idx) => (
                             <tr 
                               key={idx} 
-                              className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all border-b border-slate-100 dark:border-slate-800"
+                              className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all border-b border-slate-100 dark:border-slate-800 ${
+                                sls.isPrioritas 
+                                  ? "bg-orange-500/5 hover:bg-orange-500/10 dark:bg-orange-500/5 dark:hover:bg-orange-500/10" 
+                                  : ""
+                              }`}
                             >
                               {/* SLS Code cell */}
-                              <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-950 dark:text-white sticky left-0 bg-white dark:bg-slate-900 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
-                                <div className="font-mono text-sm tracking-wider">{sls.slsCode}</div>
+                              <td className={`px-4 py-3 border-r border-slate-200 dark:border-slate-800 font-bold sticky left-0 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] ${
+                                sls.isPrioritas
+                                  ? "bg-orange-50/90 dark:bg-orange-950/20 text-orange-900 dark:text-orange-300 border-l-2 border-l-orange-500"
+                                  : "bg-white dark:bg-slate-900 text-slate-950 dark:text-white border-l-2 border-l-transparent"
+                              }`}>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-mono text-sm tracking-wider">{sls.slsCode}</span>
+                                  {sls.isPrioritas && (
+                                    <span className="inline-flex px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase bg-orange-500 text-white dark:bg-orange-600 tracking-wider">
+                                      Prioritas
+                                    </span>
+                                  )}
+                                </div>
                                 <div className="text-[10px] text-slate-400 font-normal mt-0.5">{sls.kec} • Koseka: {sls.koseka}</div>
                               </td>
 

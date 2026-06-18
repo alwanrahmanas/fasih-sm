@@ -49,6 +49,7 @@ interface ScraperRecord {
   notes: string;
   nama_kec: string;
   koseka: string;
+  isPrioritas: string;
 }
 
 const normalizeScale = (scaleStr: string): string => {
@@ -321,6 +322,7 @@ export default function DashboardPage() {
               notes: row[15].replace(/"/g, "").trim(),
               nama_kec: row[16] ? row[16].replace(/"/g, "").trim() : "",
               koseka: row[17] ? row[17].replace(/"/g, "").trim() : "",
+              isPrioritas: row[18] ? row[18].replace(/"/g, "").trim() : "Tidak",
             });
           }
         }
@@ -649,7 +651,7 @@ export default function DashboardPage() {
   const handleExportCSV = () => {
     const headers = [
       "Kode Identitas", "Nama Keluarga/Bangunan/Usaha", "Kecamatan", "Koseka", "Alamat Prelist", 
-      "Skala Usaha", "Status", "Petugas Saat Ini", "Keterangan"
+      "Skala Usaha", "Status", "Petugas Saat Ini", "Keterangan", "Prioritas"
     ];
     const csvRows = [headers.join(",")];
     
@@ -663,7 +665,8 @@ export default function DashboardPage() {
         `"${r.scale.replace(/"/g, '""')}"`,
         `"${r.status.replace(/"/g, '""')}"`,
         `"${r.officer.replace(/"/g, '""')}"`,
-        `"${r.notes.replace(/"/g, '""')}"`
+        `"${r.notes.replace(/"/g, '""')}"`,
+        `"${(r.isPrioritas || "Tidak").replace(/"/g, '""')}"`
       ];
       csvRows.push(values.join(","));
     });
@@ -1418,11 +1421,22 @@ export default function DashboardPage() {
                       paginatedData.map((row, idx) => (
                         <tr
                           key={idx}
-                          className="hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-colors"
+                          className={`hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-all border-l-2 ${
+                            row.isPrioritas === "Ya"
+                              ? "bg-orange-500/5 hover:bg-orange-500/10 dark:bg-orange-500/5 dark:hover:bg-orange-500/10 border-l-orange-500"
+                              : "border-l-transparent"
+                          }`}
                         >
                           {/* ID Code */}
                           <td className="py-4 px-6 font-mono text-xs font-semibold text-slate-800 dark:text-slate-300 whitespace-nowrap">
-                            {row.idCode}
+                            <div className="flex items-center gap-2">
+                              <span>{row.idCode}</span>
+                              {row.isPrioritas === "Ya" && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/30 tracking-wider shadow-sm animate-pulse">
+                                  Prioritas
+                                </span>
+                              )}
+                            </div>
                           </td>
                           {/* Name */}
                           <td className="py-4 px-6 font-medium text-slate-900 dark:text-white truncate max-w-[180px]">

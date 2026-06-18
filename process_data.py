@@ -106,7 +106,21 @@ def run_git_commands(timestamp_str):
     except Exception as e:
         print(f"Warning: Failed to execute Git commands: {e}")
 
-def process_dashboard_scraped_data():
+def load_priority_sls():
+    priority_file = os.path.join("data", "kdsls_prioritas.txt")
+    if not os.path.exists(priority_file):
+        print(f"Warning: Priority SLS file '{priority_file}' not found.")
+        return set()
+    try:
+        with open(priority_file, "r", encoding="utf-8") as f:
+            codes = {line.strip() for line in f if line.strip()}
+        print(f"Loaded {len(codes)} priority SLS codes.")
+        return codes
+    except Exception as e:
+        print(f"Error loading priority SLS codes: {e}")
+        return set()
+
+def process_dashboard_scraped_data(priority_sls):
     scraped_file = "dashboard_scraped_data.csv"
     koseka_file = os.path.join("data", "koseka.csv")
     pml_ppl_file = os.path.join("data", "pml_ppl.csv")
@@ -176,8 +190,8 @@ def process_dashboard_scraped_data():
                 print("Error: dashboard_scraped_data.csv is empty.")
                 return False
             
-            # Original 8 headers, we will append the 4 additional headers
-            additional_headers = ['nama_petugas', 'jabatan_petugas', 'nama_kec', 'koseka']
+            # Original 8 headers, we will append the 5 additional headers
+            additional_headers = ['nama_petugas', 'jabatan_petugas', 'nama_kec', 'koseka', 'is_prioritas']
             base_headers = headers[:8]
             output_headers = base_headers + additional_headers
             
@@ -212,7 +226,11 @@ def process_dashboard_scraped_data():
                     nama_kec = koseka_map[kd_kec_7]['nama_kec']
                     koseka = koseka_map[kd_kec_7]['koseka']
                 
-                new_row = base_row + [nama_petugas, jabatan_petugas, nama_kec, koseka]
+                # Match SLS Code in priority set
+                sls_14 = digits_only[:14]
+                is_prioritas = "Ya" if sls_14 in priority_sls else "Tidak"
+                
+                new_row = base_row + [nama_petugas, jabatan_petugas, nama_kec, koseka, is_prioritas]
                 processed_rows.append(new_row)
                 
         # Write processed data back to dashboard_scraped_data.csv
@@ -244,6 +262,9 @@ def process_data():
         print(f"Error: Koseka mapping file '{koseka_file}' not found. Cannot process.")
         return False
         
+    # Load priority SLS codes
+    priority_sls = load_priority_sls()
+
     # 1. Load subdistrict and Koseka mapping
     print(f"Loading subdistrict and Koseka mapping from '{koseka_file}'...")
     koseka_map = {}
@@ -301,8 +322,7 @@ def process_data():
             reader = csv.reader(infile)
             try:
                 new_headers = next(reader)
-                if not headers:
-                    headers = new_headers + ['nama_kec', 'koseka']
+                headers = new_headers + ['nama_kec', 'koseka', 'is_prioritas']
                 if 'Kode Identitas' in new_headers:
                     new_id_code_idx = new_headers.index('Kode Identitas')
                 else:
@@ -334,6 +354,7 @@ def process_data():
                     nama_kec = koseka_map[kd_kec_7]['nama_kec']
                     koseka = koseka_map[kd_kec_7]['koseka']
                 
+                # We will process is_prioritas when writing all rows
                 mapped_row = row + [nama_kec, koseka]
                 
                 if id_code in existing_data:
@@ -345,8 +366,25 @@ def process_data():
                 
         print(f"Scraped data processed: {updated_rows_count} records updated, {new_rows_count} new records added.")
         
-        # Prepare list of rows to write
-        rows_to_write = list(existing_data.values())
+        # Prepare list of rows to write and normalize columns to exactly 19 (16 base + 3 extra)
+        rows_to_write = []
+        for id_code, row in existing_data.items():
+            base_row = row[:16]
+            while len(base_row) < 16:
+                base_row.append("")
+                
+            digits_only = "".join([c for c in id_code if c.isdigit()])
+            kd_kec_7 = digits_only[:7]
+            sls_14 = digits_only[:14]
+            
+            nama_kec = ""
+            koseka = ""
+            if kd_kec_7 in koseka_map:
+                nama_kec = koseka_map[kd_kec_7]['nama_kec']
+                koseka = koseka_map[kd_kec_7]['koseka']
+                
+            is_prioritas = "Ya" if sls_14 in priority_sls else "Tidak"
+            rows_to_write.append(base_row + [nama_kec, koseka, is_prioritas])
         
         # Write merged/updated records back to update_data.csv
         with open(output_file, mode='w', newline='', encoding='utf-8') as outfile:
@@ -357,9 +395,9 @@ def process_data():
         rows_written = len(rows_to_write)
         print(f"Successfully merged and created '{output_file}' with {rows_written} rows.")
         
-        # Also write the merged raw data back to scraped_data.csv (excluding the last two columns: nama_kec, koseka)
-        raw_headers = headers[:-2] if len(headers) > 2 else headers
-        raw_rows = [row[:-2] if len(row) > 2 else row for row in rows_to_write]
+        # Also write the merged raw data back to scraped_data.csv (excluding the last three columns: nama_kec, koseka, is_prioritas)
+        raw_headers = headers[:-3] if len(headers) > 3 else headers
+        raw_rows = [row[:-3] if len(row) > 3 else row for row in rows_to_write]
         
         with open(scraped_file, mode='w', newline='', encoding='utf-8') as sf:
             writer = csv.writer(sf)
@@ -372,7 +410,7 @@ def process_data():
         return False
 
     # 2b. Process dashboard scraped data
-    process_dashboard_scraped_data()
+    process_dashboard_scraped_data(priority_sls)
 
     # 3. Copy to Next.js dashboard public folder & write timestamp
     public_dir = os.path.join("dashboard", "public")
