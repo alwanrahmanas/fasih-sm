@@ -687,49 +687,49 @@ export default function DashboardPage() {
     const s = status.toLowerCase().trim();
     if (s === "open") {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-500 border border-amber-500/20">
           <Clock className="w-3.5 h-3.5" />
           Terbuka (Open)
         </span>
       );
     } else if (s === "draft") {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-500 border border-blue-500/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-500 border border-blue-500/20">
           <FileText className="w-3.5 h-3.5" />
           Draft
         </span>
       );
     } else if (s === "submitted by pencacah" || s === "submit" || s === "submitted") {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-500/10 text-teal-500 border border-teal-500/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-500/10 text-teal-600 dark:text-teal-500 border border-teal-500/20">
           <Send className="w-3.5 h-3.5" />
           Submitted by Pencacah
         </span>
       );
     } else if (s === "rejected by pengawas" || s === "reject" || s === "rejected") {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-500/10 text-red-500 border border-red-500/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-500/10 text-red-600 dark:text-red-500 border border-red-500/20">
           <XCircle className="w-3.5 h-3.5" />
           Rejected by Pengawas
         </span>
       );
     } else if (s === "approved by pengawas" || s === "approve" || s === "approved") {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border border-emerald-500/20">
           <CheckCircle2 className="w-3.5 h-3.5" />
           Approved by Pengawas
         </span>
       );
     } else if (s === "kosong" || s === "") {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20">
           <AlertCircle className="w-3.5 h-3.5" />
           Belum Diisi
         </span>
       );
     } else {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20">
           <AlertCircle className="w-3.5 h-3.5" />
           {status}
         </span>
@@ -740,13 +740,13 @@ export default function DashboardPage() {
   // Scale Badge Component
   const ScaleBadge = ({ scale }: { scale: string }) => {
     const s = scale.toUpperCase();
-    let colorClass = "bg-orange-500/10 text-orange-500 border border-orange-500/20";
+    let colorClass = "bg-orange-500/10 text-orange-600 dark:text-orange-500 border border-orange-500/20";
     if (s.includes("KELUARGA")) {
-      colorClass = "bg-blue-500/10 text-blue-400 border border-blue-500/20";
+      colorClass = "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20";
     } else if (s.includes("UMK")) {
-      colorClass = "bg-orange-500/10 text-orange-400 border border-orange-500/20";
+      colorClass = "bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20";
     } else if (s.includes("UMKM")) {
-      colorClass = "bg-purple-500/10 text-purple-400 border border-purple-500/20";
+      colorClass = "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20";
     }
     
     return (
@@ -892,7 +892,7 @@ export default function DashboardPage() {
                 <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-slate-900 dark:text-white">
                   {displayTotal.toLocaleString("id-ID")}
                 </span>
-                <span className="text-[9px] sm:text-xs text-slate-400 mt-2 block flex items-center gap-1">
+                <span className="text-[9px] sm:text-xs text-slate-500 dark:text-slate-400 mt-2 block flex items-center gap-1">
                   <FileSpreadsheet className="w-3.5 h-3.5 text-orange-500 flex-shrink-0" />
                   <span className="truncate">{totalPrelistSummary ? "Target resmi BPS" : "Baris data valid"}</span>
                 </span>
@@ -908,7 +908,7 @@ export default function DashboardPage() {
                 <div>
                   <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                   <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Total Realisasi</span>
-                  <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-emerald-500">
+                  <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-emerald-600 dark:text-emerald-500">
                     {displayRealisasi.toLocaleString("id-ID")}
                   </span>
                 </div>
@@ -919,7 +919,7 @@ export default function DashboardPage() {
                     </div>
                     <span className="text-[10px] sm:text-xs md:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayRealisasi / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
                   </div>
-                  <span className="text-[8px] sm:text-[9px] text-slate-400 dark:text-slate-500 mt-2 block font-medium leading-tight">
+                  <span className="text-[8px] sm:text-[9px] text-slate-500 dark:text-slate-400 mt-2 block font-medium leading-tight">
                     * Selain status Open (Draft+Sub+App+Rej)
                   </span>
                 </div>
@@ -935,7 +935,7 @@ export default function DashboardPage() {
                 <div>
                   <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                   <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Realisasi via Fasih SM</span>
-                  <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-teal-500">
+                  <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-teal-600 dark:text-teal-500">
                     {displayRealisasiFasih.toLocaleString("id-ID")}
                   </span>
                 </div>
@@ -946,7 +946,7 @@ export default function DashboardPage() {
                     </div>
                     <span className="text-[10px] sm:text-xs md:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayRealisasiFasih / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
                   </div>
-                  <span className="text-[8px] sm:text-[9px] text-slate-400 dark:text-slate-500 mt-2 block font-medium leading-tight">
+                  <span className="text-[8px] sm:text-[9px] text-slate-500 dark:text-slate-400 mt-2 block font-medium leading-tight">
                     * Selain Open & Draft (Sub+App+Rej)
                   </span>
                 </div>
@@ -961,7 +961,7 @@ export default function DashboardPage() {
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                 <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Status Terbuka (Open)</span>
-                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-amber-500">
+                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-amber-600 dark:text-amber-500">
                   {displayOpen.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center justify-between mt-3 gap-2">
@@ -981,7 +981,7 @@ export default function DashboardPage() {
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                 <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Submitted by Pencacah</span>
-                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-teal-500">
+                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-teal-600 dark:text-teal-500">
                   {displaySubmit.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center justify-between mt-3 gap-2">
@@ -1001,7 +1001,7 @@ export default function DashboardPage() {
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                 <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Approved by Pengawas</span>
-                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-emerald-500">
+                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-emerald-600 dark:text-emerald-500">
                   {displayApprove.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center justify-between mt-3 gap-2">
@@ -1021,7 +1021,7 @@ export default function DashboardPage() {
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                 <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Status Draft</span>
-                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-blue-500">
+                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-blue-600 dark:text-blue-500">
                   {displayDraft.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center justify-between mt-3 gap-2">
@@ -1041,7 +1041,7 @@ export default function DashboardPage() {
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                 <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Rejected by Pengawas</span>
-                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-red-500">
+                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-red-600 dark:text-red-500">
                   {displayReject.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center justify-between mt-3 gap-2">
@@ -1081,16 +1081,16 @@ export default function DashboardPage() {
                       
                       let colorClass = "from-orange-500 to-amber-500";
                       let bgClass = "bg-orange-500/10";
-                      let textClass = "text-orange-500";
+                      let textClass = "text-orange-600 dark:text-orange-500";
                       
                       if (pct >= 80) {
                         colorClass = "from-emerald-500 to-teal-500";
                         bgClass = "bg-emerald-500/10";
-                        textClass = "text-emerald-500";
+                        textClass = "text-emerald-600 dark:text-emerald-500";
                       } else if (pct >= 40) {
                         colorClass = "from-blue-600 to-cyan-500";
                         bgClass = "bg-blue-500/10";
-                        textClass = "text-blue-500";
+                        textClass = "text-blue-600 dark:text-blue-500";
                       }
 
                       return (
@@ -1156,20 +1156,20 @@ export default function DashboardPage() {
                     
                     let colorClass = "from-orange-500 to-amber-500";
                     let bgClass = "bg-orange-500/10";
-                    let textClass = "text-orange-500";
+                    let textClass = "text-orange-600 dark:text-orange-500";
                     
                     if (item.name.toUpperCase().includes("KELUARGA")) {
                       colorClass = "from-blue-600 to-cyan-500";
                       bgClass = "bg-blue-500/10";
-                      textClass = "text-blue-500";
+                      textClass = "text-blue-600 dark:text-blue-500";
                     } else if (item.name.toUpperCase().includes("UMK")) {
                       colorClass = "from-orange-500 to-amber-500";
                       bgClass = "bg-orange-500/10";
-                      textClass = "text-orange-500";
+                      textClass = "text-orange-600 dark:text-orange-500";
                     } else if (item.name.toUpperCase().includes("UMKM")) {
                       colorClass = "from-purple-600 to-pink-500";
                       bgClass = "bg-purple-500/10";
-                      textClass = "text-purple-500";
+                      textClass = "text-purple-600 dark:text-purple-500";
                     }
 
                     return (
@@ -1343,39 +1343,39 @@ export default function DashboardPage() {
                 {/* Filter Summary Badge */}
                 {(searchQuery || statusFilter !== "all" || scaleFilter !== "all" || selectedOfficer !== "all" || selectedSubdistrict !== "all" || selectedKoseka !== "all") && (
                   <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-slate-200/50 dark:border-slate-800/50 text-xs">
-                    <span className="text-slate-400 font-medium">Filter Aktif:</span>
+                    <span className="text-slate-500 dark:text-slate-400 font-medium">Filter Aktif:</span>
                     {searchQuery && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-500 font-medium">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-500 font-medium">
                         Cari: "{searchQuery}"
                         <button onClick={() => setSearchQuery("")}><X className="w-3 h-3 hover:text-orange-600" /></button>
                       </span>
                     )}
                     {statusFilter !== "all" && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-500 font-medium">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-500 font-medium">
                         Status: {statusFilter}
                         <button onClick={() => setStatusFilter("all")}><X className="w-3 h-3 hover:text-orange-600" /></button>
                       </span>
                     )}
                     {scaleFilter !== "all" && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-500 font-medium">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-500 font-medium">
                         Skala: {scaleFilter}
                         <button onClick={() => setScaleFilter("all")}><X className="w-3 h-3 hover:text-orange-600" /></button>
                       </span>
                     )}
                     {selectedOfficer !== "all" && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-500 font-medium">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-500 font-medium">
                         Petugas: {selectedOfficer.replace(/Pencacah$/, "")}
                         <button onClick={() => setSelectedOfficer("all")}><X className="w-3 h-3 hover:text-orange-600" /></button>
                       </span>
                     )}
                     {selectedSubdistrict !== "all" && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-500 font-medium">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-500 font-medium">
                         Kecamatan: {selectedSubdistrict}
                         <button onClick={() => setSelectedSubdistrict("all")}><X className="w-3 h-3 hover:text-orange-600" /></button>
                       </span>
                     )}
                     {selectedKoseka !== "all" && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-500 font-medium">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-500 font-medium">
                         Koseka: {selectedKoseka}
                         <button onClick={() => setSelectedKoseka("all")}><X className="w-3 h-3 hover:text-orange-600" /></button>
                       </span>
@@ -1389,7 +1389,7 @@ export default function DashboardPage() {
                         setSelectedSubdistrict("all");
                         setSelectedKoseka("all");
                       }}
-                      className="text-slate-400 hover:text-orange-500 hover:underline font-bold ml-auto"
+                      className="text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 hover:underline font-bold ml-auto cursor-pointer"
                     >
                       Bersihkan Semua
                     </button>
@@ -1415,7 +1415,7 @@ export default function DashboardPage() {
               >
                 <table className="w-full text-left border-collapse">
                   <thead className="sticky top-0 z-20 bg-slate-50 dark:bg-slate-900 shadow-[0_1px_0_0_rgba(226,232,240,1)] dark:shadow-[0_1px_0_0_rgba(30,41,59,1)]">
-                    <tr className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <tr className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                       <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Kode Identitas</th>
                       <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Nama Keluarga/Bangunan/Usaha</th>
                       <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Kecamatan</th>
@@ -1477,8 +1477,8 @@ export default function DashboardPage() {
                           <td className="py-3 px-3 sm:px-4 sm:py-4 text-slate-600 dark:text-slate-400 font-medium truncate max-w-[150px]">
                             {row.officer ? row.officer.replace(/Pencacah$/, "") : "-"}
                           </td>
-                          {/* Notes */}
-                          <td className="py-3 px-3 sm:px-4 sm:py-4 text-xs text-slate-400 truncate max-w-[120px]">
+                           {/* Notes */}
+                          <td className="py-3 px-3 sm:px-4 sm:py-4 text-xs text-slate-500 dark:text-slate-400 truncate max-w-[120px]">
                             {row.notes || "-"}
                           </td>
                         </tr>
@@ -1513,7 +1513,7 @@ export default function DashboardPage() {
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
-                    className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 text-slate-500 cursor-pointer"
+                    className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 text-slate-500 dark:text-slate-400 cursor-pointer"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
@@ -1523,7 +1523,7 @@ export default function DashboardPage() {
                     {currentPage > 3 && (
                       <>
                         <button onClick={() => setCurrentPage(1)} className="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800">1</button>
-                        {currentPage > 4 && <span className="text-slate-400 px-1">...</span>}
+                        {currentPage > 4 && <span className="text-slate-500 dark:text-slate-400 px-1">...</span>}
                       </>
                     )}
 
@@ -1550,7 +1550,7 @@ export default function DashboardPage() {
 
                     {currentPage < totalPages - 2 && (
                       <>
-                        {currentPage < totalPages - 3 && <span className="text-slate-400 px-1">...</span>}
+                        {currentPage < totalPages - 3 && <span className="text-slate-500 dark:text-slate-400 px-1">...</span>}
                         <button onClick={() => setCurrentPage(totalPages)} className="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800">{totalPages}</button>
                       </>
                     )}
@@ -1565,7 +1565,7 @@ export default function DashboardPage() {
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 text-slate-500 cursor-pointer"
+                    className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 text-slate-500 dark:text-slate-400 cursor-pointer"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>

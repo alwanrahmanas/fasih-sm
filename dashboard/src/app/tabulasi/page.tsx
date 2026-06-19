@@ -966,23 +966,23 @@ export default function TabulasiPage() {
         <div className="space-y-0.5 opacity-90 text-[10px] pl-1 font-semibold text-slate-500 dark:text-slate-400">
           <div className="flex justify-between">
             <span>1. Open</span>
-            <span className="font-bold text-amber-500">{stats.open}</span>
+            <span className="font-bold text-amber-600 dark:text-amber-500">{stats.open}</span>
           </div>
           <div className="flex justify-between">
             <span>2. Submitted by Pencacah</span>
-            <span className="font-bold text-teal-500">{stats.submit}</span>
+            <span className="font-bold text-teal-600 dark:text-teal-500">{stats.submit}</span>
           </div>
           <div className="flex justify-between">
             <span>3. Draft</span>
-            <span className="font-bold text-blue-500">{stats.draft}</span>
+            <span className="font-bold text-blue-600 dark:text-blue-500">{stats.draft}</span>
           </div>
           <div className="flex justify-between">
             <span>4. Rejected by Pengawas</span>
-            <span className="font-bold text-red-500">{stats.reject}</span>
+            <span className="font-bold text-red-600 dark:text-red-500">{stats.reject}</span>
           </div>
           <div className="flex justify-between">
             <span>5. Approved by Pengawas</span>
-            <span className="font-bold text-emerald-500">{stats.approve}</span>
+            <span className="font-bold text-emerald-600 dark:text-emerald-500">{stats.approve}</span>
           </div>
         </div>
       </div>
@@ -1163,7 +1163,7 @@ export default function TabulasiPage() {
                   {(activeTab === "pcl" || activeTab === "pml" || activeTab === "sls") && (
                     <>
                       {/* Kecamatan Dropdown */}
-                      <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold w-full sm:w-auto">
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-semibold w-full sm:w-auto">
                         <MapPin className="w-4 h-4 text-orange-500" />
                         <select
                           value={selectedKec}
@@ -1179,7 +1179,7 @@ export default function TabulasiPage() {
 
                       {/* PML Dropdown */}
                       {(activeTab === "pcl" || activeTab === "pml") && (
-                        <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold w-full sm:w-auto">
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-semibold w-full sm:w-auto">
                           <SlidersHorizontal className="w-4 h-4 text-orange-500" />
                           <select
                             value={selectedPml}
@@ -1199,7 +1199,7 @@ export default function TabulasiPage() {
                   {/* Search Input */}
                   {(activeTab === "pcl" || activeTab === "pml" || activeTab === "sls") && (
                     <div className="relative w-full sm:w-64">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-400" />
                       <input
                         type="text"
                         placeholder={
@@ -1211,12 +1211,12 @@ export default function TabulasiPage() {
                         }
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-semibold"
+                        className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-semibold text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                       />
                       {searchQuery && (
                         <button
                           onClick={() => setSearchQuery("")}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-400 transition-colors"
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 transition-colors"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -1242,19 +1242,19 @@ export default function TabulasiPage() {
               {activeTab === "pcl" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
                   <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
-                    <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Total PCL Tampil</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">Total PCL Tampil</span>
                     <span className="text-xl font-extrabold text-slate-900 dark:text-white mt-1 block">{filteredPclStats.length} petugas</span>
                   </div>
                   <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
-                    <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Total Beban Target</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">Total Beban Target</span>
                     <span className="text-xl font-extrabold text-slate-900 dark:text-white mt-1 block">{selectedOverviewStats.target.toLocaleString("id-ID")}</span>
                   </div>
                   <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
-                    <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Total Realisasi</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">Total Realisasi</span>
                     <span className="text-xl font-extrabold text-emerald-500 mt-1 block">{selectedOverviewStats.realisasi.toLocaleString("id-ID")}</span>
                   </div>
                   <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
-                    <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Persentase Selesai</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">Persentase Selesai</span>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-2xl font-black text-orange-500">{selectedOverviewStats.completionRate.toFixed(2)}%</span>
                       <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
@@ -1268,19 +1268,19 @@ export default function TabulasiPage() {
               {activeTab === "pml" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
                   <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
-                    <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Total PML Tampil</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">Total PML Tampil</span>
                     <span className="text-xl font-extrabold text-slate-900 dark:text-white mt-1 block">{filteredPmlStats.length} pengawas</span>
                   </div>
                   <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
-                    <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Total Beban Target</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">Total Beban Target</span>
                     <span className="text-xl font-extrabold text-slate-900 dark:text-white mt-1 block">{selectedPmlOverviewStats.target.toLocaleString("id-ID")}</span>
                   </div>
                   <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
-                    <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Total Realisasi</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">Total Realisasi</span>
                     <span className="text-xl font-extrabold text-emerald-500 mt-1 block">{selectedPmlOverviewStats.realisasi.toLocaleString("id-ID")}</span>
                   </div>
                   <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
-                    <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Persentase Selesai</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">Persentase Selesai</span>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-2xl font-black text-orange-500">{selectedPmlOverviewStats.completionRate.toFixed(2)}%</span>
                       <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
@@ -1294,19 +1294,19 @@ export default function TabulasiPage() {
               {activeTab === "sls" && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
                   <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
-                    <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Total SLS Tampil</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">Total SLS Tampil</span>
                     <span className="text-xl font-extrabold text-slate-900 dark:text-white mt-1 block">{filteredSlsStats.length} SLS</span>
                   </div>
                   <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
-                    <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Total Beban Target</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">Total Beban Target</span>
                     <span className="text-xl font-extrabold text-slate-900 dark:text-white mt-1 block">{selectedSlsOverviewStats.target.toLocaleString("id-ID")}</span>
                   </div>
                   <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
-                    <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Total Realisasi</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">Total Realisasi</span>
                     <span className="text-xl font-extrabold text-emerald-500 mt-1 block">{selectedSlsOverviewStats.realisasi.toLocaleString("id-ID")}</span>
                   </div>
                   <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
-                    <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Persentase Selesai</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">Persentase Selesai</span>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-2xl font-black text-orange-500">{selectedSlsOverviewStats.completionRate.toFixed(2)}%</span>
                       <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
@@ -1367,7 +1367,7 @@ export default function TabulasiPage() {
                     <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                       {filteredPclStats.length === 0 ? (
                         <tr>
-                          <td colSpan={9} className="px-4 py-16 text-center text-slate-400 font-medium text-sm">
+                          <td colSpan={9} className="px-4 py-16 text-center text-slate-500 dark:text-slate-400 font-medium text-sm">
                             Tidak ada data PCL ditemukan untuk filter ini.
                           </td>
                         </tr>
@@ -1380,7 +1380,7 @@ export default function TabulasiPage() {
                             {/* PCL Name cell */}
                             <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-950 dark:text-white sticky left-0 bg-white dark:bg-slate-900 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
                               <div>{pcl.nama}</div>
-                              <div className="text-[10px] text-slate-400 font-normal mt-0.5">{pcl.kec}</div>
+                              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-normal mt-0.5">{pcl.kec}</div>
                             </td>
 
                             {/* Category cells */}
@@ -1430,7 +1430,7 @@ export default function TabulasiPage() {
                     <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                       {filteredPmlStats.length === 0 ? (
                         <tr>
-                          <td colSpan={9} className="px-4 py-16 text-center text-slate-400 font-medium text-sm">
+                          <td colSpan={9} className="px-4 py-16 text-center text-slate-500 dark:text-slate-400 font-medium text-sm">
                             Tidak ada data PML ditemukan untuk filter ini.
                           </td>
                         </tr>
@@ -1443,7 +1443,7 @@ export default function TabulasiPage() {
                             {/* PML Name cell */}
                             <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-950 dark:text-white sticky left-0 bg-white dark:bg-slate-900 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
                               <div>{pml.nama}</div>
-                              <div className="text-[10px] text-slate-400 font-normal mt-0.5">{pml.kec}</div>
+                              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-normal mt-0.5">{pml.kec}</div>
                             </td>
 
                             {/* Category cells */}
@@ -1494,7 +1494,7 @@ export default function TabulasiPage() {
                       <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                         {paginatedSlsStats.length === 0 ? (
                           <tr>
-                            <td colSpan={9} className="px-4 py-16 text-center text-slate-400 font-medium text-sm">
+                            <td colSpan={9} className="px-4 py-16 text-center text-slate-500 dark:text-slate-400 font-medium text-sm">
                               Tidak ada data SLS ditemukan untuk filter ini.
                             </td>
                           </tr>
@@ -1522,7 +1522,7 @@ export default function TabulasiPage() {
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-[10px] text-slate-400 font-normal mt-0.5">{sls.kec} • Koseka: {sls.koseka}</div>
+                                <div className="text-[10px] text-slate-500 dark:text-slate-400 font-normal mt-0.5">{sls.kec} • Koseka: {sls.koseka}</div>
                               </td>
 
                               {/* Category cells */}
@@ -1629,7 +1629,7 @@ export default function TabulasiPage() {
                           {/* Kecamatan Name cell */}
                           <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-950 dark:text-white sticky left-0 bg-white dark:bg-slate-900 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
                             <div>{kec.kecName}</div>
-                            <div className="text-[10px] text-slate-400 font-normal mt-0.5">Koseka: {kec.koseka}</div>
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-normal mt-0.5">Koseka: {kec.koseka}</div>
                           </td>
 
                           {/* Category cells */}
@@ -1657,8 +1657,8 @@ export default function TabulasiPage() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-6 text-center text-xs text-slate-400">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-6 text-center text-xs text-slate-500 dark:text-slate-400">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 font-medium">
           <p>© 2026 Badan Pusat Statistik (BPS) Kabupaten Kepulauan Sangihe. Hak Cipta Dilindungi.</p>
           <p>
             Pengembang:{" "}

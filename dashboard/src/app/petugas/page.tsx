@@ -1237,7 +1237,7 @@ export default function PetugasPage() {
                                     <ChevronRight className="w-4 h-4 text-slate-400" />
                                   )}
                                 </td>
-                                <td className="py-3 px-2 text-center font-semibold text-slate-400 dark:text-slate-500">
+                                <td className="py-3 px-2 text-center font-semibold text-slate-500 dark:text-slate-400">
                                   {index + 1}
                                 </td>
                                 <td className="py-3 px-4 font-semibold">
@@ -1246,11 +1246,11 @@ export default function PetugasPage() {
                                 <td className="py-3 px-4 font-normal">{k.pmlList.length} PML</td>
                                 <td className="py-3 px-4 text-center font-normal">{k.slsCount}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-800 dark:text-slate-200">{k.total}</td>
-                                <td className="py-3 px-4 text-center font-normal text-amber-500/90">{k.open}</td>
-                                <td className="py-3 px-4 text-center font-normal text-blue-500/90">{k.draft}</td>
-                                <td className="py-3 px-4 text-center font-normal text-teal-500/90">{k.submit}</td>
-                                <td className="py-3 px-4 text-center font-normal text-red-500/90">{k.reject}</td>
-                                <td className="py-3 px-4 text-center font-normal text-emerald-500/90">{k.approve}</td>
+                                <td className="py-3 px-4 text-center font-normal text-amber-600 dark:text-amber-500/90">{k.open}</td>
+                                <td className="py-3 px-4 text-center font-normal text-blue-600 dark:text-blue-500/90">{k.draft}</td>
+                                <td className="py-3 px-4 text-center font-normal text-teal-600 dark:text-teal-500/90">{k.submit}</td>
+                                <td className="py-3 px-4 text-center font-normal text-red-600 dark:text-red-500/90">{k.reject}</td>
+                                <td className="py-3 px-4 text-center font-normal text-emerald-600 dark:text-emerald-500/90">{k.approve}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">{k.progress}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">{k.realisasi}</td>
                                 <td className="py-3 px-4 text-center">
@@ -1260,8 +1260,8 @@ export default function PetugasPage() {
                                       : parseFloat(pctRealisasi) >= 80
                                       ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
                                       : parseFloat(pctRealisasi) >= 40
-                                      ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
-                                      : "bg-slate-500/10 text-slate-400 border border-slate-500/20"
+                                      ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                                      : "bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20"
                                   }`}>
                                     {pctRealisasi}%
                                   </span>
@@ -1309,14 +1309,14 @@ export default function PetugasPage() {
                                                   }`}
                                                 >
                                                   <td className="py-2 font-semibold">{pml.namaPetugas}</td>
-                                                  <td className="py-2 text-slate-400 font-normal">{pml.email}</td>
+                                                  <td className="py-2 text-slate-500 dark:text-slate-400 font-normal">{pml.email}</td>
                                                   <td className="py-2 text-center">{pml.slsCount}</td>
                                                   <td className="py-2 text-center font-semibold text-slate-800 dark:text-slate-200">{pml.total}</td>
-                                                  <td className="py-2 text-center text-amber-500/90">{pml.open}</td>
-                                                  <td className="py-2 text-center text-blue-500/90">{pml.draft}</td>
-                                                  <td className="py-2 text-center text-teal-500/90">{pml.submit}</td>
-                                                  <td className="py-2 text-center text-red-500/90">{pml.reject}</td>
-                                                  <td className="py-2 text-center text-emerald-500/90">{pml.approve}</td>
+                                                  <td className="py-2 text-center text-amber-600 dark:text-amber-500/90">{pml.open}</td>
+                                                  <td className="py-2 text-center text-blue-600 dark:text-blue-500/90">{pml.draft}</td>
+                                                  <td className="py-2 text-center text-teal-600 dark:text-teal-500/90">{pml.submit}</td>
+                                                  <td className="py-2 text-center text-red-600 dark:text-red-500/90">{pml.reject}</td>
+                                                  <td className="py-2 text-center text-emerald-600 dark:text-emerald-500/90">{pml.approve}</td>
                                                   <td className="py-2 text-center font-semibold text-slate-700 dark:text-slate-300">{pml.progress}</td>
                                                   <td className="py-2 text-center font-semibold text-slate-700 dark:text-slate-300">{pml.realisasi}</td>
                                                   <td className="py-2 text-center">
@@ -1326,8 +1326,8 @@ export default function PetugasPage() {
                                                         : parseFloat(pmlPct) >= 80
                                                         ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
                                                         : parseFloat(pmlPct) >= 40
-                                                        ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
-                                                        : "bg-slate-500/10 text-slate-400 border border-slate-500/20"
+                                                        ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                                                        : "bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20"
                                                     }`}>
                                                       {pmlPct}%
                                                     </span>
@@ -1361,7 +1361,7 @@ export default function PetugasPage() {
                               key={item.slsCode}
                               className="border-b border-orange-500/20 dark:border-orange-500/10 bg-orange-500/[0.03] dark:bg-orange-500/[0.015] hover:bg-orange-500/[0.06] dark:hover:bg-orange-500/[0.03] transition-colors text-xs border-l-4 border-l-orange-500"
                             >
-                              <td className="py-3 px-2 text-center font-semibold text-slate-400 dark:text-slate-500">
+                              <td className="py-3 px-2 text-center font-semibold text-slate-500 dark:text-slate-400">
                                 {index + 1}
                               </td>
                               <td className="py-3 px-4 font-bold text-slate-900 dark:text-slate-100 font-mono">
@@ -1379,22 +1379,20 @@ export default function PetugasPage() {
                               <td className="py-3 px-4 font-semibold text-slate-800 dark:text-slate-200">
                                 {item.pengawas}
                               </td>
-                              <td className="py-3 px-4 text-center font-semibold text-slate-800 dark:text-slate-200">
-                                {item.total}
-                              </td>
-                              <td className="py-3 px-4 text-center font-normal text-amber-500/90">
+                              <td className="py-3 px-4 text-center font-semibold text-slate-800 dark:text-slate-200">{item.total}</td>
+                              <td className="py-3 px-4 text-center font-normal text-amber-600 dark:text-amber-500/90">
                                 {item.open}
                               </td>
-                              <td className="py-3 px-4 text-center font-normal text-blue-500/90">
+                              <td className="py-3 px-4 text-center font-normal text-blue-600 dark:text-blue-500/90">
                                 {item.draft}
                               </td>
-                              <td className="py-3 px-4 text-center font-normal text-teal-500/90">
+                              <td className="py-3 px-4 text-center font-normal text-teal-600 dark:text-teal-500/90">
                                 {item.submit}
                               </td>
-                              <td className="py-3 px-4 text-center font-normal text-red-500/90">
+                              <td className="py-3 px-4 text-center font-normal text-red-600 dark:text-red-500/90">
                                 {item.reject}
                               </td>
-                              <td className="py-3 px-4 text-center font-normal text-emerald-500/90">
+                              <td className="py-3 px-4 text-center font-normal text-emerald-600 dark:text-emerald-500/90">
                                 {item.approve}
                               </td>
                               <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">
@@ -1404,7 +1402,7 @@ export default function PetugasPage() {
                                 {item.realisasi}
                               </td>
                               <td className="py-3 px-4 text-center">
-                                <span className={`inline-flex px-2.5 py-0.5 rounded-full font-extrabold text-xs bg-orange-500/10 text-orange-500 border border-orange-500/20`}>
+                                <span className={`inline-flex px-2.5 py-0.5 rounded-full font-extrabold text-xs bg-orange-500/10 text-orange-600 dark:text-orange-500 border border-orange-500/20`}>
                                   {pctRealisasi}%
                                 </span>
                               </td>
@@ -1443,22 +1441,22 @@ export default function PetugasPage() {
                                     <ChevronRight className="w-4 h-4 text-slate-400" />
                                   )}
                                 </td>
-                                <td className="py-3 px-2 text-center font-semibold text-slate-400 dark:text-slate-500">
+                                <td className="py-3 px-2 text-center font-semibold text-slate-500 dark:text-slate-400">
                                   {index + 1}
                                 </td>
                                 <td className="py-3 px-4 font-semibold">
                                   <div>{o.namaPetugas}</div>
-                                  <div className="text-[10px] text-slate-400 font-normal mt-0.5">{o.email}</div>
+                                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-normal mt-0.5">{o.email}</div>
                                 </td>
                                 <td className="py-3 px-4 font-normal">{formatKecName(o.namaKec)}</td>
                                 <td className="py-3 px-4 font-normal">{o.koseka}</td>
                                 <td className="py-3 px-4 text-center font-normal">{o.slsList.length}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-800 dark:text-slate-200">{o.total}</td>
-                                <td className="py-3 px-4 text-center font-normal text-amber-500/90">{o.open}</td>
-                                <td className="py-3 px-4 text-center font-normal text-blue-500/90">{o.draft}</td>
-                                <td className="py-3 px-4 text-center font-normal text-teal-500/90">{o.submit}</td>
-                                <td className="py-3 px-4 text-center font-normal text-red-500/90">{o.reject}</td>
-                                <td className="py-3 px-4 text-center font-normal text-emerald-500/90">{o.approve}</td>
+                                <td className="py-3 px-4 text-center font-normal text-amber-600 dark:text-amber-500/90">{o.open}</td>
+                                <td className="py-3 px-4 text-center font-normal text-blue-600 dark:text-blue-500/90">{o.draft}</td>
+                                <td className="py-3 px-4 text-center font-normal text-teal-600 dark:text-teal-500/90">{o.submit}</td>
+                                <td className="py-3 px-4 text-center font-normal text-red-600 dark:text-red-500/90">{o.reject}</td>
+                                <td className="py-3 px-4 text-center font-normal text-emerald-600 dark:text-emerald-500/90">{o.approve}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">{o.progress}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">{o.realisasi}</td>
                                 <td className="py-3 px-4 text-center">
@@ -1468,8 +1466,8 @@ export default function PetugasPage() {
                                       : parseFloat(pctRealisasi) >= 80
                                       ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
                                       : parseFloat(pctRealisasi) >= 40
-                                      ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
-                                      : "bg-slate-500/10 text-slate-400 border border-slate-500/20"
+                                      ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                                      : "bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20"
                                   }`}>
                                     {pctRealisasi}%
                                   </span>
