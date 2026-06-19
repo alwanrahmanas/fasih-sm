@@ -23,9 +23,7 @@ import {
   UserCheck,
   Percent,
   Layers,
-  TrendingUp,
-  Copy,
-  Image
+  TrendingUp
 } from "lucide-react";
 
 // Interface for processed dashboard scraped data records
@@ -116,65 +114,6 @@ export default function PetugasPage() {
   const [sortBy, setSortBy] = useState<"nama" | "realisasi_desc" | "realisasi_asc" | "pct_desc" | "pct_asc">("nama");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
-  const tableRef = useRef<HTMLTableElement>(null);
-  const [exportingImage, setExportingImage] = useState(false);
-
-  const handleExportImage = async (action: "copy" | "download") => {
-    if (!tableRef.current) return;
-    try {
-      setExportingImage(true);
-      const html2canvas = (await import("html2canvas")).default;
-      
-      const element = tableRef.current;
-      
-      const canvas = await html2canvas(element, {
-        useCORS: true,
-        logging: false,
-        backgroundColor: isDarkMode ? "#090d16" : "#ffffff",
-        scale: 2, // High resolution/crisp details
-        onclone: (clonedDoc) => {
-          const clonedTable = clonedDoc.querySelector("table");
-          if (clonedTable) {
-            clonedTable.style.maxHeight = "none";
-            clonedTable.style.overflow = "visible";
-          }
-        }
-      });
-
-      if (action === "download") {
-        const dataUrl = canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.download = `monitoring_petugas_${activeTab}_${Date.now()}.png`;
-        link.href = dataUrl;
-        link.click();
-      } else if (action === "copy") {
-        canvas.toBlob(async (blob) => {
-          if (blob) {
-            try {
-              await navigator.clipboard.write([
-                new ClipboardItem({ "image/png": blob })
-              ]);
-              alert("Tabel berhasil disalin ke clipboard sebagai gambar!");
-            } catch (err) {
-              console.error("Gagal menyalin gambar ke clipboard:", err);
-              // Fallback to download
-              const dataUrl = canvas.toDataURL("image/png");
-              const link = document.createElement("a");
-              link.download = `monitoring_petugas_${activeTab}_${Date.now()}.png`;
-              link.href = dataUrl;
-              link.click();
-              alert("Gagal menyalin langsung ke clipboard. Gambar telah diunduh sebagai gantinya.");
-            }
-          }
-        }, "image/png");
-      }
-    } catch (err) {
-      console.error("Gagal mengekspor gambar:", err);
-      alert("Terjadi kesalahan saat mengekspor gambar.");
-    } finally {
-      setExportingImage(false);
-    }
-  };
 
   // Fetch and parse the CSV
   const fetchData = async () => {
@@ -1023,30 +962,6 @@ export default function PetugasPage() {
                     <Download className="w-4 h-4" />
                     Ekspor CSV
                   </button>
-                  <button
-                    onClick={() => handleExportImage("copy")}
-                    disabled={exportingImage}
-                    className="shrink-0 flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800/50 text-white rounded-xl text-xs font-bold transition-all shadow-sm shadow-blue-600/10 cursor-pointer disabled:cursor-not-allowed"
-                  >
-                    {exportingImage ? (
-                      <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                    ) : (
-                      <Copy className="w-4 h-4 text-white" />
-                    )}
-                    <span>Copy Gambar</span>
-                  </button>
-                  <button
-                    onClick={() => handleExportImage("download")}
-                    disabled={exportingImage}
-                    className="shrink-0 flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-800/50 text-white rounded-xl text-xs font-bold transition-all shadow-sm shadow-indigo-600/10 cursor-pointer disabled:cursor-not-allowed"
-                  >
-                    {exportingImage ? (
-                      <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                    ) : (
-                      <Image className="w-4 h-4 text-white" />
-                    )}
-                    <span>Ekspor Gambar</span>
-                  </button>
                 </div>
               </div>
 
@@ -1159,7 +1074,7 @@ export default function PetugasPage() {
             {/* Officers Data Table */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
               <div className="overflow-auto max-h-[650px] w-full">
-                <table ref={tableRef} className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse">
                   <thead className="sticky top-0 z-20 bg-slate-50 dark:bg-slate-900 shadow-[0_1px_0_0_rgba(226,232,240,1)] dark:shadow-[0_1px_0_0_rgba(30,41,59,1)]">
                     <tr className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">
                       {activeTab !== "prioritas" && (
