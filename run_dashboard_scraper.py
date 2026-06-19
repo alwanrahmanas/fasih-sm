@@ -345,15 +345,65 @@ def main():
         # 3. Export to pivoted CSV
         print(f"\n--- Phase 3: Exporting pivoted data to '{output_csv}' ---")
         try:
+            # Load existing data first to support merge/overwrite
+            merged_data = {}
+            if os.path.exists(output_csv):
+                print(f"Loading existing data from '{output_csv}' for merging...")
+                try:
+                    with open(output_csv, "r", encoding="utf-8") as f:
+                        reader = csv.reader(f)
+                        header = next(reader, None)
+                        if header:
+                            try:
+                                cat_idx = header.index("Category")
+                                email_idx = header.index("Email")
+                                sls_idx = header.index("SLS Code")
+                            except ValueError:
+                                cat_idx, email_idx, sls_idx = 0, 1, 2
+                            
+                            for row in reader:
+                                if not row or len(row) < 3:
+                                    continue
+                                category = row[cat_idx].strip()
+                                email = row[email_idx].strip().lower()
+                                sls_code = row[sls_idx].strip()
+                                
+                                status_counts = {}
+                                for col in status_columns:
+                                    try:
+                                        col_idx = header.index(col)
+                                        val = int(row[col_idx])
+                                    except (ValueError, IndexError):
+                                        val = 0
+                                    status_counts[col] = val
+                                
+                                merged_data[(category, email, sls_code)] = status_counts
+                    print(f"Loaded {len(merged_data)} existing SLS status records.")
+                except Exception as e:
+                    print(f"Warning: Could not read existing output CSV: {e}")
+
+            # Merge new scraped data (overwriting matching records)
+            new_count = 0
+            updated_count = 0
+            for key, val in scraped_data_dict.items():
+                norm_key = (key[0], key[1].lower(), key[2])
+                if norm_key in merged_data:
+                    updated_count += 1
+                else:
+                    new_count += 1
+                merged_data[norm_key] = val
+            
+            print(f"Merging results: {updated_count} records updated, {new_count} new records added.")
+
             with open(output_csv, "w", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
                 writer.writerow(headers)
                 
-                for key, val in scraped_data_dict.items():
+                for key, val in merged_data.items():
                     row = list(key) + [val[col] for col in status_columns]
                     writer.writerow(row)
                     
-            print(f"Successfully scraped and written {len(scraped_data_dict)} SLS status rows to '{output_csv}'!")
+            print(f"Successfully merged and written {len(merged_data)} SLS status rows to '{output_csv}'!")
         except Exception as csv_err:
             print(f"Error writing output CSV: {csv_err}")
             
