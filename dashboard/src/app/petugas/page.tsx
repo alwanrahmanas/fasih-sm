@@ -69,7 +69,7 @@ interface OfficerStats {
   approve: number;
   total: number;
   progress: number; // sum of draft + submit + reject + approve
-  realisasi: number; // sum of draft + submit + reject + approve
+  realisasi: number; // PCL: submit + reject + approve; PML: reject + approve
 }
 
 // Interface for aggregated kecamatan stats (grouped PML data)
@@ -263,7 +263,15 @@ export default function PetugasPage() {
       map[email].approve += record.approve;
       map[email].total += slsTotal;
       map[email].progress += slsProgress;
-      map[email].realisasi += slsProgress; // Realisasi = progres (jumlah status bukan open)
+
+      // Realisasi berbeda per kategori:
+      // PCL (Pencacah): submit + reject + approve
+      // PML (Pengawas): reject + approve
+      const isPCL = record.category.toLowerCase() === "pencacah";
+      const slsRealisasi = isPCL
+        ? (record.submit + record.reject + record.approve)
+        : (record.reject + record.approve);
+      map[email].realisasi += slsRealisasi;
     });
 
     return Object.values(map);
@@ -326,6 +334,7 @@ export default function PetugasPage() {
       const k = map[kec];
       const slsTotal = record.open + record.draft + record.submit + record.reject + record.approve;
       const slsProgress = record.draft + record.submit + record.reject + record.approve;
+      const slsRealisasiPml = record.reject + record.approve; // PML realisasi = reject + approve
 
       k.open += record.open;
       k.draft += record.draft;
@@ -334,7 +343,7 @@ export default function PetugasPage() {
       k.approve += record.approve;
       k.total += slsTotal;
       k.progress += slsProgress;
-      k.realisasi += slsProgress;
+      k.realisasi += slsRealisasiPml;
       k.slsCount += 1;
 
       if (!k.pmlMap[email]) {
@@ -361,7 +370,7 @@ export default function PetugasPage() {
       p.total += slsTotal;
       p.slsCount += 1;
       p.progress += slsProgress;
-      p.realisasi += slsProgress;
+      p.realisasi += slsRealisasiPml; // PML realisasi = reject + approve
     });
 
     return Object.values(map).map(k => {
@@ -447,7 +456,8 @@ export default function PetugasPage() {
         
         entry.total = slsTotal;
         entry.progress = slsProgress;
-        entry.realisasi = slsProgress;
+        // Prioritas uses Pengawas data as source, so realisasi = reject + approve (PML formula)
+        entry.realisasi = record.reject + record.approve;
 
         if (isPengawas) {
           entry.hasPengawasRecord = true;
@@ -1071,7 +1081,10 @@ export default function PetugasPage() {
                     </li>
                   )}
                   <li>
-                    <span className="font-bold">Progres</span> dan <span className="font-bold">Realisasi</span> dihitung dari jumlah status yang bukan open (DRAFT + SUBMITTED + REJECTED + APPROVED).
+                    <span className="font-bold">Progres</span> dihitung dari jumlah status yang bukan open (DRAFT + SUBMITTED + REJECTED + APPROVED).
+                  </li>
+                  <li>
+                    <span className="font-bold">Realisasi PCL</span> = SUBMITTED + REJECTED + APPROVED. <span className="font-bold">Realisasi PML</span> = REJECTED + APPROVED.
                   </li>
                 </ul>
               </div>
