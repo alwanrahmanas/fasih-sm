@@ -1556,6 +1556,7 @@ export default function DashboardPage() {
                       <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Koseka</th>
                       <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Alamat Prelist</th>
                       <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Skala Prelist</th>
+                      <th className="py-3 px-3 sm:px-4 sm:py-4 text-center bg-slate-50 dark:bg-slate-900">Jumlah Usaha</th>
                       <th className="py-3 px-3 sm:px-4 sm:py-4 text-center bg-slate-50 dark:bg-slate-900">Status</th>
                       <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Petugas</th>
                       <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Keterangan</th>
@@ -1609,6 +1610,10 @@ export default function DashboardPage() {
                           <td className="py-3 px-3 sm:px-4 sm:py-4">
                             <ScaleBadge scale={row.scale} />
                           </td>
+                          {/* Jumlah Usaha */}
+                          <td className="py-3 px-3 sm:px-4 sm:py-4 text-center font-mono font-bold text-slate-800 dark:text-slate-200">
+                            {row.unitCount || "-"}
+                          </td>
                           {/* Status */}
                           <td className="py-3 px-3 sm:px-4 sm:py-4 text-center whitespace-nowrap">
                             <StatusBadge status={row.status} />
@@ -1625,7 +1630,7 @@ export default function DashboardPage() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={9} className="py-12 px-6 text-center text-slate-500 dark:text-slate-400">
+                        <td colSpan={11} className="py-12 px-6 text-center text-slate-500 dark:text-slate-400">
                           Tidak ditemukan data yang cocok dengan kriteria pencarian dan filter Anda.
                         </td>
                       </tr>
