@@ -96,6 +96,8 @@ export default function UsahaPage() {
   // Filters & Tabs
   const [activeTab, setActiveTab] = useState<"user" | "sls" | "kec" | "detail">("user");
   const [selectedKec, setSelectedKec] = useState<string>("all");
+  const [selectedSumberData, setSelectedSumberData] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [slsPage, setSlsPage] = useState(1);
   const slsPerPage = 25;
@@ -135,7 +137,7 @@ export default function UsahaPage() {
   useEffect(() => {
     setSlsPage(1);
     setDetailPage(1);
-  }, [selectedKec, searchQuery, activeTab]);
+  }, [selectedKec, selectedSumberData, selectedStatus, searchQuery, activeTab]);
 
   // Fetch data
   const fetchData = async () => {
@@ -283,6 +285,33 @@ export default function UsahaPage() {
     const fromPmlPpl = pmlPplData.map(item => formatKecName(item.kec)).filter(Boolean);
     return Array.from(new Set([...fromRaw, ...fromPmlPpl])).sort();
   }, [rawData, pmlPplData]);
+
+  const uniqueSumberDataList = useMemo(() => {
+    return Array.from(new Set(rawData.map(r => r.sumberData).filter(Boolean))).sort();
+  }, [rawData]);
+
+  const uniqueStatusList = useMemo(() => {
+    const statusMap: { [key: string]: string } = {};
+    rawData.forEach(r => {
+      const s = r.status.toLowerCase().trim();
+      if (!s || s === "kosong") {
+        statusMap["belum_diisi"] = "Belum Diisi";
+      } else if (s === "open") {
+        statusMap["open"] = "Terbuka (Open)";
+      } else if (s === "draft") {
+        statusMap["draft"] = "Draft";
+      } else if (s === "submitted by pencacah" || s === "submit" || s === "submitted") {
+        statusMap["submitted"] = "Submitted by Pencacah";
+      } else if (s === "rejected by pengawas" || s === "reject" || s === "rejected") {
+        statusMap["rejected"] = "Rejected by Pengawas";
+      } else if (s === "approved by pengawas" || s === "approve" || s === "approved") {
+        statusMap["approved"] = "Approved by Pengawas";
+      } else {
+        statusMap[s] = r.status;
+      }
+    });
+    return Object.entries(statusMap).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [rawData]);
 
   // Table calculations
   // 1. User/Officer Table
@@ -449,6 +478,20 @@ export default function UsahaPage() {
       const matchKec = selectedKec === "all" ? true : normalizeKec(row.nama_kec) === normalizeKec(selectedKec);
       if (!matchKec) return false;
 
+      const matchSumber = selectedSumberData === "all" ? true : row.sumberData === selectedSumberData;
+      if (!matchSumber) return false;
+
+      // Status filter
+      if (selectedStatus !== "all") {
+        const s = row.status.toLowerCase().trim();
+        let statusKey = s;
+        if (!s || s === "kosong") statusKey = "belum_diisi";
+        else if (s === "submitted by pencacah" || s === "submit" || s === "submitted") statusKey = "submitted";
+        else if (s === "rejected by pengawas" || s === "reject" || s === "rejected") statusKey = "rejected";
+        else if (s === "approved by pengawas" || s === "approve" || s === "approved") statusKey = "approved";
+        if (statusKey !== selectedStatus) return false;
+      }
+
       if (!searchQuery) return true;
       const q = searchQuery.toLowerCase();
       return (
@@ -459,7 +502,7 @@ export default function UsahaPage() {
         (row.notes && row.notes.toLowerCase().includes(q))
       );
     });
-  }, [rawData, selectedKec, searchQuery]);
+  }, [rawData, selectedKec, selectedSumberData, selectedStatus, searchQuery]);
 
   const paginatedDetailStats = useMemo(() => {
     const start = (detailPage - 1) * detailPerPage;
@@ -812,7 +855,7 @@ export default function UsahaPage() {
                 Rekap per Kecamatan
               </button>
               <button
-                onClick={() => { setActiveTab("detail"); setSelectedKec("all"); }}
+                onClick={() => { setActiveTab("detail"); setSelectedKec("all"); setSelectedSumberData("all"); setSelectedStatus("all"); }}
                 className={`py-4 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
                   activeTab === "detail"
                     ? "border-orange-500 text-orange-500 dark:text-orange-400"
@@ -841,6 +884,40 @@ export default function UsahaPage() {
                         <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" value="all">Semua Kecamatan</option>
                         {uniqueKecList.map((kec, idx) => (
                           <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" key={idx} value={kec}>{kec}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Sumber Data Dropdown */}
+                  {activeTab === "detail" && (
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-semibold w-full sm:w-auto">
+                      <FileText className="w-4 h-4 text-orange-500" />
+                      <select
+                        value={selectedSumberData}
+                        onChange={(e) => setSelectedSumberData(e.target.value)}
+                        className="w-full sm:w-auto py-2.5 px-3.5 border border-slate-300 dark:border-slate-800 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-950 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-bold cursor-pointer"
+                      >
+                        <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" value="all">Semua Sumber Data</option>
+                        {uniqueSumberDataList.map((sd, idx) => (
+                          <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" key={idx} value={sd}>{sd}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Status Dropdown */}
+                  {activeTab === "detail" && (
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-semibold w-full sm:w-auto">
+                      <CheckCircle2 className="w-4 h-4 text-orange-500" />
+                      <select
+                        value={selectedStatus}
+                        onChange={(e) => setSelectedStatus(e.target.value)}
+                        className="w-full sm:w-auto py-2.5 px-3.5 border border-slate-300 dark:border-slate-800 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-950 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-bold cursor-pointer"
+                      >
+                        <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" value="all">Semua Status</option>
+                        {uniqueStatusList.map(([key, label], idx) => (
+                          <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" key={idx} value={key}>{label}</option>
                         ))}
                       </select>
                     </div>

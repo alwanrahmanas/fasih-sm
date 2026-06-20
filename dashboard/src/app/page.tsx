@@ -1240,11 +1240,11 @@ export default function DashboardPage() {
                 </div>
 
                 {loading && rawData.length === 0 ? (
-                  <div className="flex justify-center py-10 text-slate-400 text-xs">Memuat ringkasan usaha...</div>
+                  <div className="flex-1 flex items-center justify-center text-slate-400 text-xs">Memuat ringkasan usaha...</div>
                 ) : kecUsahaStats.length === 0 ? (
-                  <div className="text-center py-10 text-slate-500 dark:text-slate-400 text-sm">Tidak ada data usaha.</div>
+                  <div className="flex-1 flex items-center justify-center text-slate-500 dark:text-slate-400 text-sm">Tidak ada data usaha.</div>
                 ) : (
-                  <div className="space-y-3 overflow-y-auto max-h-[350px] pr-2 custom-scrollbar scrollbar-none">
+                  <div className="space-y-3 overflow-y-auto flex-1 min-h-0 pr-2 custom-scrollbar scrollbar-none">
                     {kecUsahaStats.map((item, idx) => (
                       <div key={item.kecName} className="p-3 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-100 dark:border-slate-900/50 hover:border-orange-500/20 transition-all">
                         <div className="flex justify-between items-center mb-2">
