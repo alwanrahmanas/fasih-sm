@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   Search,
@@ -20,7 +20,11 @@ import {
   ChevronRight,
   Send,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  ClipboardList,
+  Clock,
+  ChevronLeft,
+  FileText
 } from "lucide-react";
 
 // Interfaces
@@ -37,6 +41,7 @@ interface ScraperRecord {
   nama_kec: string;
   koseka: string;
   isPrioritas: string;
+  notes: string;
 }
 
 interface PMLPPLRecord {
@@ -89,14 +94,47 @@ export default function UsahaPage() {
   const [lastUpdated, setLastUpdated] = useState<string>("");
 
   // Filters & Tabs
-  const [activeTab, setActiveTab] = useState<"user" | "sls" | "kec">("user");
+  const [activeTab, setActiveTab] = useState<"user" | "sls" | "kec" | "detail">("user");
   const [selectedKec, setSelectedKec] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [slsPage, setSlsPage] = useState(1);
   const slsPerPage = 25;
+  const [detailPage, setDetailPage] = useState(1);
+  const detailPerPage = 25;
+
+  // Double scrollbar refs and state
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [tableWidth, setTableWidth] = useState(0);
+
+  const isScrollingTop = useRef(false);
+  const isScrollingTable = useRef(false);
+
+  const handleTopScroll = () => {
+    if (isScrollingTable.current) return;
+    isScrollingTop.current = true;
+    if (topScrollRef.current && tableContainerRef.current) {
+      tableContainerRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+    }
+    window.requestAnimationFrame(() => {
+      isScrollingTop.current = false;
+    });
+  };
+
+  const handleTableScroll = () => {
+    if (isScrollingTop.current) return;
+    isScrollingTable.current = true;
+    if (tableContainerRef.current && topScrollRef.current) {
+      topScrollRef.current.scrollLeft = tableContainerRef.current.scrollLeft;
+    }
+    window.requestAnimationFrame(() => {
+      isScrollingTable.current = false;
+    });
+  };
 
   useEffect(() => {
     setSlsPage(1);
+    setDetailPage(1);
   }, [selectedKec, searchQuery, activeTab]);
 
   // Fetch data
@@ -158,6 +196,7 @@ export default function UsahaPage() {
               nama_kec: row[17] ? row[17].replace(/"/g, "").trim() : "",
               koseka: row[18] ? row[18].replace(/"/g, "").trim() : "",
               isPrioritas: row[19] ? row[19].replace(/"/g, "").trim() : "Tidak",
+              notes: row[15] ? row[15].replace(/"/g, "").trim() : "",
             });
           }
         }
@@ -404,6 +443,50 @@ export default function UsahaPage() {
     });
   }, [kecUsahaStats, searchQuery]);
 
+  // 4. Detail Table (Data Lengkap)
+  const filteredDetailStats = useMemo(() => {
+    return rawData.filter(row => {
+      const matchKec = selectedKec === "all" ? true : normalizeKec(row.nama_kec) === normalizeKec(selectedKec);
+      if (!matchKec) return false;
+
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        row.idCode.toLowerCase().includes(q) ||
+        row.name.toLowerCase().includes(q) ||
+        row.address.toLowerCase().includes(q) ||
+        row.officer.toLowerCase().includes(q) ||
+        (row.notes && row.notes.toLowerCase().includes(q))
+      );
+    });
+  }, [rawData, selectedKec, searchQuery]);
+
+  const paginatedDetailStats = useMemo(() => {
+    const start = (detailPage - 1) * detailPerPage;
+    return filteredDetailStats.slice(start, start + detailPerPage);
+  }, [filteredDetailStats, detailPage]);
+
+  const totalDetailPageCount = Math.ceil(filteredDetailStats.length / detailPerPage) || 1;
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (tableContainerRef.current) {
+        const table = tableContainerRef.current.querySelector("table");
+        if (table) {
+          setTableWidth(table.offsetWidth);
+        }
+      }
+    };
+
+    updateWidth();
+    const timer = setTimeout(updateWidth, 300);
+    window.addEventListener("resize", updateWidth);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", updateWidth);
+    };
+  }, [rawData, paginatedDetailStats, detailPage, activeTab]);
+
   // Overall totals
   const totalSummary = useMemo(() => {
     let submitTotal = 0;
@@ -454,7 +537,7 @@ export default function UsahaPage() {
         r.approve,
         r.total
       ]);
-    } else {
+    } else if (activeTab === "kec") {
       headers = ["Nama Kecamatan", "Koseka", "Jumlah Usaha Submit", "Jumlah Usaha Approve", "Total Usaha"];
       rows = filteredKecUsahaStats.map(r => [
         `"${formatKecName(r.kecName)}"`,
@@ -462,6 +545,26 @@ export default function UsahaPage() {
         r.submit,
         r.approve,
         r.total
+      ]);
+    } else {
+      // activeTab === "detail" (Data Lengkap)
+      headers = [
+        "Kode Identitas", "Sumber Data", "Nama Keluarga/Bangunan/Usaha", "Kecamatan", "Koseka", "Alamat Prelist", 
+        "Skala Usaha", "Jumlah Usaha", "Status", "Petugas Saat Ini", "Keterangan", "Prioritas"
+      ];
+      rows = filteredDetailStats.map(r => [
+        `"${r.idCode.replace(/"/g, '""')}"`,
+        `"${(r.sumberData || "").replace(/"/g, '""')}"`,
+        `"${r.name.replace(/"/g, '""')}"`,
+        `"${(r.nama_kec || "").replace(/"/g, '""')}"`,
+        `"${(r.koseka || "").replace(/"/g, '""')}"`,
+        `"${r.address.replace(/"/g, '""')}"`,
+        `"${r.scale.replace(/"/g, '""')}"`,
+        r.jumlahUsaha,
+        `"${r.status.replace(/"/g, '""')}"`,
+        `"${r.officer.replace(/"/g, '""')}"`,
+        `"${(r.notes || "").replace(/"/g, '""')}"`,
+        `"${(r.isPrioritas || "Tidak").replace(/"/g, '""')}"`
       ]);
     }
 
@@ -474,6 +577,80 @@ export default function UsahaPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // Status Badge Component
+  const StatusBadge = ({ status }: { status: string }) => {
+    const s = status.toLowerCase().trim();
+    if (s === "open") {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-500 border border-amber-500/20">
+          <Clock className="w-3.5 h-3.5" />
+          Terbuka (Open)
+        </span>
+      );
+    } else if (s === "draft") {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-500 border border-blue-500/20">
+          <FileText className="w-3.5 h-3.5" />
+          Draft
+        </span>
+      );
+    } else if (s === "submitted by pencacah" || s === "submit" || s === "submitted") {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-500/10 text-teal-600 dark:text-teal-500 border border-teal-500/20">
+          <Send className="w-3.5 h-3.5" />
+          Submitted by Pencacah
+        </span>
+      );
+    } else if (s === "rejected by pengawas" || s === "reject" || s === "rejected") {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-500/10 text-red-600 dark:text-red-500 border border-red-500/20">
+          <XCircle className="w-3.5 h-3.5" />
+          Rejected by Pengawas
+        </span>
+      );
+    } else if (s === "approved by pengawas" || s === "approve" || s === "approved") {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border border-emerald-500/20">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          Approved by Pengawas
+        </span>
+      );
+    } else if (s === "kosong" || s === "") {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20">
+          <AlertCircle className="w-3.5 h-3.5" />
+          Belum Diisi
+        </span>
+      );
+    } else {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20">
+          <AlertCircle className="w-3.5 h-3.5" />
+          {status}
+        </span>
+      );
+    }
+  };
+
+  // Scale Badge Component
+  const ScaleBadge = ({ scale }: { scale: string }) => {
+    const s = scale.toUpperCase();
+    let colorClass = "bg-orange-500/10 text-orange-600 dark:text-orange-500 border border-orange-500/20";
+    if (s.includes("KELUARGA")) {
+      colorClass = "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20";
+    } else if (s.includes("UMK")) {
+      colorClass = "bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20";
+    } else if (s.includes("UMKM")) {
+      colorClass = "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20";
+    }
+    
+    return (
+      <span className={`inline-flex px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${colorClass}`}>
+        {scale}
+      </span>
+    );
   };
 
   return (
@@ -634,6 +811,17 @@ export default function UsahaPage() {
                 <Building className="w-4 h-4" />
                 Rekap per Kecamatan
               </button>
+              <button
+                onClick={() => { setActiveTab("detail"); setSelectedKec("all"); }}
+                className={`py-4 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
+                  activeTab === "detail"
+                    ? "border-orange-500 text-orange-500 dark:text-orange-400"
+                    : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                }`}
+              >
+                <ClipboardList className="w-4 h-4" />
+                Data Lengkap
+              </button>
             </div>
 
             {/* Filter Section */}
@@ -642,7 +830,7 @@ export default function UsahaPage() {
                 <div className="flex flex-wrap gap-4 w-full md:w-auto items-center">
                   
                   {/* Kecamatan Dropdown */}
-                  {(activeTab === "user" || activeTab === "sls") && (
+                  {(activeTab === "user" || activeTab === "sls" || activeTab === "detail") && (
                     <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-semibold w-full sm:w-auto">
                       <MapPin className="w-4 h-4 text-orange-500" />
                       <select
@@ -668,7 +856,9 @@ export default function UsahaPage() {
                           ? "Cari nama petugas..." 
                           : activeTab === "sls" 
                             ? "Cari kode SLS..." 
-                            : "Cari kecamatan..."
+                            : activeTab === "detail"
+                              ? "Cari nama, ID prelist, alamat, atau petugas..."
+                              : "Cari kecamatan..."
                       }
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -728,7 +918,24 @@ export default function UsahaPage() {
 
             {/* Content Tables */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-lg overflow-hidden">
-              <div className="overflow-auto max-h-[700px] w-full">
+              
+              {/* Top scrollbar synced with table (only for detail tab) */}
+              {activeTab === "detail" && (
+                <div 
+                  ref={topScrollRef}
+                  onScroll={handleTopScroll}
+                  className="overflow-x-auto overflow-y-hidden w-full bg-slate-50/30 dark:bg-slate-900/30 border-b border-slate-200 dark:border-slate-800"
+                  style={{ height: "10px" }}
+                >
+                  <div style={{ width: `${tableWidth}px`, height: "10px" }} />
+                </div>
+              )}
+
+              <div 
+                ref={activeTab === "detail" ? tableContainerRef : undefined}
+                onScroll={activeTab === "detail" ? handleTableScroll : undefined}
+                className="overflow-auto max-h-[700px] w-full"
+              >
                 
                 {activeTab === "user" && (
                   // =================== TABLE 1: USER USASHA ===================
@@ -892,6 +1099,176 @@ export default function UsahaPage() {
                       )}
                     </tbody>
                   </table>
+                )}
+
+                {activeTab === "detail" && (
+                  // =================== TABLE 4: DETAIL DATA (DATA LENGKAP) ===================
+                  <>
+                    <table className="w-full border-collapse border border-slate-200 dark:border-slate-800 text-left">
+                      <thead className="sticky top-0 z-20 bg-slate-50 dark:bg-slate-900 shadow-[0_1px_0_0_rgba(226,232,240,1)] dark:shadow-[0_1px_0_0_rgba(30,41,59,1)]">
+                        <tr className="text-[10px] uppercase font-bold text-slate-700 dark:text-slate-300 tracking-wider">
+                          <th className="py-4 px-4 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Kode Identitas</th>
+                          <th className="py-4 px-4 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Sumber Data</th>
+                          <th className="py-4 px-4 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Nama Keluarga/Bangunan/Usaha</th>
+                          <th className="py-4 px-4 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Kecamatan</th>
+                          <th className="py-4 px-4 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Koseka</th>
+                          <th className="py-4 px-4 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Alamat Prelist</th>
+                          <th className="py-4 px-4 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Skala Prelist</th>
+                          <th className="py-4 px-4 text-center bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Jumlah Usaha</th>
+                          <th className="py-4 px-4 text-center bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Status</th>
+                          <th className="py-4 px-4 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Petugas</th>
+                          <th className="py-4 px-4 bg-slate-50 dark:bg-slate-900 whitespace-nowrap">Keterangan</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800/50 text-xs">
+                        {paginatedDetailStats.length === 0 ? (
+                          <tr>
+                            <td colSpan={11} className="px-4 py-16 text-center text-slate-700 dark:text-slate-300 font-medium">
+                              Tidak ditemukan data yang cocok dengan kriteria pencarian dan filter Anda.
+                            </td>
+                          </tr>
+                        ) : (
+                          paginatedDetailStats.map((row, idx) => (
+                            <tr
+                              key={idx}
+                              className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all border-b border-slate-100 dark:border-slate-800 border-l-2 ${
+                                row.isPrioritas === "Ya"
+                                  ? "bg-orange-500/5 hover:bg-orange-500/10 dark:bg-orange-500/5 dark:hover:bg-orange-500/10 border-l-orange-500"
+                                  : "border-l-transparent"
+                              }`}
+                            >
+                              {/* ID Code */}
+                              <td className="py-3 px-4 font-mono text-xs font-semibold text-slate-800 dark:text-slate-300 whitespace-nowrap">
+                                <div className="flex items-center gap-2">
+                                  <span>{row.idCode}</span>
+                                  {row.isPrioritas === "Ya" && (
+                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/30 tracking-wider shadow-sm animate-pulse">
+                                      Prioritas
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              {/* Sumber Data */}
+                              <td className="py-3 px-4 text-xs font-bold text-slate-800 dark:text-slate-350 whitespace-nowrap">
+                                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                  {row.sumberData || "-"}
+                                </span>
+                              </td>
+                              {/* Name */}
+                              <td className="py-3 px-4 font-medium text-slate-900 dark:text-white truncate max-w-[180px]">
+                                {row.name || "-"}
+                              </td>
+                              {/* Kecamatan */}
+                              <td className="py-3 px-4 text-slate-600 dark:text-slate-400 truncate max-w-[150px]">
+                                {formatKecName(row.nama_kec)}
+                              </td>
+                              {/* Koseka */}
+                              <td className="py-3 px-4 text-slate-650 dark:text-slate-400 font-semibold whitespace-nowrap">
+                                {row.koseka || "-"}
+                              </td>
+                              {/* Address */}
+                              <td className="py-3 px-4 text-slate-600 dark:text-slate-400 truncate max-w-[180px]">
+                                {row.address || "-"}
+                              </td>
+                              {/* Scale */}
+                              <td className="py-3 px-4">
+                                <ScaleBadge scale={row.scale} />
+                              </td>
+                              {/* Jumlah Usaha */}
+                              <td className="py-3 px-4 text-center font-mono font-bold text-slate-850 dark:text-slate-200">
+                                {row.jumlahUsaha || "-"}
+                              </td>
+                              {/* Status */}
+                              <td className="py-3 px-4 text-center whitespace-nowrap">
+                                <StatusBadge status={row.status} />
+                              </td>
+                              {/* Officer */}
+                              <td className="py-3 px-4 text-slate-600 dark:text-slate-400 font-medium truncate max-w-[150px]">
+                                {row.officer ? row.officer.replace(/Pencacah$/, "") : "-"}
+                              </td>
+                              {/* Notes */}
+                              <td className="py-3 px-4 text-xs text-slate-500 dark:text-slate-400 truncate max-w-[120px]">
+                                {row.notes || "-"}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+
+                    {/* Pagination */}
+                    {filteredDetailStats.length > 0 && (
+                      <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                          Menampilkan <span className="font-bold text-slate-900 dark:text-white">{Math.min((detailPage - 1) * detailPerPage + 1, filteredDetailStats.length)}</span> - <span className="font-bold text-slate-900 dark:text-white">{Math.min(detailPage * detailPerPage, filteredDetailStats.length)}</span> dari <span className="font-bold text-slate-900 dark:text-white">{filteredDetailStats.length.toLocaleString("id-ID")}</span> data (Filter aktif dari total {rawData.length.toLocaleString("id-ID")} prelist)
+                        </div>
+                        <div className="flex items-center gap-1">
+                          
+                          {/* Prev */}
+                          <button
+                            onClick={() => setDetailPage(prev => Math.max(prev - 1, 1))}
+                            disabled={detailPage === 1}
+                            className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 text-slate-500 dark:text-slate-400 cursor-pointer"
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                          </button>
+
+                          {/* Page Numbers display */}
+                          <div className="hidden sm:flex items-center gap-1 text-xs">
+                            {detailPage > 3 && (
+                              <>
+                                <button onClick={() => setDetailPage(1)} className="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800">1</button>
+                                {detailPage > 4 && <span className="text-slate-500 dark:text-slate-400 px-1">...</span>}
+                              </>
+                            )}
+
+                            {Array.from({ length: 5 }, (_, i) => {
+                              const pageNum = detailPage - 2 + i;
+                              if (pageNum > 0 && pageNum <= totalDetailPageCount) {
+                                  const active = pageNum === detailPage;
+                                  return (
+                                    <button
+                                      key={pageNum}
+                                      onClick={() => setDetailPage(pageNum)}
+                                      className={`px-3 py-1.5 rounded-lg border font-semibold transition-colors cursor-pointer ${
+                                        active
+                                          ? "bg-orange-500 border-orange-500 text-white shadow-md shadow-orange-500/10"
+                                          : "border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                                      }`}
+                                    >
+                                      {pageNum}
+                                    </button>
+                                  );
+                              }
+                              return null;
+                            })}
+
+                            {detailPage < totalDetailPageCount - 2 && (
+                              <>
+                                {detailPage < totalDetailPageCount - 3 && <span className="text-slate-500 dark:text-slate-400 px-1">...</span>}
+                                <button onClick={() => setDetailPage(totalDetailPageCount)} className="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800">{totalDetailPageCount}</button>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Simple mobile page number */}
+                          <div className="flex sm:hidden px-2 text-xs font-semibold">
+                            Halaman {detailPage} dari {totalDetailPageCount}
+                          </div>
+
+                          {/* Next */}
+                          <button
+                            onClick={() => setDetailPage(prev => Math.min(prev + 1, totalDetailPageCount))}
+                            disabled={detailPage === totalDetailPageCount}
+                            className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 text-slate-500 dark:text-slate-400 cursor-pointer"
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
 
               </div>
