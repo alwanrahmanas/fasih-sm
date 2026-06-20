@@ -114,7 +114,7 @@ export default function TabulasiPage() {
   const [selectedKec, setSelectedKec] = useState<string>("all");
   const [selectedPml, setSelectedPml] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"pcl" | "pml" | "kec" | "sls">("pcl");
+  const [activeTab, setActiveTab] = useState<"pcl" | "pml" | "kec" | "sls" | "sumber_data">("pcl");
   const [tabulationMetric, setTabulationMetric] = useState<"sampel" | "usaha">("sampel");
 
   // SLS pagination states
@@ -685,6 +685,71 @@ export default function TabulasiPage() {
 
   const totalSlsPages = Math.ceil(filteredSlsStats.length / slsPerPage) || 1;
 
+  // Calculate Table 5: Sumber Data Overview stats
+  const sumberDataStats = useMemo<KecStats[]>(() => {
+    const statsMap: { [sumberName: string]: KecStats } = {};
+
+    const sumbers = rawData.map(r => r.sumberData).filter(Boolean);
+    const uniqueSumberNames = Array.from(new Set(sumbers)).sort();
+
+    uniqueSumberNames.forEach(sumber => {
+      const kecStats: KecStats = {
+        kecName: sumber,
+        koseka: "-",
+        categories: {},
+        total: createEmptyCellStats()
+      };
+
+      categories.forEach(cat => {
+        kecStats.categories[cat] = createEmptyCellStats();
+      });
+
+      const records = rawData.filter(r => r.sumberData === sumber);
+
+      records.forEach(r => {
+        const cat = getScaleCategory(r.scale);
+        const status = r.status.toLowerCase().trim();
+
+        const isOpen = status === "open" || status === "";
+        const isDraft = status === "draft";
+        const isSubmit = status === "submitted by pencacah" || status === "submit" || status === "submitted";
+        const isApprove = status === "approve" || status === "approved" || status === "approved by pengawas";
+        const isReject = status === "rejected by pengawas" || status === "reject" || status === "rejected";
+        const isRealisasi = isSubmit || isReject || isApprove;
+
+        const val = tabulationMetric === "sampel" ? 1 : r.jumlahUsaha;
+
+        const addStats = (cell: CellStats) => {
+          cell.target += val;
+          if (isRealisasi) cell.realisasi += val;
+          if (isOpen) cell.open += val;
+          if (isDraft) cell.draft += val;
+          if (isSubmit) cell.submit += val;
+          if (isApprove) cell.approve += val;
+          if (isReject) cell.reject += val;
+        };
+
+        if (cat && kecStats.categories[cat]) {
+          addStats(kecStats.categories[cat]);
+        }
+        addStats(kecStats.total);
+      });
+
+      statsMap[sumber] = kecStats;
+    });
+
+    return Object.values(statsMap).sort((a, b) => a.kecName.localeCompare(b.kecName));
+  }, [rawData, categories, tabulationMetric]);
+
+  // Filtered Table 5: Sumber Data based on search query
+  const filteredSumberDataStats = useMemo(() => {
+    if (activeTab !== "sumber_data") return [];
+    return sumberDataStats.filter(item => {
+      if (!searchQuery) return true;
+      return item.kecName.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  }, [sumberDataStats, activeTab, searchQuery]);
+
   // Calculate Table 2: Kecamatan Overview stats
   const kecamatanStats = useMemo<KecStats[]>(() => {
     const statsMap: { [kecName: string]: KecStats } = {};
@@ -902,6 +967,39 @@ export default function TabulasiPage() {
 
         csvRows.push(row.join(","));
       });
+    } else if (activeTab === "sumber_data") {
+      filteredSumberDataStats.forEach(sumber => {
+        const row: (string | number)[] = [
+          `"${sumber.kecName}"`,
+          `"-"`,
+          `"-"`
+        ];
+
+        categories.forEach(cat => {
+          const stats = sumber.categories[cat];
+          row.push(
+            stats.target,
+            stats.realisasi,
+            stats.open,
+            stats.submit,
+            stats.draft,
+            stats.reject,
+            stats.approve
+          );
+        });
+
+        row.push(
+          sumber.total.target,
+          sumber.total.realisasi,
+          sumber.total.open,
+          sumber.total.submit,
+          sumber.total.draft,
+          sumber.total.reject,
+          sumber.total.approve
+        );
+
+        csvRows.push(row.join(","));
+      });
     } else {
       kecamatanStats.forEach(kec => {
         const row: (string | number)[] = [
@@ -946,7 +1044,9 @@ export default function TabulasiPage() {
         ? `tabulasi_pml_monitoring_se2026_${tabulationMetric === "usaha" ? "jumlah_usaha_" : ""}${Date.now()}.csv`
         : activeTab === "sls"
           ? `tabulasi_sls_monitoring_se2026_${tabulationMetric === "usaha" ? "jumlah_usaha_" : ""}${Date.now()}.csv`
-          : `tabulasi_kecamatan_monitoring_se2026_${tabulationMetric === "usaha" ? "jumlah_usaha_" : ""}${Date.now()}.csv`;
+          : activeTab === "sumber_data"
+            ? `tabulasi_sumber_data_monitoring_se2026_${tabulationMetric === "usaha" ? "jumlah_usaha_" : ""}${Date.now()}.csv`
+            : `tabulasi_kecamatan_monitoring_se2026_${tabulationMetric === "usaha" ? "jumlah_usaha_" : ""}${Date.now()}.csv`;
     link.setAttribute("href", url);
     link.setAttribute("download", filename);
     document.body.appendChild(link);
@@ -964,6 +1064,8 @@ export default function TabulasiPage() {
       );
     }
 
+    const pct = stats.target > 0 ? ((stats.realisasi / stats.target) * 100).toFixed(1) : "0.0";
+
     return (
       <div className={`p-1.5 text-xs text-left font-mono rounded-lg transition-colors ${
         highlight 
@@ -977,6 +1079,10 @@ export default function TabulasiPage() {
         <div className="font-extrabold text-emerald-600 dark:text-emerald-400 flex justify-between border-b border-slate-200/50 dark:border-slate-800/50 pb-0.5 mb-1">
           <span>Realisasi:</span>
           <span>{stats.realisasi}</span>
+        </div>
+        <div className="font-extrabold text-orange-600 dark:text-orange-450 flex justify-between border-b border-slate-200/50 dark:border-slate-800/50 pb-0.5 mb-1">
+          <span>% Realisasi:</span>
+          <span>{pct}%</span>
         </div>
         <div className="space-y-0.5 opacity-90 text-[10px] pl-1 font-semibold text-slate-500 dark:text-slate-400">
           <div className="flex justify-between">
@@ -1157,6 +1263,17 @@ export default function TabulasiPage() {
                 Rekapitulasi SLS
               </button>
               <button
+                onClick={() => { setActiveTab("sumber_data"); setSelectedKec("all"); }}
+                className={`py-4 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
+                  activeTab === "sumber_data"
+                    ? "border-orange-500 text-orange-500 dark:text-orange-400"
+                    : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                }`}
+              >
+                <BookOpen className="w-4 h-4" />
+                Sumber Data
+              </button>
+              <button
                 onClick={() => { setActiveTab("kec"); setSelectedKec("all"); }}
                 className={`py-4 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
                   activeTab === "kec"
@@ -1237,7 +1354,7 @@ export default function TabulasiPage() {
                   )}
 
                   {/* Search Input */}
-                  {(activeTab === "pcl" || activeTab === "pml" || activeTab === "sls") && (
+                  {(activeTab === "pcl" || activeTab === "pml" || activeTab === "sls" || activeTab === "sumber_data") && (
                     <div className="relative w-full sm:w-64">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-400" />
                       <input
@@ -1247,7 +1364,9 @@ export default function TabulasiPage() {
                             ? "Cari nama PCL..." 
                             : activeTab === "pml" 
                               ? "Cari nama PML..." 
-                              : "Cari SLS / Kecamatan..."
+                              : activeTab === "sumber_data"
+                                ? "Cari sumber data..."
+                                : "Cari SLS / Kecamatan..."
                         }
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -1353,6 +1472,42 @@ export default function TabulasiPage() {
                         <div className="bg-orange-500 h-full rounded-full" style={{ width: `${selectedSlsOverviewStats.completionRate}%` }}></div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              )}
+              {activeTab === "sumber_data" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+                  <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">Total Sumber Data</span>
+                    <span className="text-xl font-extrabold text-slate-900 dark:text-white mt-1 block">{filteredSumberDataStats.length} jenis</span>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">Total Beban Target</span>
+                    <span className="text-xl font-extrabold text-slate-900 dark:text-white mt-1 block">
+                      {filteredSumberDataStats.reduce((sum, item) => sum + item.total.target, 0).toLocaleString("id-ID")}
+                    </span>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">Total Realisasi</span>
+                    <span className="text-xl font-extrabold text-emerald-500 mt-1 block">
+                      {filteredSumberDataStats.reduce((sum, item) => sum + item.total.realisasi, 0).toLocaleString("id-ID")}
+                    </span>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-900/50">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase tracking-wider">Persentase Selesai</span>
+                    {(() => {
+                      const t = filteredSumberDataStats.reduce((sum, item) => sum + item.total.target, 0);
+                      const r = filteredSumberDataStats.reduce((sum, item) => sum + item.total.realisasi, 0);
+                      const pct = t > 0 ? (r / t) * 100 : 0;
+                      return (
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-2xl font-black text-orange-500">{pct.toFixed(2)}%</span>
+                          <div className="flex-1 bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                            <div className="bg-orange-500 h-full rounded-full" style={{ width: `${pct}%` }}></div>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               )}
@@ -1632,6 +1787,68 @@ export default function TabulasiPage() {
                       </div>
                     )}
                   </>
+                ) : activeTab === "sumber_data" ? (
+                  // =================== TABLE 5: SUMBER DATA ===================
+                  <table className="w-full border-collapse border border-slate-200 dark:border-slate-800 min-w-[1200px]">
+                    <thead className="sticky top-0 z-20 bg-slate-50 dark:bg-slate-900 shadow-[0_1px_0_0_rgba(226,232,240,1)] dark:shadow-[0_1px_0_0_rgba(30,41,59,1)]">
+                      {/* Top Header Row */}
+                      <tr className="bg-orange-100/80 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 text-center">
+                        <th rowSpan={2} className="px-4 py-4 border-r border-slate-200 dark:border-slate-700 text-sm font-extrabold text-left w-56 sticky left-0 bg-orange-100 dark:bg-slate-800 z-30">
+                          Sumber Data
+                        </th>
+                        <th colSpan={7} className="py-2 border-r border-slate-200 dark:border-slate-700 text-sm font-extrabold tracking-wide uppercase">
+                          Skala Prelist
+                        </th>
+                        <th rowSpan={2} className="px-4 py-4 text-sm font-extrabold uppercase">
+                          Total
+                        </th>
+                      </tr>
+                      {/* Sub Header Row */}
+                      <tr className="bg-slate-100/90 dark:bg-slate-800/40 text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700 text-center text-xs font-bold">
+                        <th className="px-2 py-2.5 border-r border-slate-200 dark:border-slate-700 w-36">Keluarga</th>
+                        <th className="px-2 py-2.5 border-r border-slate-200 dark:border-slate-700 w-36">UMK</th>
+                        <th className="px-2 py-2.5 border-r border-slate-200 dark:border-slate-700 w-36">UMKM Bangunan Lain</th>
+                        <th className="px-2 py-2.5 border-r border-slate-200 dark:border-slate-700 w-36">UM</th>
+                        <th className="px-2 py-2.5 border-r border-slate-200 dark:border-slate-700 w-36">UB</th>
+                        <th className="px-2 py-2.5 border-r border-slate-200 dark:border-slate-700 w-36">UMKM/Dummy</th>
+                        <th className="px-2 py-2.5 border-r border-slate-200 dark:border-slate-700 w-36">UMKM/Keluarga</th>
+                      </tr>
+                    </thead>
+                    
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                      {filteredSumberDataStats.length === 0 ? (
+                        <tr>
+                          <td colSpan={9} className="px-4 py-16 text-center text-slate-500 dark:text-slate-400 font-medium text-sm">
+                            Tidak ada data Sumber Data ditemukan untuk filter ini.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredSumberDataStats.map((sumber, idx) => (
+                          <tr 
+                            key={idx} 
+                            className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all border-b border-slate-100 dark:border-slate-800"
+                          >
+                            {/* Sumber Data Name cell */}
+                            <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-950 dark:text-white sticky left-0 bg-white dark:bg-slate-900 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] font-mono">
+                              <div>{sumber.kecName}</div>
+                            </td>
+
+                            {/* Category cells */}
+                            {categories.map((cat, cIdx) => (
+                              <td key={cIdx} className="p-2 border-r border-slate-200 dark:border-slate-800 align-top">
+                                <CellContent stats={sumber.categories[cat]} />
+                              </td>
+                            ))}
+
+                            {/* Total cell */}
+                            <td className="p-2 align-top bg-orange-500/5 dark:bg-orange-500/0">
+                              <CellContent stats={sumber.total} highlight={true} />
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 ) : (
                   // =================== TABLE 2: KECAMATAN OVERVIEW ===================
                   <table className="w-full border-collapse border border-slate-200 dark:border-slate-800 min-w-[1200px]">
