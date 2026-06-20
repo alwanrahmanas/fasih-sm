@@ -324,7 +324,7 @@ def process_data():
             reader = csv.reader(infile)
             try:
                 new_headers = next(reader)
-                headers = new_headers + ['nama_kec', 'koseka', 'is_prioritas']
+                headers = new_headers + ['sumber data', 'nama_kec', 'koseka', 'is_prioritas']
                 if 'Kode Identitas' in new_headers:
                     new_id_code_idx = new_headers.index('Kode Identitas')
                 else:
@@ -368,7 +368,7 @@ def process_data():
                 
         print(f"Scraped data processed: {updated_rows_count} records updated, {new_rows_count} new records added.")
         
-        # Prepare list of rows to write and normalize columns to exactly 19 (16 base + 3 extra)
+        # Prepare list of rows to write and normalize columns to exactly 20 (16 base + 1 new base + 3 extra)
         rows_to_write = []
         for id_code, row in existing_data.items():
             base_row = row[:16]
@@ -386,7 +386,12 @@ def process_data():
                 koseka = koseka_map[kd_kec_7]['koseka']
                 
             is_prioritas = "Ya" if sls_14 in priority_sls else "Tidak"
-            rows_to_write.append(base_row + [nama_kec, koseka, is_prioritas])
+            
+            # Extract sumber data from id_code (e.g. 7103090014000100 - DTSEN - 45 -> DTSEN)
+            parts = id_code.split(" - ")
+            sumber_data = parts[1].strip() if len(parts) > 1 else ""
+            
+            rows_to_write.append(base_row + [sumber_data, nama_kec, koseka, is_prioritas])
         
         # Write merged/updated records back to update_data.csv
         with open(output_file, mode='w', newline='', encoding='utf-8') as outfile:
@@ -397,9 +402,9 @@ def process_data():
         rows_written = len(rows_to_write)
         print(f"Successfully merged and created '{output_file}' with {rows_written} rows.")
         
-        # Also write the merged raw data back to scraped_data.csv (excluding the last three columns: nama_kec, koseka, is_prioritas)
-        raw_headers = headers[:-3] if len(headers) > 3 else headers
-        raw_rows = [row[:-3] if len(row) > 3 else row for row in rows_to_write]
+        # Also write the merged raw data back to scraped_data.csv (excluding the last four columns: sumber data, nama_kec, koseka, is_prioritas)
+        raw_headers = headers[:-4] if len(headers) > 4 else headers
+        raw_rows = [row[:-4] if len(row) > 4 else row for row in rows_to_write]
         
         with open(scraped_file, mode='w', newline='', encoding='utf-8') as sf:
             writer = csv.writer(sf)

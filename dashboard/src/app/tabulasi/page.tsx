@@ -31,8 +31,10 @@ interface ScraperRecord {
   name: string;
   address: string;
   scale: string;
+  jumlahUsaha: number;
   status: string;
   officer: string;
+  sumberData: string;
   nama_kec: string;
   koseka: string;
   isPrioritas: string;
@@ -113,6 +115,7 @@ export default function TabulasiPage() {
   const [selectedPml, setSelectedPml] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"pcl" | "pml" | "kec" | "sls">("pcl");
+  const [tabulationMetric, setTabulationMetric] = useState<"sampel" | "usaha">("sampel");
 
   // SLS pagination states
   const [slsPage, setSlsPage] = useState(1);
@@ -234,18 +237,21 @@ export default function TabulasiPage() {
           }
           row.push(entry);
 
-          if (row.length >= 16 && row[1] && row[1].trim() !== "" && row[1] !== "Kode Identitas") {
+          if (row.length >= 17 && row[1] && row[1].trim() !== "" && row[1] !== "Kode Identitas") {
+            const parsedJU = parseInt(row[8].replace(/"/g, "").trim());
             parsed.push({
               searchedEmail: row[0].replace(/"/g, "").trim().toLowerCase(),
               idCode: row[1].replace(/"/g, "").trim(),
               name: row[2].replace(/"/g, "").trim(),
               address: row[3].replace(/"/g, "").trim(),
               scale: normalizeScale(row[7].replace(/"/g, "").trim()),
+              jumlahUsaha: isNaN(parsedJU) ? 0 : parsedJU,
               status: row[12].replace(/"/g, "").trim(),
               officer: row[14].replace(/"/g, "").trim(),
-              nama_kec: row[16] ? row[16].replace(/"/g, "").trim() : "",
-              koseka: row[17] ? row[17].replace(/"/g, "").trim() : "",
-              isPrioritas: row[18] ? row[18].replace(/"/g, "").trim() : "Tidak",
+              sumberData: row[16] ? row[16].replace(/"/g, "").trim() : "",
+              nama_kec: row[17] ? row[17].replace(/"/g, "").trim() : "",
+              koseka: row[18] ? row[18].replace(/"/g, "").trim() : "",
+              isPrioritas: row[19] ? row[19].replace(/"/g, "").trim() : "Tidak",
             });
           }
         }
@@ -423,15 +429,17 @@ export default function TabulasiPage() {
         const isReject = status === "rejected by pengawas" || status === "reject" || status === "rejected";
         const isRealisasi = isSubmit || isReject || isApprove;
 
+        const val = tabulationMetric === "sampel" ? 1 : r.jumlahUsaha;
+
         // Helper to add stats
         const addStats = (cell: CellStats) => {
-          cell.target++;
-          if (isRealisasi) cell.realisasi++;
-          if (isOpen) cell.open++;
-          if (isDraft) cell.draft++;
-          if (isSubmit) cell.submit++;
-          if (isApprove) cell.approve++;
-          if (isReject) cell.reject++;
+          cell.target += val;
+          if (isRealisasi) cell.realisasi += val;
+          if (isOpen) cell.open += val;
+          if (isDraft) cell.draft += val;
+          if (isSubmit) cell.submit += val;
+          if (isApprove) cell.approve += val;
+          if (isReject) cell.reject += val;
         };
 
         // Add to category
@@ -447,7 +455,7 @@ export default function TabulasiPage() {
 
     // Sort by name
     return stats.sort((a, b) => a.nama.localeCompare(b.nama));
-  }, [rawData, pmlPplData, selectedKec, categories]);
+  }, [rawData, pmlPplData, selectedKec, categories, tabulationMetric]);
 
   // Filtered Table 1 based on search query
   const filteredPclStats = useMemo(() => {
@@ -507,14 +515,16 @@ export default function TabulasiPage() {
         const isReject = status === "rejected by pengawas" || status === "reject" || status === "rejected";
         const isRealisasi = isSubmit || isReject || isApprove;
 
+        const val = tabulationMetric === "sampel" ? 1 : r.jumlahUsaha;
+
         const addStats = (cell: CellStats) => {
-          cell.target++;
-          if (isRealisasi) cell.realisasi++;
-          if (isOpen) cell.open++;
-          if (isDraft) cell.draft++;
-          if (isSubmit) cell.submit++;
-          if (isApprove) cell.approve++;
-          if (isReject) cell.reject++;
+          cell.target += val;
+          if (isRealisasi) cell.realisasi += val;
+          if (isOpen) cell.open += val;
+          if (isDraft) cell.draft += val;
+          if (isSubmit) cell.submit += val;
+          if (isApprove) cell.approve += val;
+          if (isReject) cell.reject += val;
         };
 
         if (cat && rowStats.categories[cat]) {
@@ -527,7 +537,7 @@ export default function TabulasiPage() {
     });
 
     return stats.sort((a, b) => a.nama.localeCompare(b.nama));
-  }, [rawData, pmlPplData, selectedKec, selectedPml, categories]);
+  }, [rawData, pmlPplData, selectedKec, selectedPml, categories, tabulationMetric]);
 
   // Filtered Table 3 based on search query
   const filteredPmlStats = useMemo(() => {
@@ -561,13 +571,14 @@ export default function TabulasiPage() {
       const isReject = status === "rejected by pengawas" || status === "reject" || status === "rejected";
       const isRealisasi = isSubmit || isReject || isApprove;
 
-      totalStats.target++;
-      if (isRealisasi) totalStats.realisasi++;
-      if (isOpen) totalStats.open++;
-      if (isDraft) totalStats.draft++;
-      if (isSubmit) totalStats.submit++;
-      if (isApprove) totalStats.approve++;
-      if (isReject) totalStats.reject++;
+      const val = tabulationMetric === "sampel" ? 1 : r.jumlahUsaha;
+      totalStats.target += val;
+      if (isRealisasi) totalStats.realisasi += val;
+      if (isOpen) totalStats.open += val;
+      if (isDraft) totalStats.draft += val;
+      if (isSubmit) totalStats.submit += val;
+      if (isApprove) totalStats.approve += val;
+      if (isReject) totalStats.reject += val;
     });
     
     const completionRate = totalStats.target > 0 ? (totalStats.realisasi / totalStats.target) * 100 : 0;
@@ -576,7 +587,7 @@ export default function TabulasiPage() {
       ...totalStats,
       completionRate
     };
-  }, [rawData, pmlPplData, filteredPmlStats]);
+  }, [rawData, pmlPplData, filteredPmlStats, tabulationMetric]);
 
   // Calculate Table 4: SLS Overview stats
   const slsStats = useMemo<SLSStats[]>(() => {
@@ -611,14 +622,16 @@ export default function TabulasiPage() {
       const isReject = status === "rejected by pengawas" || status === "reject" || status === "rejected";
       const isRealisasi = isSubmit || isReject || isApprove;
 
+      const val = tabulationMetric === "sampel" ? 1 : r.jumlahUsaha;
+
       const addStats = (cell: CellStats) => {
-        cell.target++;
-        if (isRealisasi) cell.realisasi++;
-        if (isOpen) cell.open++;
-        if (isDraft) cell.draft++;
-        if (isSubmit) cell.submit++;
-        if (isApprove) cell.approve++;
-        if (isReject) cell.reject++;
+        cell.target += val;
+        if (isRealisasi) cell.realisasi += val;
+        if (isOpen) cell.open += val;
+        if (isDraft) cell.draft += val;
+        if (isSubmit) cell.submit += val;
+        if (isApprove) cell.approve += val;
+        if (isReject) cell.reject += val;
       };
 
       if (cat && statsMap[slsCode].categories[cat]) {
@@ -628,7 +641,7 @@ export default function TabulasiPage() {
     });
 
     return Object.values(statsMap).sort((a, b) => a.slsCode.localeCompare(b.slsCode));
-  }, [rawData, categories]);
+  }, [rawData, categories, tabulationMetric]);
 
   // Filtered Table 4 based on search query and selected filters
   const filteredSlsStats = useMemo(() => {
@@ -722,14 +735,16 @@ export default function TabulasiPage() {
         const isReject = status === "rejected by pengawas" || status === "reject" || status === "rejected";
         const isRealisasi = isSubmit || isReject || isApprove;
 
+        const val = tabulationMetric === "sampel" ? 1 : r.jumlahUsaha;
+
         const addStats = (cell: CellStats) => {
-          cell.target++;
-          if (isRealisasi) cell.realisasi++;
-          if (isOpen) cell.open++;
-          if (isDraft) cell.draft++;
-          if (isSubmit) cell.submit++;
-          if (isApprove) cell.approve++;
-          if (isReject) cell.reject++;
+          cell.target += val;
+          if (isRealisasi) cell.realisasi += val;
+          if (isOpen) cell.open += val;
+          if (isDraft) cell.draft += val;
+          if (isSubmit) cell.submit += val;
+          if (isApprove) cell.approve += val;
+          if (isReject) cell.reject += val;
         };
 
         if (cat && kecStats.categories[cat]) {
@@ -742,7 +757,7 @@ export default function TabulasiPage() {
     });
 
     return Object.values(statsMap).sort((a, b) => a.kecName.localeCompare(b.kecName));
-  }, [rawData, pmlPplData, categories]);
+  }, [rawData, pmlPplData, categories, tabulationMetric]);
 
   // Overall Statistics for Selected View
   const selectedOverviewStats = useMemo(() => {
@@ -926,12 +941,12 @@ export default function TabulasiPage() {
     const url = URL.createObjectURL(csvBlob);
     const link = document.createElement("a");
     const filename = activeTab === "pcl" 
-      ? `tabulasi_pcl_monitoring_se2026_${Date.now()}.csv`
+      ? `tabulasi_pcl_monitoring_se2026_${tabulationMetric === "usaha" ? "jumlah_usaha_" : ""}${Date.now()}.csv`
       : activeTab === "pml"
-        ? `tabulasi_pml_monitoring_se2026_${Date.now()}.csv`
+        ? `tabulasi_pml_monitoring_se2026_${tabulationMetric === "usaha" ? "jumlah_usaha_" : ""}${Date.now()}.csv`
         : activeTab === "sls"
-          ? `tabulasi_sls_monitoring_se2026_${Date.now()}.csv`
-          : `tabulasi_kecamatan_monitoring_se2026_${Date.now()}.csv`;
+          ? `tabulasi_sls_monitoring_se2026_${tabulationMetric === "usaha" ? "jumlah_usaha_" : ""}${Date.now()}.csv`
+          : `tabulasi_kecamatan_monitoring_se2026_${tabulationMetric === "usaha" ? "jumlah_usaha_" : ""}${Date.now()}.csv`;
     link.setAttribute("href", url);
     link.setAttribute("download", filename);
     document.body.appendChild(link);
@@ -1160,6 +1175,31 @@ export default function TabulasiPage() {
                 
                 {/* Left: Interactive Dropdown selectors */}
                 <div className="flex flex-wrap gap-4 w-full md:w-auto items-center">
+                  
+                  {/* Metrik Selector */}
+                  <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200/50 dark:border-slate-800/50">
+                    <button
+                      onClick={() => setTabulationMetric("sampel")}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        tabulationMetric === "sampel"
+                          ? "bg-orange-500 text-white shadow-sm"
+                          : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                      }`}
+                    >
+                      Jumlah Sampel
+                    </button>
+                    <button
+                      onClick={() => setTabulationMetric("usaha")}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        tabulationMetric === "usaha"
+                          ? "bg-orange-500 text-white shadow-sm"
+                          : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                      }`}
+                    >
+                      Jumlah Usaha
+                    </button>
+                  </div>
+
                   {(activeTab === "pcl" || activeTab === "pml" || activeTab === "sls") && (
                     <>
                       {/* Kecamatan Dropdown */}

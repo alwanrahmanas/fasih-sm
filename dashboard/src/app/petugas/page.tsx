@@ -775,7 +775,7 @@ export default function PetugasPage() {
               <h1 className="text-xs sm:text-sm md:text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                 BPS Kabupaten Kepulauan Sangihe
               </h1>
-              <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-[10px] sm:text-xs text-slate-600 dark:text-slate-400">
                 Dashboard Monitoring Sensus Ekonomi 2026
               </p>
             </div>
@@ -806,7 +806,7 @@ export default function PetugasPage() {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
-                className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors cursor-pointer"
+                className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-350 transition-colors cursor-pointer"
                 title="Ganti Tema"
               >
                 {isDarkMode ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
@@ -814,7 +814,7 @@ export default function PetugasPage() {
               <button
                 onClick={fetchData}
                 disabled={loading}
-                className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors disabled:opacity-50 cursor-pointer"
+                className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-350 transition-colors disabled:opacity-50 cursor-pointer"
                 title="Segarkan Data"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-orange-500" : ""}`} />
@@ -862,7 +862,7 @@ export default function PetugasPage() {
               <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-slate-200 dark:border-slate-800"></div>
               <div className="absolute top-0 left-0 w-full h-full rounded-full border-4 border-orange-500 border-t-transparent animate-spin"></div>
             </div>
-            <p className="text-slate-500 dark:text-slate-400 font-medium animate-pulse text-sm">
+            <p className="text-slate-700 dark:text-slate-300 font-semibold animate-pulse text-sm">
               Mengekstrak dan Memproses Data Petugas BPS FASIH...
             </p>
           </div>
@@ -896,7 +896,7 @@ export default function PetugasPage() {
                     className={`shrink-0 flex-1 lg:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${
                       activeTab === "pcl"
                         ? "bg-white dark:bg-slate-900 text-orange-500 shadow-sm"
-                        : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                        : "text-slate-700 dark:text-slate-350 hover:text-slate-900 dark:hover:text-slate-200"
                     }`}
                   >
                     <User className="w-4 h-4" />
@@ -910,7 +910,7 @@ export default function PetugasPage() {
                     className={`shrink-0 flex-1 lg:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${
                       activeTab === "pml"
                         ? "bg-white dark:bg-slate-900 text-orange-500 shadow-sm"
-                        : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                        : "text-slate-700 dark:text-slate-350 hover:text-slate-900 dark:hover:text-slate-200"
                     }`}
                   >
                     <UserCheck className="w-4 h-4" />
@@ -924,7 +924,7 @@ export default function PetugasPage() {
                     className={`shrink-0 flex-1 lg:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${
                       activeTab === "kecamatan"
                         ? "bg-white dark:bg-slate-900 text-orange-500 shadow-sm"
-                        : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                        : "text-slate-700 dark:text-slate-350 hover:text-slate-900 dark:hover:text-slate-200"
                     }`}
                   >
                     <Building className="w-4 h-4" />
@@ -938,7 +938,7 @@ export default function PetugasPage() {
                     className={`shrink-0 flex-1 lg:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${
                       activeTab === "prioritas"
                         ? "bg-white dark:bg-slate-900 text-orange-500 shadow-sm"
-                        : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                        : "text-slate-700 dark:text-slate-350 hover:text-slate-900 dark:hover:text-slate-200"
                     }`}
                   >
                     <Layers className="w-4 h-4" />
@@ -970,7 +970,7 @@ export default function PetugasPage() {
                 
                 {/* Search Bar */}
                 <div className="col-span-12 md:col-span-6 relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                     <Search className="w-4 h-4" />
                   </div>
                   <input
@@ -983,7 +983,7 @@ export default function PetugasPage() {
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery("")}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-250"
                     >
                       ×
                     </button>
@@ -1007,7 +1007,7 @@ export default function PetugasPage() {
                       </option>
                     ))}
                   </select>
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                     <ChevronDown className="w-4 h-4" />
                   </div>
                 </div>
@@ -1034,7 +1034,7 @@ export default function PetugasPage() {
                     <option value="pct_desc">Persentase Terbesar (%)</option>
                     <option value="pct_asc">Persentase Terkecil (%)</option>
                   </select>
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                     <ChevronDown className="w-4 h-4" />
                   </div>
                 </div>
@@ -1076,7 +1076,7 @@ export default function PetugasPage() {
               <div className="overflow-auto max-h-[650px] w-full">
                 <table className="w-full text-left border-collapse">
                   <thead className="sticky top-0 z-20 bg-slate-50 dark:bg-slate-900 shadow-[0_1px_0_0_rgba(226,232,240,1)] dark:shadow-[0_1px_0_0_rgba(30,41,59,1)]">
-                    <tr className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">
+                    <tr className="text-[10px] uppercase font-bold text-slate-700 dark:text-slate-300 tracking-wider">
                       {activeTab !== "prioritas" && (
                         <th className="py-4 px-4 w-10 bg-slate-50 dark:bg-slate-900"></th>
                       )}
@@ -1124,7 +1124,7 @@ export default function PetugasPage() {
                     {activeTab === "kecamatan" ? (
                       filteredKecamatans.length === 0 ? (
                         <tr>
-                          <td colSpan={14} className="py-10 text-center text-slate-500 dark:text-slate-400 text-xs">
+                          <td colSpan={14} className="py-10 text-center text-slate-700 dark:text-slate-300 text-xs">
                             Tidak ada data kecamatan yang cocok dengan filter atau pencarian Anda.
                           </td>
                         </tr>
@@ -1140,7 +1140,7 @@ export default function PetugasPage() {
                               <tr
                                 className={`border-b border-slate-200 dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-950/10 transition-colors cursor-pointer text-xs ${
                                   isRed 
-                                    ? "bg-red-500/5 dark:bg-red-500/10 text-red-600 dark:text-red-400 font-medium" 
+                                    ? "bg-red-500/5 dark:bg-red-500/10 text-red-700 dark:text-red-400 font-semibold" 
                                     : ""
                                 }`}
                                 onClick={() => toggleRow(k.namaKec)}
@@ -1152,7 +1152,7 @@ export default function PetugasPage() {
                                     <ChevronRight className="w-4 h-4 text-slate-400" />
                                   )}
                                 </td>
-                                <td className="py-3 px-2 text-center font-semibold text-slate-500 dark:text-slate-400">
+                                <td className="py-3 px-2 text-center font-semibold text-slate-700 dark:text-slate-350">
                                   {index + 1}
                                 </td>
                                 <td className="py-3 px-4 font-semibold">
@@ -1188,14 +1188,14 @@ export default function PetugasPage() {
                                 <tr className="bg-slate-50/20 dark:bg-slate-950/20 border-b border-slate-200 dark:border-slate-800">
                                   <td colSpan={14} className="py-4 px-8">
                                     <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 p-4 shadow-inner">
-                                      <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-1.5">
+                                      <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-1.5">
                                         <UserCheck className="w-3.5 h-3.5 text-orange-500" />
                                         Daftar PML di Kecamatan {formatKecName(k.namaKec)}
                                       </h4>
                                       <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse text-[11px]">
                                           <thead>
-                                            <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider text-[9px]">
                                               <th className="pb-2 font-bold">Nama PML</th>
                                               <th className="pb-2 font-bold">Email</th>
                                               <th className="pb-2 text-center font-bold">SLS</th>
@@ -1219,12 +1219,12 @@ export default function PetugasPage() {
                                                   key={pml.email}
                                                   className={`border-b border-slate-100 dark:border-slate-800/40 py-2 hover:bg-slate-50/50 dark:hover:bg-slate-950/10 transition-colors ${
                                                     isPmlRedRow
-                                                      ? "bg-red-500/5 dark:bg-red-500/10 text-red-600 dark:text-red-400 font-medium"
+                                                      ? "bg-red-500/5 dark:bg-red-500/10 text-red-700 dark:text-red-400 font-semibold"
                                                       : ""
                                                   }`}
                                                 >
-                                                  <td className="py-2 font-semibold">{pml.namaPetugas}</td>
-                                                  <td className="py-2 text-slate-500 dark:text-slate-400 font-normal">{pml.email}</td>
+                                                  <td className="py-2 font-semibold text-slate-900 dark:text-slate-100">{pml.namaPetugas}</td>
+                                                  <td className="py-2 text-slate-700 dark:text-slate-350 font-normal">{pml.email}</td>
                                                   <td className="py-2 text-center">{pml.slsCount}</td>
                                                   <td className="py-2 text-center font-semibold text-slate-800 dark:text-slate-200">{pml.total}</td>
                                                   <td className="py-2 text-center text-amber-600 dark:text-amber-500/90">{pml.open}</td>
@@ -1242,7 +1242,7 @@ export default function PetugasPage() {
                                                         ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
                                                         : parseFloat(pmlPct) >= 40
                                                         ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
-                                                        : "bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20"
+                                                        : "bg-slate-500/10 text-slate-700 dark:text-slate-350 border border-slate-500/20"
                                                     }`}>
                                                       {pmlPct}%
                                                     </span>
@@ -1264,7 +1264,7 @@ export default function PetugasPage() {
                     ) : activeTab === "prioritas" ? (
                       filteredPrioritySLS.length === 0 ? (
                         <tr>
-                          <td colSpan={15} className="py-10 text-center text-slate-500 dark:text-slate-400 text-xs">
+                          <td colSpan={15} className="py-10 text-center text-slate-700 dark:text-slate-300 text-xs">
                             Tidak ada data SLS Prioritas yang cocok dengan filter atau pencarian Anda.
                           </td>
                         </tr>
@@ -1276,7 +1276,7 @@ export default function PetugasPage() {
                               key={item.slsCode}
                               className="border-b border-orange-500/20 dark:border-orange-500/10 bg-orange-500/[0.03] dark:bg-orange-500/[0.015] hover:bg-orange-500/[0.06] dark:hover:bg-orange-500/[0.03] transition-colors text-xs border-l-4 border-l-orange-500"
                             >
-                              <td className="py-3 px-2 text-center font-semibold text-slate-500 dark:text-slate-400">
+                              <td className="py-3 px-2 text-center font-semibold text-slate-700 dark:text-slate-350">
                                 {index + 1}
                               </td>
                               <td className="py-3 px-4 font-bold text-slate-900 dark:text-slate-100 font-mono">
@@ -1328,7 +1328,7 @@ export default function PetugasPage() {
                     ) : (
                       filteredOfficers.length === 0 ? (
                         <tr>
-                          <td colSpan={15} className="py-10 text-center text-slate-500 dark:text-slate-400 text-xs">
+                          <td colSpan={15} className="py-10 text-center text-slate-700 dark:text-slate-300 text-xs">
                             Tidak ada data petugas yang cocok dengan filter atau pencarian Anda.
                           </td>
                         </tr>
@@ -1344,7 +1344,7 @@ export default function PetugasPage() {
                               <tr
                                 className={`border-b border-slate-200 dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-950/10 transition-colors cursor-pointer text-xs ${
                                   isRed 
-                                    ? "bg-red-500/5 dark:bg-red-500/10 text-red-600 dark:text-red-400 font-medium" 
+                                    ? "bg-red-500/5 dark:bg-red-500/10 text-red-700 dark:text-red-400 font-semibold" 
                                     : ""
                                 }`}
                                 onClick={() => toggleRow(o.email)}
@@ -1356,12 +1356,12 @@ export default function PetugasPage() {
                                     <ChevronRight className="w-4 h-4 text-slate-400" />
                                   )}
                                 </td>
-                                <td className="py-3 px-2 text-center font-semibold text-slate-500 dark:text-slate-400">
+                                <td className="py-3 px-2 text-center font-semibold text-slate-700 dark:text-slate-350">
                                   {index + 1}
                                 </td>
                                 <td className="py-3 px-4 font-semibold">
-                                  <div>{o.namaPetugas}</div>
-                                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-normal mt-0.5">{o.email}</div>
+                                  <div className="font-semibold text-slate-900 dark:text-slate-100">{o.namaPetugas}</div>
+                                  <div className="text-[10px] text-slate-700 dark:text-slate-350 font-normal mt-0.5">{o.email}</div>
                                 </td>
                                 <td className="py-3 px-4 font-normal">{formatKecName(o.namaKec)}</td>
                                 <td className="py-3 px-4 font-normal">{o.koseka}</td>
@@ -1381,8 +1381,8 @@ export default function PetugasPage() {
                                       : parseFloat(pctRealisasi) >= 80
                                       ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
                                       : parseFloat(pctRealisasi) >= 40
-                                      ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
-                                      : "bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20"
+                                      ? "bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20"
+                                      : "bg-slate-500/10 text-slate-700 dark:text-slate-350 border border-slate-500/20"
                                   }`}>
                                     {pctRealisasi}%
                                   </span>
@@ -1394,7 +1394,7 @@ export default function PetugasPage() {
                                 <tr className="bg-slate-50/20 dark:bg-slate-950/20 border-b border-slate-200 dark:border-slate-800">
                                   <td colSpan={15} className="py-4 px-8">
                                     <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 p-4 shadow-inner">
-                                      <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-1.5">
+                                      <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-1.5">
                                         <Layers className="w-3.5 h-3.5 text-orange-500" />
                                         Detail SLS untuk {o.namaPetugas}
                                       </h4>
@@ -1428,28 +1428,28 @@ export default function PetugasPage() {
                                                   </span>
                                                 </div>
                                               </div>
-                                              <div className="grid grid-cols-2 gap-y-1.5 gap-x-2 text-[10px] text-slate-500">
+                                              <div className="grid grid-cols-2 gap-y-1.5 gap-x-2 text-[10px] text-slate-700 dark:text-slate-400 font-medium">
                                                 <div className="flex justify-between">
                                                   <span>Target:</span>
                                                   <span className="font-bold text-slate-800 dark:text-slate-300">{sls.total}</span>
                                                 </div>
-                                                <div className="flex justify-between text-amber-500">
+                                                <div className="flex justify-between text-amber-600 dark:text-amber-500">
                                                   <span>Open:</span>
                                                   <span className="font-bold">{sls.open}</span>
                                                 </div>
-                                                <div className="flex justify-between text-blue-500">
+                                                <div className="flex justify-between text-blue-600 dark:text-blue-500">
                                                   <span>Draft:</span>
                                                   <span className="font-bold">{sls.draft}</span>
                                                 </div>
-                                                <div className="flex justify-between text-teal-500">
+                                                <div className="flex justify-between text-teal-600 dark:text-teal-500">
                                                   <span>Submit:</span>
                                                   <span className="font-bold">{sls.submit}</span>
                                                 </div>
-                                                <div className="flex justify-between text-red-500">
+                                                <div className="flex justify-between text-red-600 dark:text-red-500">
                                                   <span>Reject:</span>
                                                   <span className="font-bold">{sls.reject}</span>
                                                 </div>
-                                                <div className="flex justify-between text-emerald-500">
+                                                <div className="flex justify-between text-emerald-600 dark:text-emerald-500">
                                                   <span>Approve:</span>
                                                   <span className="font-bold">{sls.approve}</span>
                                                 </div>

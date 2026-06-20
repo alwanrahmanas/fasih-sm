@@ -47,6 +47,7 @@ interface ScraperRecord {
   mode: string;
   officer: string;
   notes: string;
+  sumberData: string;
   nama_kec: string;
   koseka: string;
   isPrioritas: string;
@@ -302,8 +303,7 @@ export default function DashboardPage() {
           }
           row.push(entry); // Push the last entry
           
-          // Only add rows that have content and contain valid Kode Identitas
-          if (row.length >= 16 && row[1] && row[1].trim() !== "" && row[1] !== "Kode Identitas") {
+          if (row.length >= 17 && row[1] && row[1].trim() !== "" && row[1] !== "Kode Identitas") {
             parsed.push({
               searchedEmail: row[0].replace(/"/g, "").trim(),
               idCode: row[1].replace(/"/g, "").trim(),
@@ -321,9 +321,10 @@ export default function DashboardPage() {
               mode: row[13].replace(/"/g, "").trim(),
               officer: row[14].replace(/"/g, "").trim(),
               notes: row[15].replace(/"/g, "").trim(),
-              nama_kec: row[16] ? row[16].replace(/"/g, "").trim() : "",
-              koseka: row[17] ? row[17].replace(/"/g, "").trim() : "",
-              isPrioritas: row[18] ? row[18].replace(/"/g, "").trim() : "Tidak",
+              sumberData: row[16] ? row[16].replace(/"/g, "").trim() : "",
+              nama_kec: row[17] ? row[17].replace(/"/g, "").trim() : "",
+              koseka: row[18] ? row[18].replace(/"/g, "").trim() : "",
+              isPrioritas: row[19] ? row[19].replace(/"/g, "").trim() : "Tidak",
             });
           }
         }
@@ -651,7 +652,7 @@ export default function DashboardPage() {
   // Helper to generate export CSV url
   const handleExportCSV = () => {
     const headers = [
-      "Kode Identitas", "Nama Keluarga/Bangunan/Usaha", "Kecamatan", "Koseka", "Alamat Prelist", 
+      "Kode Identitas", "Sumber Data", "Nama Keluarga/Bangunan/Usaha", "Kecamatan", "Koseka", "Alamat Prelist", 
       "Skala Usaha", "Status", "Petugas Saat Ini", "Keterangan", "Prioritas"
     ];
     const csvRows = [headers.join(",")];
@@ -659,6 +660,7 @@ export default function DashboardPage() {
     filteredData.forEach(r => {
       const values = [
         `"${r.idCode.replace(/"/g, '""')}"`,
+        `"${(r.sumberData || "").replace(/"/g, '""')}"`,
         `"${r.name.replace(/"/g, '""')}"`,
         `"${(r.nama_kec || "").replace(/"/g, '""')}"`,
         `"${(r.koseka || "").replace(/"/g, '""')}"`,
@@ -1417,6 +1419,7 @@ export default function DashboardPage() {
                   <thead className="sticky top-0 z-20 bg-slate-50 dark:bg-slate-900 shadow-[0_1px_0_0_rgba(226,232,240,1)] dark:shadow-[0_1px_0_0_rgba(30,41,59,1)]">
                     <tr className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                       <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Kode Identitas</th>
+                      <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Sumber Data</th>
                       <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Nama Keluarga/Bangunan/Usaha</th>
                       <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Kecamatan</th>
                       <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Koseka</th>
@@ -1441,13 +1444,19 @@ export default function DashboardPage() {
                           {/* ID Code */}
                           <td className="py-3 px-3 sm:px-4 sm:py-4 font-mono text-xs font-semibold text-slate-800 dark:text-slate-300 whitespace-nowrap">
                             <div className="flex items-center gap-2">
-                              <span>{row.idCode}</span>
+                               <span>{row.idCode}</span>
                               {row.isPrioritas === "Ya" && (
                                 <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/30 tracking-wider shadow-sm animate-pulse">
                                   Prioritas
                                 </span>
                               )}
                             </div>
+                          </td>
+                          {/* Sumber Data */}
+                          <td className="py-3 px-3 sm:px-4 sm:py-4 text-xs font-bold text-slate-800 dark:text-slate-300 whitespace-nowrap">
+                            <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                              {row.sumberData || "-"}
+                            </span>
                           </td>
                           {/* Name */}
                           <td className="py-3 px-3 sm:px-4 sm:py-4 font-medium text-slate-900 dark:text-white truncate max-w-[180px]">
