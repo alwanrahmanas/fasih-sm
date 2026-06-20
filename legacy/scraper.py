@@ -99,11 +99,11 @@ def main():
     with open(url_file, "r", encoding="utf-8") as f:
         target_url = f.read().strip()
     
-    # Force perPage=50 to maximize items per page
+    # Force perPage=100 to maximize items per page
     if "perPage=" in target_url:
-        target_url = re.sub(r"perPage=\d+", "perPage=50", target_url)
+        target_url = re.sub(r"perPage=\d+", "perPage=100", target_url)
     else:
-        target_url = target_url + ("&" if "?" in target_url else "?") + "perPage=50"
+        target_url = target_url + ("&" if "?" in target_url else "?") + "perPage=100"
         
     emails = load_emails(email_file)
     print(f"Loaded {len(emails)} emails to scrape.")
@@ -156,9 +156,9 @@ def main():
             print("Debug screenshot saved to 'table_not_found_debug.png'")
             input("Press Enter to continue anyway or Ctrl+C to abort...")
             
-        # Select items-per-page to 50 if it's not already
+        # Select items-per-page to 100 if it's not already
         try:
-            per_page_btn = page.locator('button:has-text("50")')
+            per_page_btn = page.locator('button:has-text("100")')
             if per_page_btn.count() == 0:
                 # If the button currently shows something else, e.g. "10" or "25", let's select 50
                 # But typically the saved page shows "50" already.

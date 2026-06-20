@@ -279,16 +279,16 @@ def run_scraper(use_test_emails=False):
         context.storage_state(path=auth_file)
         print(f"Session state saved to '{auth_file}'")
         
-        # Ensure we display 50 items per page (force URL parameter)
-        if "perPage=50" not in current_url:
-            print("Forcing 50 items per page by updating URL query parameters...")
+        # Ensure we display 100 items per page (force URL parameter)
+        if "perPage=100" not in current_url:
+            print("Forcing 100 items per page by updating URL query parameters...")
             if "?" in current_url:
                 if "perPage=" in current_url:
-                    target_url = re.sub(r"perPage=\d+", "perPage=50", current_url)
+                    target_url = re.sub(r"perPage=\d+", "perPage=100", current_url)
                 else:
-                    target_url = current_url + "&perPage=50"
+                    target_url = current_url + "&perPage=100"
             else:
-                target_url = current_url + "?perPage=50"
+                target_url = current_url + "?perPage=100"
                 
             print(f"Redirecting to: {target_url}")
             page.goto(target_url)

@@ -677,17 +677,17 @@ def run_unified_scraper():
                 page.goto(data_url)
                 page.wait_for_timeout(3000)
                 
-            # Ensure 50 items per page parameters
+            # Ensure 100 items per page parameters
             current_url = page.url
-            if "perPage=50" not in current_url:
-                print("  Forcing 50 items per page by updating URL query parameters...")
+            if "perPage=100" not in current_url:
+                print("  Forcing 100 items per page by updating URL query parameters...")
                 if "?" in current_url:
                     if "perPage=" in current_url:
-                        target_url = re.sub(r"perPage=\d+", "perPage=50", current_url)
+                        target_url = re.sub(r"perPage=\d+", "perPage=100", current_url)
                     else:
-                        target_url = current_url + "&perPage=50"
+                        target_url = current_url + "&perPage=100"
                 else:
-                    target_url = current_url + "?perPage=50"
+                    target_url = current_url + "?perPage=100"
                 page.goto(target_url)
                 page.wait_for_timeout(3000)
                 

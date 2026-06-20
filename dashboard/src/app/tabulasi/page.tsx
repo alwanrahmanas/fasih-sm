@@ -1326,32 +1326,32 @@ export default function TabulasiPage() {
                   {(activeTab === "pcl" || activeTab === "pml" || activeTab === "sls") && (
                     <>
                       {/* Kecamatan Dropdown */}
-                      <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-semibold w-full sm:w-auto">
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-bold w-full sm:w-auto">
                         <MapPin className="w-4 h-4 text-orange-500" />
                         <select
                           value={selectedKec}
                           onChange={(e) => setSelectedKec(e.target.value)}
-                          className="w-full sm:w-auto py-2.5 px-3.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-bold"
+                          className="w-full sm:w-auto py-2.5 px-3.5 border border-slate-300 dark:border-slate-800 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-950 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-bold cursor-pointer"
                         >
-                          <option value="all">Semua Kecamatan</option>
+                          <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" value="all">Semua Kecamatan</option>
                           {uniqueKecList.map((kec, idx) => (
-                            <option key={idx} value={kec}>{kec}</option>
+                            <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" key={idx} value={kec}>{kec}</option>
                           ))}
                         </select>
                       </div>
 
                       {/* PML Dropdown */}
                       {(activeTab === "pcl" || activeTab === "pml") && (
-                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-semibold w-full sm:w-auto">
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-bold w-full sm:w-auto">
                           <SlidersHorizontal className="w-4 h-4 text-orange-500" />
                           <select
                             value={selectedPml}
                             onChange={(e) => handlePmlChange(e.target.value)}
-                            className="w-full sm:w-auto py-2.5 px-3.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-bold"
+                            className="w-full sm:w-auto py-2.5 px-3.5 border border-slate-300 dark:border-slate-800 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-950 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 font-bold cursor-pointer"
                           >
-                            <option value="all">Semua PML (Pengawas)</option>
+                            <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" value="all">Semua PML (Pengawas)</option>
                             {pmlList.map((pml, idx) => (
-                              <option key={idx} value={pml.nama_petugas}>{pml.nama_petugas}</option>
+                              <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" key={idx} value={pml.nama_petugas}>{pml.nama_petugas}</option>
                             ))}
                           </select>
                         </div>
@@ -1376,7 +1376,7 @@ export default function TabulasiPage() {
                         }
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-semibold text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400"
+                        className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-semibold text-slate-950 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                       />
                       {searchQuery && (
                         <button

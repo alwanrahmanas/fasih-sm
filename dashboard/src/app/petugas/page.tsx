@@ -984,7 +984,7 @@ export default function PetugasPage() {
                     placeholder="Cari nama petugas, email, kecamatan, atau nama Koseka..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border bg-slate-50/50 dark:bg-slate-950/50 text-xs focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/80 outline-none transition-all border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border bg-slate-100 dark:bg-slate-950 text-xs focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/80 outline-none transition-all border-slate-300 dark:border-slate-800 text-slate-950 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400 font-semibold"
                   />
                   {searchQuery && (
                     <button
@@ -1004,11 +1004,11 @@ export default function PetugasPage() {
                   <select
                     value={selectedKec}
                     onChange={(e) => setSelectedKec(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border bg-slate-50/50 dark:bg-slate-950/50 text-xs focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/80 outline-none transition-all border-slate-200 dark:border-slate-800 appearance-none text-slate-700 dark:text-slate-200 cursor-pointer"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border bg-slate-100 dark:bg-slate-950 text-xs focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/80 outline-none transition-all border-slate-300 dark:border-slate-800 appearance-none text-slate-950 dark:text-slate-50 cursor-pointer font-bold"
                   >
-                    <option value="all">Semua Kecamatan</option>
+                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" value="all">Semua Kecamatan</option>
                     {subdistrictOptions.map(kec => (
-                      <option key={kec} value={kec}>
+                      <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" key={kec} value={kec}>
                         {formatKecName(kec)}
                       </option>
                     ))}
@@ -1026,19 +1026,19 @@ export default function PetugasPage() {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as any)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border bg-slate-50/50 dark:bg-slate-950/50 text-xs focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/80 outline-none transition-all border-slate-200 dark:border-slate-800 appearance-none text-slate-700 dark:text-slate-200 cursor-pointer"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border bg-slate-100 dark:bg-slate-950 text-xs focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500/80 outline-none transition-all border-slate-300 dark:border-slate-800 appearance-none text-slate-950 dark:text-slate-50 cursor-pointer font-bold"
                   >
-                    <option value="nama">
+                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" value="nama">
                       {activeTab === "prioritas"
                         ? "Kode SLS (A-Z)"
                         : activeTab === "kecamatan"
                         ? "Nama Kecamatan (A-Z)"
                         : "Nama Petugas (A-Z)"}
                     </option>
-                    <option value="realisasi_desc">Realisasi Terbesar (Jumlah)</option>
-                    <option value="realisasi_asc">Realisasi Terkecil (Jumlah)</option>
-                    <option value="pct_desc">Persentase Terbesar (%)</option>
-                    <option value="pct_asc">Persentase Terkecil (%)</option>
+                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" value="realisasi_desc">Realisasi Terbesar (Jumlah)</option>
+                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" value="realisasi_asc">Realisasi Terkecil (Jumlah)</option>
+                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" value="pct_desc">Persentase Terbesar (%)</option>
+                    <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" value="pct_asc">Persentase Terkecil (%)</option>
                   </select>
                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                     <ChevronDown className="w-4 h-4" />

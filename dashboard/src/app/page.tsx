@@ -1221,7 +1221,7 @@ export default function DashboardPage() {
                       placeholder="Cari nama, ID prelist, alamat, atau petugas..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-xs sm:text-sm transition-all"
+                      className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 text-slate-950 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-xs sm:text-sm transition-all font-medium"
                     />
                     {searchQuery && (
                       <button
@@ -1264,9 +1264,9 @@ export default function DashboardPage() {
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
-                      className="w-full pl-10 pr-9 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-xs font-semibold appearance-none cursor-pointer"
+                      className="w-full pl-10 pr-9 py-2.5 border border-slate-300 dark:border-slate-800 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-950 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-xs font-semibold appearance-none cursor-pointer"
                     >
-                      <option value="all">Semua Status</option>
+                      <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" value="all">Semua Status</option>
                       {filterOptions.statuses.map((s, idx) => {
                         let label = s;
                         if (s.toLowerCase() === "open") label = "Terbuka (Open)";
@@ -1275,7 +1275,7 @@ export default function DashboardPage() {
                         else if (s.toLowerCase() === "rejected by pengawas") label = "Rejected by Pengawas";
                         else if (s.toLowerCase() === "approved by pengawas") label = "Approved by Pengawas";
                         return (
-                          <option key={idx} value={s}>{label}</option>
+                          <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" key={idx} value={s}>{label}</option>
                         );
                       })}
                     </select>
@@ -1288,11 +1288,11 @@ export default function DashboardPage() {
                     <select
                       value={selectedSubdistrict}
                       onChange={(e) => setSelectedSubdistrict(e.target.value)}
-                      className="w-full pl-10 pr-9 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-xs font-semibold appearance-none cursor-pointer"
+                      className="w-full pl-10 pr-9 py-2.5 border border-slate-300 dark:border-slate-800 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-950 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-xs font-semibold appearance-none cursor-pointer"
                     >
-                      <option value="all">Semua Kecamatan</option>
+                      <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" value="all">Semua Kecamatan</option>
                       {filterOptions.subdistricts.map((sub, idx) => (
-                        <option key={idx} value={sub}>{sub}</option>
+                        <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" key={idx} value={sub}>{sub}</option>
                       ))}
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
@@ -1304,11 +1304,11 @@ export default function DashboardPage() {
                     <select
                       value={selectedKoseka}
                       onChange={(e) => setSelectedKoseka(e.target.value)}
-                      className="w-full pl-10 pr-9 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-xs font-semibold appearance-none cursor-pointer"
+                      className="w-full pl-10 pr-9 py-2.5 border border-slate-300 dark:border-slate-800 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-950 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-xs font-semibold appearance-none cursor-pointer"
                     >
-                      <option value="all">Semua Koseka</option>
+                      <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" value="all">Semua Koseka</option>
                       {filterOptions.kosekas.map((kos, idx) => (
-                        <option key={idx} value={kos}>{kos}</option>
+                        <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" key={idx} value={kos}>{kos}</option>
                       ))}
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
@@ -1320,11 +1320,11 @@ export default function DashboardPage() {
                     <select
                       value={scaleFilter}
                       onChange={(e) => setScaleFilter(e.target.value)}
-                      className="w-full pl-10 pr-9 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-xs font-semibold appearance-none cursor-pointer"
+                      className="w-full pl-10 pr-9 py-2.5 border border-slate-300 dark:border-slate-800 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-950 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-xs font-semibold appearance-none cursor-pointer"
                     >
-                      <option value="all">Semua Skala</option>
+                      <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" value="all">Semua Skala</option>
                       {filterOptions.scales.map((sc, idx) => (
-                        <option key={idx} value={sc}>{sc}</option>
+                        <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" key={idx} value={sc}>{sc}</option>
                       ))}
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
@@ -1336,11 +1336,11 @@ export default function DashboardPage() {
                     <select
                       value={selectedOfficer}
                       onChange={(e) => setSelectedOfficer(e.target.value)}
-                      className="w-full pl-10 pr-9 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-xs font-semibold appearance-none cursor-pointer"
+                      className="w-full pl-10 pr-9 py-2.5 border border-slate-300 dark:border-slate-800 rounded-xl bg-slate-100 dark:bg-slate-950 text-slate-950 dark:text-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-xs font-semibold appearance-none cursor-pointer"
                     >
-                      <option value="all">Semua Petugas</option>
+                      <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" value="all">Semua Petugas</option>
                       {filterOptions.officers.map((off, idx) => (
-                        <option key={idx} value={off}>{off.replace(/Pencacah$/, "")}</option>
+                        <option className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100" key={idx} value={off}>{off.replace(/Pencacah$/, "")}</option>
                       ))}
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
