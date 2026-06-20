@@ -801,6 +801,12 @@ export default function PetugasPage() {
               >
                 Petugas
               </a>
+              <a 
+                href="/usaha" 
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
+              >
+                Usaha
+              </a>
             </nav>
 
             <div className="flex items-center gap-2 shrink-0">
