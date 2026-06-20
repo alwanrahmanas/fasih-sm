@@ -574,6 +574,39 @@ export default function DashboardPage() {
       .sort((a, b) => b.pctRealisasi - a.pctRealisasi);
   }, [dashboardRawData]);
 
+  // Kecamatan Usaha Stats for card and bar chart
+  const kecUsahaStats = useMemo(() => {
+    const map: { [name: string]: { kecName: string; submit: number; approve: number; total: number } } = {};
+
+    rawData.forEach(r => {
+      if (!r.nama_kec) return;
+      const kecName = formatKecName(r.nama_kec);
+      if (kecName === "-") return;
+
+      if (!map[kecName]) {
+        map[kecName] = {
+          kecName,
+          submit: 0,
+          approve: 0,
+          total: 0
+        };
+      }
+
+      const status = r.status.toLowerCase().trim();
+      const isSubmit = status === "submitted by pencacah" || status === "submit" || status === "submitted";
+      const isApprove = status === "approved by pengawas" || status === "approve" || status === "approved";
+      
+      const parsedJU = parseInt(r.unitCount.replace(/"/g, "").trim());
+      const val = isNaN(parsedJU) ? 0 : parsedJU;
+
+      if (isSubmit) map[kecName].submit += val;
+      if (isApprove) map[kecName].approve += val;
+      map[kecName].total = map[kecName].submit + map[kecName].approve;
+    });
+
+    return Object.values(map).sort((a, b) => b.total - a.total);
+  }, [rawData]);
+
   // Filtered and Searched data
   const filteredData = useMemo(() => {
     return rawData.filter(r => {
@@ -1138,6 +1171,98 @@ export default function DashboardPage() {
                         </div>
                       );
                     })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Monitoring Jumlah Usaha per Kecamatan Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 animate-fade-in">
+              
+              {/* Left 2 cols: Bar Chart for Jumlah Usaha per Kecamatan */}
+              <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-orange-500/30 transition-all duration-300">
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="p-2.5 rounded-xl bg-orange-500/10 text-orange-500">
+                    <BarChart3 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white">Grafik Jumlah Usaha per Kecamatan</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Distribusi jumlah usaha (Submit & Approve) di setiap Kecamatan</p>
+                  </div>
+                </div>
+
+                {loading && rawData.length === 0 ? (
+                  <div className="flex justify-center py-10 text-slate-400 text-xs">Memuat grafik usaha...</div>
+                ) : kecUsahaStats.length === 0 ? (
+                  <div className="text-center py-10 text-slate-500 dark:text-slate-400 text-sm">Tidak ada data usaha per kecamatan.</div>
+                ) : (
+                  <div className="space-y-4">
+                    {kecUsahaStats.map((item, idx) => {
+                      const maxTotal = Math.max(...kecUsahaStats.map(k => k.total)) || 1;
+                      const pct = (item.total / maxTotal) * 100;
+                      
+                      return (
+                        <div key={item.kecName} className="space-y-1.5">
+                          <div className="flex justify-between items-center text-xs font-semibold">
+                            <span className="uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                              {item.kecName}
+                            </span>
+                            <span className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">
+                                (Submit: {item.submit.toLocaleString("id-ID")} | Approve: {item.approve.toLocaleString("id-ID")})
+                              </span>
+                              <span className="text-orange-500 dark:text-orange-400 font-bold">{item.total.toLocaleString("id-ID")} Usaha</span>
+                            </span>
+                          </div>
+                          <div className="h-3 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden flex shadow-inner">
+                            <div
+                              className="bg-gradient-to-r from-orange-500 to-amber-500 h-full rounded-full transition-all duration-500"
+                              style={{ width: `${pct}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Right 1 col: Cards List of Kecamatan Usaha Summary */}
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-orange-500/30 transition-all duration-300 flex flex-col">
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="p-2.5 rounded-xl bg-orange-500/10 text-orange-500">
+                    <Building className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white">Ringkasan Usaha Kecamatan</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Jumlah usaha per Kecamatan yang telah disubmit & disetujui</p>
+                  </div>
+                </div>
+
+                {loading && rawData.length === 0 ? (
+                  <div className="flex justify-center py-10 text-slate-400 text-xs">Memuat ringkasan usaha...</div>
+                ) : kecUsahaStats.length === 0 ? (
+                  <div className="text-center py-10 text-slate-500 dark:text-slate-400 text-sm">Tidak ada data usaha.</div>
+                ) : (
+                  <div className="space-y-3 overflow-y-auto max-h-[350px] pr-2 custom-scrollbar scrollbar-none">
+                    {kecUsahaStats.map((item, idx) => (
+                      <div key={item.kecName} className="p-3 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-100 dark:border-slate-900/50 hover:border-orange-500/20 transition-all">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-bold text-xs text-slate-800 dark:text-slate-200 uppercase">{item.kecName}</span>
+                          <span className="text-xs font-black text-orange-600 dark:text-orange-400">{item.total.toLocaleString("id-ID")}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-[10px]">
+                          <div className="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-100 dark:border-slate-800/80">
+                            <span className="text-slate-400 block mb-0.5">Submitted</span>
+                            <span className="font-bold text-blue-600 dark:text-blue-450">{item.submit.toLocaleString("id-ID")}</span>
+                          </div>
+                          <div className="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-100 dark:border-slate-800/80">
+                            <span className="text-slate-400 block mb-0.5">Approved</span>
+                            <span className="font-bold text-emerald-600 dark:text-emerald-450">{item.approve.toLocaleString("id-ID")}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
