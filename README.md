@@ -14,15 +14,21 @@ Proyek ini terstruktur sebagai berikut:
 scraper-fasih-sm/
 ├── data/
 │   ├── email_mitra.txt          # Daftar lengkap email mitra (untuk scrape produksi)
-│   └── email_mitra_test.txt     # Daftar email mitra untuk uji coba (3 email)
+│   ├── email_mitra_test.txt     # Daftar email mitra untuk uji coba (3 email)
+│   └── sbr/                     # File tabulasi SBR asli (kab, kec, desa, sls, subsls)
 ├── dashboard/                   # Aplikasi Dashboard Monitoring (Next.js)
 │   ├── public/
-│   │   └── scraped_data.csv     # Data masukan untuk dashboard (disalin otomatis oleh scraper)
+│   │   ├── scraped_data.csv     # Data masukan untuk dashboard (disalin otomatis oleh scraper)
+│   │   └── sbr_data.json        # Data SBR terstruktur yang digunakan untuk perbandingan
 │   ├── src/
 │   │   └── app/
 │   │       ├── globals.css      # Pengaturan tema Tailwind CSS
 │   │       ├── layout.tsx       # Layout dasar Next.js
-│   │       └── page.tsx         # Halaman utama dashboard monitoring (warna oranye dominan)
+│   │       ├── page.tsx         # Halaman utama dashboard monitoring (warna oranye dominan)
+│   │       └── usaha/
+│   │           ├── page.tsx     # Rekapitulasi Usaha
+│   │           └── comparison-sbr/
+│   │               └── page.tsx # Halaman perbandingan data Fasih SM vs SBR (tema oranye)
 │   ├── package.json
 │   └── tsconfig.json
 ├── legacy/                      # Script lama (login terpisah & scraper manual)
@@ -85,7 +91,7 @@ Untuk melihat dashboard di browser Anda:
 cd dashboard
 npm run dev
 ```
-Buka browser dan akses [http://localhost:3000](http://localhost:3000). Anda akan melihat visualisasi statistik target prelist, grafik kinerja petugas (pencacah), distribusi skala usaha, serta tabel data dengan pencarian dan filter cepat (warna dominan oranye).
+Buka browser dan akses [http://localhost:3000](http://localhost:3000). Anda akan melihat visualisasi statistik target prelist, grafik kinerja petugas (pencacah), distribusi skala usaha, serta tabel data dengan pencarian dan filter cepat. Pada menu **Usaha**, terdapat submenu **Comparison × SBR** untuk membandingkan data hasil pendataan Fasih SM secara real-time dengan data SBR di level Kabupaten, Kecamatan, Desa, SLS, dan Sub-SLS (seluruh tema menggunakan warna dominan oranye).
 
 ---
 
