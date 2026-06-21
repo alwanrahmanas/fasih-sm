@@ -25,7 +25,8 @@ def main():
         "DRAFT", 
         "SUBMITTED BY Pencacah", 
         "REJECTED BY Pengawas", 
-        "APPROVED BY Pengawas"
+        "APPROVED BY Pengawas",
+        "REVOKED BY Pengawas"
     ]
     
     headers = ["Category", "Email", "SLS Code"] + status_columns
@@ -133,6 +134,7 @@ def main():
             "SUBMITTED BY PENCACAH": "SUBMITTED BY Pencacah",
             "REJECTED BY PENGAWAS": "REJECTED BY Pengawas",
             "APPROVED BY PENGAWAS": "APPROVED BY Pengawas",
+            "REVOKED BY PENGAWAS": "REVOKED BY Pengawas",
         }
         
         last_first_email = None

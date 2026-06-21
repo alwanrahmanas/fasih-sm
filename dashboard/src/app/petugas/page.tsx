@@ -36,6 +36,7 @@ interface DashboardRecord {
   submit: number;         // SUBMITTED BY Pencacah count
   reject: number;         // REJECTED BY Pengawas count
   approve: number;        // APPROVED BY Pengawas count
+  revoked: number;        // REVOKED BY Pengawas count
   namaPetugas: string;    // Name of officer
   jabatanPetugas: string; // PPL or PML
   namaKec: string;        // Kecamatan name
@@ -58,6 +59,7 @@ interface OfficerStats {
     submit: number;
     reject: number;
     approve: number;
+    revoked: number;
     total: number;
     progress: number;
     isPrioritas: boolean;
@@ -67,8 +69,9 @@ interface OfficerStats {
   submit: number;
   reject: number;
   approve: number;
+  revoked: number;
   total: number;
-  progress: number; // sum of draft + submit + reject + approve
+  progress: number; // sum of submit + reject + approve + revoked
   realisasi: number; // PCL: submit + reject + approve; PML: reject + approve
 }
 
@@ -81,6 +84,7 @@ interface KecamatanStats {
   submit: number;
   reject: number;
   approve: number;
+  revoked: number;
   total: number;
   progress: number;
   realisasi: number;
@@ -93,6 +97,7 @@ interface KecamatanStats {
     submit: number;
     reject: number;
     approve: number;
+    revoked: number;
     total: number;
     progress: number;
     realisasi: number;
@@ -152,9 +157,44 @@ export default function PetugasPage() {
     fetchData();
   }, []);
 
-  // Simple Quote-Aware CSV Parser
+  // Simple Quote-Aware CSV Parser with Dynamic Header Mapping
   const parseCSV = (csvText: string): DashboardRecord[] => {
     const lines = csvText.split("\n");
+    if (lines.length === 0) return [];
+    
+    // Parse header to find column indices
+    const headerLine = lines[0].trim();
+    const headers: string[] = [];
+    let insideQuote = false;
+    let entry = "";
+    for (let j = 0; j < headerLine.length; j++) {
+      const char = headerLine[j];
+      if (char === '"') {
+        insideQuote = !insideQuote;
+      } else if (char === "," && !insideQuote) {
+        headers.push(entry.replace(/"/g, "").trim().toLowerCase());
+        entry = "";
+      } else {
+        entry += char;
+      }
+    }
+    headers.push(entry.replace(/"/g, "").trim().toLowerCase());
+
+    const idxCategory = headers.indexOf("category");
+    const idxEmail = headers.indexOf("email");
+    const idxSlsCode = headers.indexOf("sls code");
+    const idxOpen = headers.indexOf("open");
+    const idxDraft = headers.indexOf("draft");
+    const idxSubmit = headers.findIndex(h => h.includes("submitted"));
+    const idxReject = headers.findIndex(h => h.includes("rejected"));
+    const idxApprove = headers.findIndex(h => h.includes("approved"));
+    const idxRevoked = headers.findIndex(h => h.includes("revoked"));
+    const idxNamaPetugas = headers.indexOf("nama_petugas");
+    const idxJabatanPetugas = headers.indexOf("jabatan_petugas");
+    const idxNamaKec = headers.indexOf("nama_kec");
+    const idxKoseka = headers.indexOf("koseka");
+    const idxIsPrioritas = headers.indexOf("is_prioritas");
+
     const parsed: DashboardRecord[] = [];
 
     for (let i = 1; i < lines.length; i++) {
@@ -162,8 +202,8 @@ export default function PetugasPage() {
       if (!line) continue;
 
       const row: string[] = [];
-      let insideQuote = false;
-      let entry = "";
+      insideQuote = false;
+      entry = "";
 
       for (let j = 0; j < line.length; j++) {
         const char = line[j];
@@ -178,22 +218,22 @@ export default function PetugasPage() {
       }
       row.push(entry);
 
-      // Ensure row has the required elements
       if (row.length >= 8) {
         parsed.push({
-          category: row[0].replace(/"/g, "").trim(),
-          email: row[1].replace(/"/g, "").trim(),
-          slsCode: row[2].replace(/"/g, "").trim(),
-          open: parseInt(row[3]) || 0,
-          draft: parseInt(row[4]) || 0,
-          submit: parseInt(row[5]) || 0,
-          reject: parseInt(row[6]) || 0,
-          approve: parseInt(row[7]) || 0,
-          namaPetugas: row[8] ? row[8].replace(/"/g, "").trim() : "",
-          jabatanPetugas: row[9] ? row[9].replace(/"/g, "").trim() : "",
-          namaKec: row[10] ? row[10].replace(/"/g, "").trim() : "",
-          koseka: row[11] ? row[11].replace(/"/g, "").trim() : "",
-          isPrioritas: row[12] ? row[12].replace(/"/g, "").trim() : "Tidak",
+          category: idxCategory !== -1 && row[idxCategory] ? row[idxCategory].replace(/"/g, "").trim() : "",
+          email: idxEmail !== -1 && row[idxEmail] ? row[idxEmail].replace(/"/g, "").trim() : "",
+          slsCode: idxSlsCode !== -1 && row[idxSlsCode] ? row[idxSlsCode].replace(/"/g, "").trim() : "",
+          open: idxOpen !== -1 ? parseInt(row[idxOpen]) || 0 : 0,
+          draft: idxDraft !== -1 ? parseInt(row[idxDraft]) || 0 : 0,
+          submit: idxSubmit !== -1 ? parseInt(row[idxSubmit]) || 0 : 0,
+          reject: idxReject !== -1 ? parseInt(row[idxReject]) || 0 : 0,
+          approve: idxApprove !== -1 ? parseInt(row[idxApprove]) || 0 : 0,
+          revoked: idxRevoked !== -1 ? parseInt(row[idxRevoked]) || 0 : 0,
+          namaPetugas: idxNamaPetugas !== -1 && row[idxNamaPetugas] ? row[idxNamaPetugas].replace(/"/g, "").trim() : "",
+          jabatanPetugas: idxJabatanPetugas !== -1 && row[idxJabatanPetugas] ? row[idxJabatanPetugas].replace(/"/g, "").trim() : "",
+          namaKec: idxNamaKec !== -1 && row[idxNamaKec] ? row[idxNamaKec].replace(/"/g, "").trim() : "",
+          koseka: idxKoseka !== -1 && row[idxKoseka] ? row[idxKoseka].replace(/"/g, "").trim() : "",
+          isPrioritas: idxIsPrioritas !== -1 && row[idxIsPrioritas] ? row[idxIsPrioritas].replace(/"/g, "").trim() : "Tidak",
         });
       }
     }
@@ -233,6 +273,7 @@ export default function PetugasPage() {
           submit: 0,
           reject: 0,
           approve: 0,
+          revoked: 0,
           total: 0,
           progress: 0,
           realisasi: 0
@@ -240,8 +281,8 @@ export default function PetugasPage() {
       }
 
       // Add SLS info
-      const slsTotal = record.open + record.draft + record.submit + record.reject + record.approve;
-      const slsProgress = record.draft + record.submit + record.reject + record.approve;
+      const slsTotal = record.open + record.draft + record.submit + record.reject + record.approve + record.revoked;
+      const slsProgress = record.submit + record.reject + record.approve + record.revoked;
 
       map[email].slsList.push({
         slsCode: record.slsCode,
@@ -250,6 +291,7 @@ export default function PetugasPage() {
         submit: record.submit,
         reject: record.reject,
         approve: record.approve,
+        revoked: record.revoked,
         total: slsTotal,
         progress: slsProgress,
         isPrioritas: record.isPrioritas === "Ya"
@@ -261,6 +303,7 @@ export default function PetugasPage() {
       map[email].submit += record.submit;
       map[email].reject += record.reject;
       map[email].approve += record.approve;
+      map[email].revoked += record.revoked;
       map[email].total += slsTotal;
       map[email].progress += slsProgress;
 
@@ -288,6 +331,7 @@ export default function PetugasPage() {
         submit: number;
         reject: number;
         approve: number;
+        revoked: number;
         total: number;
         progress: number;
         realisasi: number;
@@ -301,6 +345,7 @@ export default function PetugasPage() {
             submit: number;
             reject: number;
             approve: number;
+            revoked: number;
             total: number;
             progress: number;
             realisasi: number;
@@ -324,6 +369,7 @@ export default function PetugasPage() {
           submit: 0,
           reject: 0,
           approve: 0,
+          revoked: 0,
           total: 0,
           progress: 0,
           realisasi: 0,
@@ -332,8 +378,8 @@ export default function PetugasPage() {
       }
 
       const k = map[kec];
-      const slsTotal = record.open + record.draft + record.submit + record.reject + record.approve;
-      const slsProgress = record.draft + record.submit + record.reject + record.approve;
+      const slsTotal = record.open + record.draft + record.submit + record.reject + record.approve + record.revoked;
+      const slsProgress = record.submit + record.reject + record.approve + record.revoked;
       const slsRealisasiPml = record.reject + record.approve; // PML realisasi = reject + approve
 
       k.open += record.open;
@@ -341,6 +387,7 @@ export default function PetugasPage() {
       k.submit += record.submit;
       k.reject += record.reject;
       k.approve += record.approve;
+      k.revoked += record.revoked;
       k.total += slsTotal;
       k.progress += slsProgress;
       k.realisasi += slsRealisasiPml;
@@ -356,6 +403,7 @@ export default function PetugasPage() {
           submit: 0,
           reject: 0,
           approve: 0,
+          revoked: 0,
           total: 0,
           progress: 0,
           realisasi: 0
@@ -367,6 +415,7 @@ export default function PetugasPage() {
       p.submit += record.submit;
       p.reject += record.reject;
       p.approve += record.approve;
+      p.revoked += record.revoked;
       p.total += slsTotal;
       p.slsCount += 1;
       p.progress += slsProgress;
@@ -401,6 +450,7 @@ export default function PetugasPage() {
       submit: number;
       reject: number;
       approve: number;
+      revoked: number;
       total: number;
       progress: number;
       realisasi: number;
@@ -423,6 +473,7 @@ export default function PetugasPage() {
           submit: 0,
           reject: 0,
           approve: 0,
+          revoked: 0,
           total: 0,
           progress: 0,
           realisasi: 0,
@@ -450,9 +501,10 @@ export default function PetugasPage() {
         entry.submit = record.submit;
         entry.reject = record.reject;
         entry.approve = record.approve;
+        entry.revoked = record.revoked;
         
-        const slsTotal = record.open + record.draft + record.submit + record.reject + record.approve;
-        const slsProgress = record.draft + record.submit + record.reject + record.approve;
+        const slsTotal = record.open + record.draft + record.submit + record.reject + record.approve + record.revoked;
+        const slsProgress = record.submit + record.reject + record.approve + record.revoked;
         
         entry.total = slsTotal;
         entry.progress = slsProgress;
@@ -643,7 +695,7 @@ export default function PetugasPage() {
       const headers = [
         "Nama Kecamatan", "Jumlah PML", "Jumlah SLS", 
         "Total Target", "OPEN", "DRAFT", "SUBMITTED BY Pencacah", 
-        "REJECTED BY Pengawas", "APPROVED BY Pengawas", "Progres / Realisasi", "Realisasi (%)"
+        "REJECTED BY Pengawas", "APPROVED BY Pengawas", "REVOKED BY Pengawas", "Progres / Realisasi", "Realisasi (%)"
       ];
       const csvRows = [headers.join(",")];
 
@@ -659,6 +711,7 @@ export default function PetugasPage() {
           k.submit,
           k.reject,
           k.approve,
+          k.revoked,
           k.realisasi,
           `"${pct}%"`
         ];
@@ -680,7 +733,7 @@ export default function PetugasPage() {
       const headers = [
         "Kode SLS", "Kecamatan", "Koseka", "Pencacah (PCL)", "Pengawas (PML)", 
         "Total Target", "OPEN", "DRAFT", "SUBMITTED BY Pencacah", 
-        "REJECTED BY Pengawas", "APPROVED BY Pengawas", "Progres", "Realisasi", "Realisasi (%)"
+        "REJECTED BY Pengawas", "APPROVED BY Pengawas", "REVOKED BY Pengawas", "Progres", "Realisasi", "Realisasi (%)"
       ];
       const csvRows = [headers.join(",")];
 
@@ -698,6 +751,7 @@ export default function PetugasPage() {
           item.submit,
           item.reject,
           item.approve,
+          item.revoked,
           item.progress,
           item.realisasi,
           `"${pct}%"`
@@ -719,7 +773,7 @@ export default function PetugasPage() {
     const headers = [
       "Nama Petugas", "Email", "Jabatan", "Kecamatan", "Koseka", 
       "Total Target", "OPEN", "DRAFT", "SUBMITTED BY Pencacah", 
-      "REJECTED BY Pengawas", "APPROVED BY Pengawas", "Progres / Realisasi", "Realisasi (%)"
+      "REJECTED BY Pengawas", "APPROVED BY Pengawas", "REVOKED BY Pengawas", "Progres / Realisasi", "Realisasi (%)"
     ];
     const csvRows = [headers.join(",")];
 
@@ -737,6 +791,7 @@ export default function PetugasPage() {
         o.submit,
         o.reject,
         o.approve,
+        o.revoked,
         o.realisasi,
         `"${pct}%"`
       ];
@@ -760,13 +815,14 @@ export default function PetugasPage() {
   };
 
   const isPclRed = (o: OfficerStats) => {
-    // PCL merah jika Draft, Submit, Reject, dan Approve = 0
+    // PCL merah jika Draft, Submit, Reject, Approve, dan Revoked = 0
     return (
       o.category.toLowerCase() === "pencacah" &&
       o.draft === 0 &&
       o.submit === 0 &&
       o.reject === 0 &&
-      o.approve === 0
+      o.approve === 0 &&
+      o.revoked === 0
     );
   };
 
@@ -1065,7 +1121,7 @@ export default function PetugasPage() {
                 <ul className="list-disc list-inside mt-1 flex flex-col gap-0.5">
                   {activeTab === "pcl" ? (
                     <li>
-                      Untuk <span className="font-bold">Pencacah (PCL)</span>: Baris diwarnai <span className="text-red-500 font-bold">merah</span> jika status <span className="font-bold">DRAFT</span>, <span className="font-bold">SUBMIT</span>, <span className="font-bold">REJECT</span>, dan <span className="font-bold">APPROVE</span>-nya 0 (belum mulai bekerja).
+                      Untuk <span className="font-bold">Pencacah (PCL)</span>: Baris diwarnai <span className="text-red-500 font-bold">merah</span> jika status <span className="font-bold">DRAFT</span>, <span className="font-bold">SUBMIT</span>, <span className="font-bold">REJECT</span>, <span className="font-bold">APPROVE</span>, dan <span className="font-bold">REVOKED</span>-nya 0 (belum mulai bekerja).
                     </li>
                   ) : activeTab === "pml" ? (
                     <li>
@@ -1081,7 +1137,7 @@ export default function PetugasPage() {
                     </li>
                   )}
                   <li>
-                    <span className="font-bold">Progres</span> dihitung dari jumlah status yang bukan open (DRAFT + SUBMITTED + REJECTED + APPROVED).
+                    <span className="font-bold">Progres</span> dihitung dari jumlah status yang bukan open dan draft (SUBMITTED + REJECTED + APPROVED + REVOKED).
                   </li>
                   <li>
                     <span className="font-bold">Realisasi PCL</span> = SUBMITTED + REJECTED + APPROVED. <span className="font-bold">Realisasi PML</span> = REJECTED + APPROVED.
@@ -1134,6 +1190,7 @@ export default function PetugasPage() {
                       <th className="py-4 px-4 text-center bg-slate-50 dark:bg-slate-900">Submit</th>
                       <th className="py-4 px-4 text-center bg-slate-50 dark:bg-slate-900">Reject</th>
                       <th className="py-4 px-4 text-center bg-slate-50 dark:bg-slate-900">Approve</th>
+                      <th className="py-4 px-4 text-center bg-slate-50 dark:bg-slate-900">Revoked</th>
                       <th className="py-4 px-4 text-center bg-slate-50 dark:bg-slate-900">Progres</th>
                       <th className="py-4 px-4 text-center bg-slate-50 dark:bg-slate-900">Realisasi</th>
                       <th className="py-4 px-4 text-center bg-slate-50 dark:bg-slate-900">% Realisasi</th>
@@ -1143,7 +1200,7 @@ export default function PetugasPage() {
                     {activeTab === "kecamatan" ? (
                       filteredKecamatans.length === 0 ? (
                         <tr>
-                          <td colSpan={14} className="py-10 text-center text-slate-700 dark:text-slate-300 text-xs">
+                          <td colSpan={15} className="py-10 text-center text-slate-700 dark:text-slate-300 text-xs">
                             Tidak ada data kecamatan yang cocok dengan filter atau pencarian Anda.
                           </td>
                         </tr>
@@ -1185,6 +1242,7 @@ export default function PetugasPage() {
                                 <td className="py-3 px-4 text-center font-normal text-teal-600 dark:text-teal-500/90">{k.submit}</td>
                                 <td className="py-3 px-4 text-center font-normal text-red-600 dark:text-red-500/90">{k.reject}</td>
                                 <td className="py-3 px-4 text-center font-normal text-emerald-600 dark:text-emerald-500/90">{k.approve}</td>
+                                <td className="py-3 px-4 text-center font-normal text-rose-600 dark:text-rose-500/90">{k.revoked}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">{k.progress}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">{k.realisasi}</td>
                                 <td className="py-3 px-4 text-center">
@@ -1205,7 +1263,7 @@ export default function PetugasPage() {
                               {/* Expanded PML List in Kecamatan Row */}
                               {isExpanded && (
                                 <tr className="bg-slate-50/20 dark:bg-slate-950/20 border-b border-slate-200 dark:border-slate-800">
-                                  <td colSpan={14} className="py-4 px-8">
+                                  <td colSpan={15} className="py-4 px-8">
                                     <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 p-4 shadow-inner">
                                       <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-1.5">
                                         <UserCheck className="w-3.5 h-3.5 text-orange-500" />
@@ -1224,6 +1282,7 @@ export default function PetugasPage() {
                                               <th className="pb-2 text-center font-bold">Submit</th>
                                               <th className="pb-2 text-center font-bold">Reject</th>
                                               <th className="pb-2 text-center font-bold">Approve</th>
+                                              <th className="pb-2 text-center font-bold">Revoked</th>
                                               <th className="pb-2 text-center font-bold">Progres</th>
                                               <th className="pb-2 text-center font-bold">Realisasi</th>
                                               <th className="pb-2 text-center font-bold">% Realisasi</th>
@@ -1251,6 +1310,7 @@ export default function PetugasPage() {
                                                   <td className="py-2 text-center text-teal-600 dark:text-teal-500/90">{pml.submit}</td>
                                                   <td className="py-2 text-center text-red-600 dark:text-red-500/90">{pml.reject}</td>
                                                   <td className="py-2 text-center text-emerald-600 dark:text-emerald-500/90">{pml.approve}</td>
+                                                  <td className="py-2 text-center text-rose-600 dark:text-rose-500/90">{pml.revoked}</td>
                                                   <td className="py-2 text-center font-semibold text-slate-700 dark:text-slate-300">{pml.progress}</td>
                                                   <td className="py-2 text-center font-semibold text-slate-700 dark:text-slate-300">{pml.realisasi}</td>
                                                   <td className="py-2 text-center">
@@ -1283,7 +1343,7 @@ export default function PetugasPage() {
                     ) : activeTab === "prioritas" ? (
                       filteredPrioritySLS.length === 0 ? (
                         <tr>
-                          <td colSpan={15} className="py-10 text-center text-slate-700 dark:text-slate-300 text-xs">
+                          <td colSpan={16} className="py-10 text-center text-slate-700 dark:text-slate-300 text-xs">
                             Tidak ada data SLS Prioritas yang cocok dengan filter atau pencarian Anda.
                           </td>
                         </tr>
@@ -1329,6 +1389,9 @@ export default function PetugasPage() {
                               <td className="py-3 px-4 text-center font-normal text-emerald-600 dark:text-emerald-500/90">
                                 {item.approve}
                               </td>
+                              <td className="py-3 px-4 text-center font-normal text-rose-600 dark:text-rose-500/90">
+                                {item.revoked}
+                              </td>
                               <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">
                                 {item.progress}
                               </td>
@@ -1347,7 +1410,7 @@ export default function PetugasPage() {
                     ) : (
                       filteredOfficers.length === 0 ? (
                         <tr>
-                          <td colSpan={15} className="py-10 text-center text-slate-700 dark:text-slate-300 text-xs">
+                          <td colSpan={16} className="py-10 text-center text-slate-700 dark:text-slate-300 text-xs">
                             Tidak ada data petugas yang cocok dengan filter atau pencarian Anda.
                           </td>
                         </tr>
@@ -1391,6 +1454,7 @@ export default function PetugasPage() {
                                 <td className="py-3 px-4 text-center font-normal text-teal-600 dark:text-teal-500/90">{o.submit}</td>
                                 <td className="py-3 px-4 text-center font-normal text-red-600 dark:text-red-500/90">{o.reject}</td>
                                 <td className="py-3 px-4 text-center font-normal text-emerald-600 dark:text-emerald-500/90">{o.approve}</td>
+                                <td className="py-3 px-4 text-center font-normal text-rose-600 dark:text-rose-500/90">{o.revoked}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">{o.progress}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">{o.realisasi}</td>
                                 <td className="py-3 px-4 text-center">
@@ -1411,7 +1475,7 @@ export default function PetugasPage() {
                               {/* Expanded SLS Detail Row */}
                               {isExpanded && (
                                 <tr className="bg-slate-50/20 dark:bg-slate-950/20 border-b border-slate-200 dark:border-slate-800">
-                                  <td colSpan={15} className="py-4 px-8">
+                                  <td colSpan={16} className="py-4 px-8">
                                     <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 p-4 shadow-inner">
                                       <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-1.5">
                                         <Layers className="w-3.5 h-3.5 text-orange-500" />

@@ -205,7 +205,8 @@ def run_unified_scraper():
         "DRAFT", 
         "SUBMITTED BY Pencacah", 
         "REJECTED BY Pengawas", 
-        "APPROVED BY Pengawas"
+        "APPROVED BY Pengawas",
+        "REVOKED BY Pengawas"
     ]
     dashboard_headers = ["Category", "Email", "SLS Code"] + status_columns
     scraped_data_dict = {}
@@ -353,6 +354,7 @@ def run_unified_scraper():
                 "SUBMITTED BY PENCACAH": "SUBMITTED BY Pencacah",
                 "REJECTED BY PENGAWAS": "REJECTED BY Pengawas",
                 "APPROVED BY PENGAWAS": "APPROVED BY Pengawas",
+                "REVOKED BY PENGAWAS": "REVOKED BY Pengawas",
             }
             
             last_first_email = None

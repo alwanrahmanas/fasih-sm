@@ -80,6 +80,7 @@ interface DashboardRecord {
   submit: number;         // SUBMITTED BY Pencacah count
   reject: number;         // REJECTED BY Pengawas count
   approve: number;        // APPROVED BY Pengawas count
+  revoked: number;        // REVOKED BY Pengawas count
   namaPetugas: string;    // Name of officer
   jabatanPetugas: string; // PPL or PML
   namaKec: string;        // Kecamatan name
@@ -98,6 +99,40 @@ const formatKecName = (name: string): string => {
 
 const parseDashboardScrapedCSV = (csvText: string): DashboardRecord[] => {
   const lines = csvText.split("\n");
+  if (lines.length === 0) return [];
+  
+  // Parse header to find column indices
+  const headerLine = lines[0].trim();
+  const headers: string[] = [];
+  let insideQuote = false;
+  let entry = "";
+  for (let j = 0; j < headerLine.length; j++) {
+    const char = headerLine[j];
+    if (char === '"') {
+      insideQuote = !insideQuote;
+    } else if (char === "," && !insideQuote) {
+      headers.push(entry.replace(/"/g, "").trim().toLowerCase());
+      entry = "";
+    } else {
+      entry += char;
+    }
+  }
+  headers.push(entry.replace(/"/g, "").trim().toLowerCase());
+
+  const idxCategory = headers.indexOf("category");
+  const idxEmail = headers.indexOf("email");
+  const idxSlsCode = headers.indexOf("sls code");
+  const idxOpen = headers.indexOf("open");
+  const idxDraft = headers.indexOf("draft");
+  const idxSubmit = headers.findIndex(h => h.includes("submitted"));
+  const idxReject = headers.findIndex(h => h.includes("rejected"));
+  const idxApprove = headers.findIndex(h => h.includes("approved"));
+  const idxRevoked = headers.findIndex(h => h.includes("revoked"));
+  const idxNamaPetugas = headers.indexOf("nama_petugas");
+  const idxJabatanPetugas = headers.indexOf("jabatan_petugas");
+  const idxNamaKec = headers.indexOf("nama_kec");
+  const idxKoseka = headers.indexOf("koseka");
+
   const parsed: DashboardRecord[] = [];
 
   for (let i = 1; i < lines.length; i++) {
@@ -105,8 +140,8 @@ const parseDashboardScrapedCSV = (csvText: string): DashboardRecord[] => {
     if (!line) continue;
 
     const row: string[] = [];
-    let insideQuote = false;
-    let entry = "";
+    insideQuote = false;
+    entry = "";
 
     for (let j = 0; j < line.length; j++) {
       const char = line[j];
@@ -123,18 +158,19 @@ const parseDashboardScrapedCSV = (csvText: string): DashboardRecord[] => {
 
     if (row.length >= 8) {
       parsed.push({
-        category: row[0].replace(/"/g, "").trim(),
-        email: row[1].replace(/"/g, "").trim(),
-        slsCode: row[2].replace(/"/g, "").trim(),
-        open: parseInt(row[3]) || 0,
-        draft: parseInt(row[4]) || 0,
-        submit: parseInt(row[5]) || 0,
-        reject: parseInt(row[6]) || 0,
-        approve: parseInt(row[7]) || 0,
-        namaPetugas: row[8] ? row[8].replace(/"/g, "").trim() : "",
-        jabatanPetugas: row[9] ? row[9].replace(/"/g, "").trim() : "",
-        namaKec: row[10] ? row[10].replace(/"/g, "").trim() : "",
-        koseka: row[11] ? row[11].replace(/"/g, "").trim() : "",
+        category: idxCategory !== -1 && row[idxCategory] ? row[idxCategory].replace(/"/g, "").trim() : "",
+        email: idxEmail !== -1 && row[idxEmail] ? row[idxEmail].replace(/"/g, "").trim() : "",
+        slsCode: idxSlsCode !== -1 && row[idxSlsCode] ? row[idxSlsCode].replace(/"/g, "").trim() : "",
+        open: idxOpen !== -1 ? parseInt(row[idxOpen]) || 0 : 0,
+        draft: idxDraft !== -1 ? parseInt(row[idxDraft]) || 0 : 0,
+        submit: idxSubmit !== -1 ? parseInt(row[idxSubmit]) || 0 : 0,
+        reject: idxReject !== -1 ? parseInt(row[idxReject]) || 0 : 0,
+        approve: idxApprove !== -1 ? parseInt(row[idxApprove]) || 0 : 0,
+        revoked: idxRevoked !== -1 ? parseInt(row[idxRevoked]) || 0 : 0,
+        namaPetugas: idxNamaPetugas !== -1 && row[idxNamaPetugas] ? row[idxNamaPetugas].replace(/"/g, "").trim() : "",
+        jabatanPetugas: idxJabatanPetugas !== -1 && row[idxJabatanPetugas] ? row[idxJabatanPetugas].replace(/"/g, "").trim() : "",
+        namaKec: idxNamaKec !== -1 && row[idxNamaKec] ? row[idxNamaKec].replace(/"/g, "").trim() : "",
+        koseka: idxKoseka !== -1 && row[idxKoseka] ? row[idxKoseka].replace(/"/g, "").trim() : "",
       });
     }
   }
@@ -522,6 +558,7 @@ export default function DashboardPage() {
         submit: number;
         reject: number;
         approve: number;
+        revoked: number;
         total: number;
         progress: number;
         realisasi: number;
@@ -543,6 +580,7 @@ export default function DashboardPage() {
           submit: 0,
           reject: 0,
           approve: 0,
+          revoked: 0,
           total: 0,
           progress: 0,
           realisasi: 0,
@@ -550,14 +588,15 @@ export default function DashboardPage() {
       }
 
       const k = map[kec];
-      const slsTotal = record.open + record.draft + record.submit + record.reject + record.approve;
-      const slsProgress = record.draft + record.submit + record.reject + record.approve;
+      const slsTotal = record.open + record.draft + record.submit + record.reject + record.approve + record.revoked;
+      const slsProgress = record.submit + record.reject + record.approve + record.revoked;
 
       k.open += record.open;
       k.draft += record.draft;
       k.submit += record.submit;
       k.reject += record.reject;
       k.approve += record.approve;
+      k.revoked += record.revoked;
       k.total += slsTotal;
       k.progress += slsProgress;
       k.realisasi += slsProgress;
