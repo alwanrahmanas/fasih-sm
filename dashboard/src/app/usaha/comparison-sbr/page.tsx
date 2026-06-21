@@ -109,7 +109,7 @@ export default function ComparisonSBRPage() {
   // Data
   const [sbrData, setSbrData] = useState<SBRData | null>(null);
   const [rawCsvData, setRawCsvData] = useState<
-    { idCode: string; scale: string; status: string; nama_kec: string }[]
+    { idCode: string; scale: string; status: string; nama_kec: string; jumlahUsaha: number }[]
   >([]);
 
   // Filters
@@ -137,7 +137,7 @@ export default function ComparisonSBRPage() {
       const dataText = await dataResponse.text();
 
       const lines = dataText.split("\n");
-      const parsed: { idCode: string; scale: string; status: string; nama_kec: string }[] = [];
+      const parsed: { idCode: string; scale: string; status: string; nama_kec: string; jumlahUsaha: number }[] = [];
 
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
@@ -166,11 +166,15 @@ export default function ComparisonSBRPage() {
           row[1].trim() !== "" &&
           row[1] !== "Kode Identitas"
         ) {
+          const juStr = row[8] ? row[8].replace(/"/g, "").trim() : "";
+          const jVal = juStr === "-" || !juStr ? 0 : (parseInt(juStr, 10) || 0);
+
           parsed.push({
             idCode: row[1].replace(/"/g, "").trim(),
             scale: row[7].replace(/"/g, "").trim(),
             status: row[12] ? row[12].replace(/"/g, "").trim() : "",
             nama_kec: row[17] ? row[17].replace(/"/g, "").trim() : "",
+            jumlahUsaha: jVal,
           });
         }
       }
@@ -268,11 +272,11 @@ export default function ComparisonSBRPage() {
 
         // Only count if scale is UB, UM, or UMK
         if (s === "UB") {
-          entry.UB++;
+          entry.UB += r.jumlahUsaha;
         } else if (s === "UM") {
-          entry.UM++;
+          entry.UM += r.jumlahUsaha;
         } else if (s === "UMK" || s.includes("UMK")) {
-          entry.UMK++;
+          entry.UMK += r.jumlahUsaha;
         } else {
           return;
         }
