@@ -1,0 +1,1138 @@
+"use client";
+
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  Moon,
+  Sun,
+  RefreshCw,
+  Download,
+  ChevronDown,
+  Search,
+  BarChart3,
+  ArrowUpDown,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  ChevronLeft,
+  ChevronRight,
+  Layers,
+} from "lucide-react";
+
+// ─── Types ──────────────────────────────────────────────────
+
+interface SBRRow {
+  kode: string;
+  UB: number;
+  UM: number;
+  UMK: number;
+  Total: number;
+}
+
+interface SBRData {
+  kab: SBRRow[];
+  kec: SBRRow[];
+  desa: SBRRow[];
+  sls: SBRRow[];
+  sub_sls: SBRRow[];
+}
+
+interface ScrapedTabulasi {
+  kode: string;
+  Keluarga: number;
+  UB: number;
+  UM: number;
+  UMK: number;
+  "UMKM Bangunan Lain": number;
+  "UMKM/Dummy": number;
+  "UMKM/Keluarga": number;
+  Total: number;
+}
+
+interface ComparisonRow {
+  kode: string;
+  // SBR
+  sbr_UB: number;
+  sbr_UM: number;
+  sbr_UMK: number;
+  sbr_Total: number;
+  // Scraping
+  scr_Keluarga: number;
+  scr_UB: number;
+  scr_UM: number;
+  scr_UMK: number;
+  scr_UMKMBangunanLain: number;
+  scr_UMKMDummy: number;
+  scr_UMKMKeluarga: number;
+  scr_Total: number;
+  // Diff (scraping - SBR) for common cols
+  diff_UB: number;
+  diff_UM: number;
+  diff_UMK: number;
+  diff_Total: number;
+}
+
+type LevelKey = "kab" | "kec" | "desa" | "sls" | "sub_sls";
+
+const LEVEL_LABELS: Record<LevelKey, string> = {
+  kab: "Kabupaten",
+  kec: "Kecamatan",
+  desa: "Desa/Kelurahan",
+  sls: "SLS",
+  sub_sls: "Sub SLS",
+};
+
+const CODE_LENGTHS: Record<LevelKey, number> = {
+  kab: 4,
+  kec: 7,
+  desa: 10,
+  sls: 14,
+  sub_sls: 16,
+};
+
+// ─── Helpers ─────────────────────────────────────────────────
+
+const formatKecName = (name: string): string => {
+  if (!name) return "";
+  let cleaned = name.replace(/\(\d+\)/g, "").trim();
+  return cleaned
+    .toLowerCase()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
+const normalizeKec = (name: string): string => {
+  if (!name) return "";
+  return name.replace(/\(\d+\)/g, "").trim().toUpperCase();
+};
+
+// ─── Main Page ──────────────────────────────────────────────
+
+export default function ComparisonSBRPage() {
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string>("");
+
+  // Data
+  const [sbrData, setSbrData] = useState<SBRData | null>(null);
+  const [rawCsvData, setRawCsvData] = useState<
+    { idCode: string; scale: string; nama_kec: string }[]
+  >([]);
+
+  // Filters
+  const [activeLevel, setActiveLevel] = useState<LevelKey>("kab");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 30;
+
+  // Fetch data
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // 1) Fetch SBR JSON
+      const sbrResponse = await fetch("/sbr_data.json");
+      if (!sbrResponse.ok) throw new Error("Gagal mengambil sbr_data.json.");
+      const sbrJson: SBRData = await sbrResponse.json();
+      setSbrData(sbrJson);
+
+      // 2) Fetch update_data.csv for scraping data
+      const dataResponse = await fetch("/update_data.csv");
+      if (!dataResponse.ok)
+        throw new Error("Gagal mengambil file update_data.csv.");
+      const dataText = await dataResponse.text();
+
+      const lines = dataText.split("\n");
+      const parsed: { idCode: string; scale: string; nama_kec: string }[] = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+
+        const row: string[] = [];
+        let insideQuote = false;
+        let entry = "";
+
+        for (let j = 0; j < line.length; j++) {
+          const char = line[j];
+          if (char === '"') {
+            insideQuote = !insideQuote;
+          } else if (char === "," && !insideQuote) {
+            row.push(entry);
+            entry = "";
+          } else {
+            entry += char;
+          }
+        }
+        row.push(entry);
+
+        if (
+          row.length >= 17 &&
+          row[1] &&
+          row[1].trim() !== "" &&
+          row[1] !== "Kode Identitas"
+        ) {
+          parsed.push({
+            idCode: row[1].replace(/"/g, "").trim(),
+            scale: row[7].replace(/"/g, "").trim(),
+            nama_kec: row[17] ? row[17].replace(/"/g, "").trim() : "",
+          });
+        }
+      }
+
+      setRawCsvData(parsed);
+
+      // Timestamp
+      let loadedTimestamp = "";
+      try {
+        const timeResponse = await fetch("/last_updated.txt");
+        if (timeResponse.ok) {
+          loadedTimestamp = (await timeResponse.text()).trim();
+        }
+      } catch {
+        // fallback
+      }
+      if (loadedTimestamp) {
+        setLastUpdated(loadedTimestamp);
+      } else {
+        const now = new Date();
+        setLastUpdated(
+          now.toLocaleDateString("id-ID", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }) + " WITA"
+        );
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Terjadi kesalahan.";
+      console.error(err);
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // ─── Build scraped tabulasi per level ──────────────────────
+
+  const scrapedTabulasi = useMemo(() => {
+    const result: Record<LevelKey, Record<string, ScrapedTabulasi>> = {
+      kab: {},
+      kec: {},
+      desa: {},
+      sls: {},
+      sub_sls: {},
+    };
+
+    rawCsvData.forEach((r) => {
+      // Extract the leading numeric code from idCode
+      const codeMatch = r.idCode.match(/^(\d+)/);
+      if (!codeMatch) return;
+      const fullCode = codeMatch[1];
+      if (fullCode.length < 4) return;
+
+      // Pad to 16 chars with X for missing digits
+      const padded = fullCode.padEnd(16, "X");
+
+      const levels: LevelKey[] = ["kab", "kec", "desa", "sls", "sub_sls"];
+
+      levels.forEach((lvl) => {
+        const codeLen = CODE_LENGTHS[lvl];
+        const code = padded.substring(0, codeLen);
+        // Skip if code contains X (insufficient digits)
+        if (code.includes("X")) return;
+
+        if (!result[lvl][code]) {
+          result[lvl][code] = {
+            kode: code,
+            Keluarga: 0,
+            UB: 0,
+            UM: 0,
+            UMK: 0,
+            "UMKM Bangunan Lain": 0,
+            "UMKM/Dummy": 0,
+            "UMKM/Keluarga": 0,
+            Total: 0,
+          };
+        }
+
+        const entry = result[lvl][code];
+        const s = r.scale.toUpperCase().trim();
+
+        if (s.includes("DUMMY")) {
+          entry["UMKM/Dummy"]++;
+        } else if (
+          s.includes("BANGUNAN_LAIN") ||
+          s.includes("BANGUNAN LAIN")
+        ) {
+          entry["UMKM Bangunan Lain"]++;
+        } else if (s.includes("UMKM") && s.includes("KELUARGA")) {
+          entry["UMKM/Keluarga"]++;
+        } else if (s === "UB") {
+          entry.UB++;
+        } else if (s === "UM") {
+          entry.UM++;
+        } else if (s === "UMK") {
+          entry.UMK++;
+        } else if (s === "KELUARGA" || s === "" || s === "-") {
+          entry.Keluarga++;
+        } else if (s.includes("UMK")) {
+          entry.UMK++;
+        } else {
+          entry.Keluarga++;
+        }
+
+        entry.Total =
+          entry.Keluarga +
+          entry.UB +
+          entry.UM +
+          entry.UMK +
+          entry["UMKM Bangunan Lain"] +
+          entry["UMKM/Dummy"] +
+          entry["UMKM/Keluarga"];
+      });
+    });
+
+    return result;
+  }, [rawCsvData]);
+
+  // ─── Build comparison rows ─────────────────────────────────
+
+  const comparisonRows = useMemo((): ComparisonRow[] => {
+    if (!sbrData) return [];
+
+    const sbrLevel = sbrData[activeLevel] || [];
+    const scraped = scrapedTabulasi[activeLevel] || {};
+
+    // Build SBR map
+    const sbrMap: Record<string, SBRRow> = {};
+    sbrLevel.forEach((row) => {
+      sbrMap[String(row.kode)] = row;
+    });
+
+    // Merge all codes
+    const allCodes = new Set<string>([
+      ...Object.keys(sbrMap),
+      ...Object.keys(scraped),
+    ]);
+
+    const rows: ComparisonRow[] = [];
+    allCodes.forEach((kode) => {
+      // Filter out non-numeric codes (like "WILMAR", etc)
+      if (!/^\d+$/.test(kode)) return;
+
+      const sbr = sbrMap[kode];
+      const scr = scraped[kode];
+
+      const sbr_UB = sbr?.UB || 0;
+      const sbr_UM = sbr?.UM || 0;
+      const sbr_UMK = sbr?.UMK || 0;
+      const sbr_Total = sbr?.Total || 0;
+
+      const scr_Keluarga = scr?.Keluarga || 0;
+      const scr_UB = scr?.UB || 0;
+      const scr_UM = scr?.UM || 0;
+      const scr_UMK = scr?.UMK || 0;
+      const scr_UMKMBangunanLain = scr?.["UMKM Bangunan Lain"] || 0;
+      const scr_UMKMDummy = scr?.["UMKM/Dummy"] || 0;
+      const scr_UMKMKeluarga = scr?.["UMKM/Keluarga"] || 0;
+      const scr_Total = scr?.Total || 0;
+
+      rows.push({
+        kode,
+        sbr_UB,
+        sbr_UM,
+        sbr_UMK,
+        sbr_Total,
+        scr_Keluarga,
+        scr_UB,
+        scr_UM,
+        scr_UMK,
+        scr_UMKMBangunanLain,
+        scr_UMKMDummy,
+        scr_UMKMKeluarga,
+        scr_Total,
+        diff_UB: scr_UB - sbr_UB,
+        diff_UM: scr_UM - sbr_UM,
+        diff_UMK: scr_UMK - sbr_UMK,
+        diff_Total: scr_Total - sbr_Total,
+      });
+    });
+
+    return rows.sort((a, b) => a.kode.localeCompare(b.kode));
+  }, [sbrData, scrapedTabulasi, activeLevel]);
+
+  // Filtered
+  const filteredRows = useMemo(() => {
+    if (!searchQuery) return comparisonRows;
+    const q = searchQuery.toLowerCase();
+    return comparisonRows.filter((r) => r.kode.includes(q));
+  }, [comparisonRows, searchQuery]);
+
+  // Paginated
+  const totalPages = Math.ceil(filteredRows.length / pageSize) || 1;
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredRows.slice(start, start + pageSize);
+  }, [filteredRows, currentPage]);
+
+  // Reset page on filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeLevel, searchQuery]);
+
+  // ─── Summary Totals ────────────────────────────────────────
+
+  const summaryTotals = useMemo(() => {
+    let sbr_UB = 0,
+      sbr_UM = 0,
+      sbr_UMK = 0,
+      sbr_Total = 0;
+    let scr_Keluarga = 0,
+      scr_UB = 0,
+      scr_UM = 0,
+      scr_UMK = 0,
+      scr_Total = 0;
+    let scr_UMKMBangunanLain = 0,
+      scr_UMKMDummy = 0,
+      scr_UMKMKeluarga = 0;
+
+    comparisonRows.forEach((r) => {
+      sbr_UB += r.sbr_UB;
+      sbr_UM += r.sbr_UM;
+      sbr_UMK += r.sbr_UMK;
+      sbr_Total += r.sbr_Total;
+      scr_Keluarga += r.scr_Keluarga;
+      scr_UB += r.scr_UB;
+      scr_UM += r.scr_UM;
+      scr_UMK += r.scr_UMK;
+      scr_UMKMBangunanLain += r.scr_UMKMBangunanLain;
+      scr_UMKMDummy += r.scr_UMKMDummy;
+      scr_UMKMKeluarga += r.scr_UMKMKeluarga;
+      scr_Total += r.scr_Total;
+    });
+
+    return {
+      sbr_UB,
+      sbr_UM,
+      sbr_UMK,
+      sbr_Total,
+      scr_Keluarga,
+      scr_UB,
+      scr_UM,
+      scr_UMK,
+      scr_Total,
+      scr_UMKMBangunanLain,
+      scr_UMKMDummy,
+      scr_UMKMKeluarga,
+      diff_UB: scr_UB - sbr_UB,
+      diff_UM: scr_UM - sbr_UM,
+      diff_UMK: scr_UMK - sbr_UMK,
+      diff_Total: scr_Total - sbr_Total,
+    };
+  }, [comparisonRows]);
+
+  // ─── CSV Export ────────────────────────────────────────────
+
+  const handleExportCSV = () => {
+    const headers = [
+      "Kode",
+      "SBR_UB",
+      "SBR_UM",
+      "SBR_UMK",
+      "SBR_Total",
+      "FasihSM_Keluarga",
+      "FasihSM_UB",
+      "FasihSM_UM",
+      "FasihSM_UMK",
+      "FasihSM_UMKM_Bangunan_Lain",
+      "FasihSM_UMKM_Dummy",
+      "FasihSM_UMKM_Keluarga",
+      "FasihSM_Total",
+      "Selisih_UB",
+      "Selisih_UM",
+      "Selisih_UMK",
+      "Selisih_Total",
+    ];
+    const rows = filteredRows.map((r) =>
+      [
+        r.kode,
+        r.sbr_UB,
+        r.sbr_UM,
+        r.sbr_UMK,
+        r.sbr_Total,
+        r.scr_Keluarga,
+        r.scr_UB,
+        r.scr_UM,
+        r.scr_UMK,
+        r.scr_UMKMBangunanLain,
+        r.scr_UMKMDummy,
+        r.scr_UMKMKeluarga,
+        r.scr_Total,
+        r.diff_UB,
+        r.diff_UM,
+        r.diff_UMK,
+        r.diff_Total,
+      ].join(",")
+    );
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `comparison_sbr_${activeLevel}_${Date.now()}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // ─── Diff Badge ────────────────────────────────────────────
+
+  const DiffBadge = ({ value }: { value: number }) => {
+    if (value > 0) {
+      return (
+        <span className="inline-flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-semibold text-xs">
+          <TrendingUp className="w-3 h-3" />+{value.toLocaleString("id-ID")}
+        </span>
+      );
+    } else if (value < 0) {
+      return (
+        <span className="inline-flex items-center gap-0.5 text-red-500 dark:text-red-400 font-semibold text-xs">
+          <TrendingDown className="w-3 h-3" />
+          {value.toLocaleString("id-ID")}
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-0.5 text-slate-400 dark:text-slate-500 font-medium text-xs">
+        <Minus className="w-3 h-3" />0
+      </span>
+    );
+  };
+
+  // ─── Usaha Nav Dropdown State ──────────────────────────────
+  const [showUsahaDropdown, setShowUsahaDropdown] = useState(false);
+
+  // ─── Render ────────────────────────────────────────────────
+
+  return (
+    <div
+      className={`min-h-screen font-sans transition-colors duration-300 ${isDarkMode ? "dark bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"}`}
+    >
+      {/* Header Bar */}
+      <header className="sticky top-0 z-30 border-b backdrop-blur-md transition-colors bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 rounded-xl p-1 shadow-md border border-slate-200 dark:border-slate-700">
+              <img
+                src="/icon.png"
+                alt="Logo BPS"
+                className="w-8 h-8 object-contain"
+              />
+            </div>
+            <div>
+              <h1 className="text-sm sm:text-base font-bold tracking-tight text-slate-900 dark:text-white">
+                BPS Kabupaten Kepulauan Sangihe
+              </h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Dashboard Monitoring Sensus Ekonomi 2026
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <nav className="flex items-center gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50/50 dark:bg-slate-950/50">
+              <a
+                href="/"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+              >
+                Dashboard
+              </a>
+              <a
+                href="/tabulasi"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+              >
+                Tabulasi
+              </a>
+              <a
+                href="/petugas"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+              >
+                Petugas
+              </a>
+              {/* Usaha dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowUsahaDropdown(!showUsahaDropdown)}
+                  onBlur={() =>
+                    setTimeout(() => setShowUsahaDropdown(false), 200)
+                  }
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-500 text-white shadow-sm flex items-center gap-1 cursor-pointer"
+                >
+                  Usaha
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+                {showUsahaDropdown && (
+                  <div className="absolute right-0 mt-1 w-52 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl z-50 overflow-hidden">
+                    <a
+                      href="/usaha"
+                      className="block px-4 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      📊 Rekapitulasi Usaha
+                    </a>
+                    <a
+                      href="/usaha/comparison-sbr"
+                      className="block px-4 py-2.5 text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
+                    >
+                      🔄 Comparison × SBR
+                    </a>
+                  </div>
+                )}
+              </div>
+            </nav>
+
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors cursor-pointer"
+              title="Ganti Tema"
+            >
+              {isDarkMode ? (
+                <Sun className="w-4 h-4 text-orange-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-slate-700" />
+              )}
+            </button>
+            <button
+              onClick={fetchData}
+              disabled={loading}
+              className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors disabled:opacity-50 cursor-pointer"
+              title="Segarkan Data"
+            >
+              <RefreshCw
+                className={`w-4 h-4 ${loading ? "animate-spin text-orange-500" : ""}`}
+              />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Body */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Banner */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 p-8 sm:p-10 text-white shadow-xl shadow-orange-600/10 mb-8">
+          <div className="absolute right-0 top-0 w-80 h-80 rounded-full bg-white/10 blur-3xl translate-x-20 -translate-y-20"></div>
+          <div className="absolute right-1/4 bottom-0 w-60 h-60 rounded-full bg-orange-400/20 blur-2xl translate-y-20"></div>
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div>
+              <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/20 text-white mb-3 inline-block">
+                Comparison × SBR
+              </span>
+              <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2">
+                Perbandingan Data Fasih SM vs SBR
+              </h2>
+              <p className="text-sm sm:text-lg text-orange-100 max-w-2xl font-light">
+                Membandingkan hasil tabulasi data hasil pendataan FASIH dengan data
+                Sensus Basis Register (SBR) per level wilayah.
+              </p>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 self-start md:self-auto flex flex-col items-end border border-white/10 text-right">
+              <span className="text-xs text-orange-200">
+                Terakhir Diperbarui
+              </span>
+              <span className="text-base font-bold flex items-center gap-1.5 mt-0.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                {loading
+                  ? "Menyinkronkan..."
+                  : lastUpdated || "Belum ada data"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Loading / Error */}
+        {loading && rawCsvData.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <div className="relative w-16 h-16">
+              <div className="absolute inset-0 rounded-full border-4 border-orange-200 dark:border-orange-900"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-t-orange-500 animate-spin"></div>
+            </div>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Memuat data perbandingan...
+            </p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-20 px-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 mb-4">
+              <BarChart3 className="w-8 h-8" />
+            </div>
+            <p className="text-red-600 dark:text-red-400 font-semibold">
+              {error}
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Summary Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <div className="rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+                <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold mb-1">
+                  Total SBR
+                </p>
+                <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                  {summaryTotals.sbr_Total.toLocaleString("id-ID")}
+                </p>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  UB:{summaryTotals.sbr_UB} · UM:{summaryTotals.sbr_UM} · UMK:
+                  {summaryTotals.sbr_UMK}
+                </p>
+              </div>
+              <div className="rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+                <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold mb-1">
+                  Total Fasih SM
+                </p>
+                <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                  {summaryTotals.scr_Total.toLocaleString("id-ID")}
+                </p>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Klg:{summaryTotals.scr_Keluarga} · UB:
+                  {summaryTotals.scr_UB} · UM:{summaryTotals.scr_UM} · UMK:
+                  {summaryTotals.scr_UMK}
+                </p>
+              </div>
+              <div className="rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+                <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold mb-1">
+                  Selisih Total
+                </p>
+                <p className="text-2xl font-bold">
+                  <DiffBadge value={summaryTotals.diff_Total} />
+                </p>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Fasih SM − SBR
+                </p>
+              </div>
+              <div className="rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+                <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold mb-1">
+                  Jumlah Wilayah
+                </p>
+                <p className="text-2xl font-bold text-slate-700 dark:text-slate-200">
+                  {filteredRows.length.toLocaleString("id-ID")}
+                </p>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Level: {LEVEL_LABELS[activeLevel]}
+                </p>
+              </div>
+            </div>
+
+            {/* Controls Bar */}
+            <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
+              {/* Level Tabs */}
+              <div className="flex items-center gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50 dark:bg-slate-900 overflow-x-auto">
+                {(
+                  Object.entries(LEVEL_LABELS) as [LevelKey, string][]
+                ).map(([key, label]) => (
+                  <button
+                    key={key}
+                    onClick={() => setActiveLevel(key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
+                      activeLevel === key
+                        ? "bg-orange-500 text-white shadow-sm font-bold"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search */}
+              <div className="relative flex-1 max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Cari kode wilayah..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                />
+              </div>
+
+              {/* Export */}
+              <button
+                onClick={handleExportCSV}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-sm"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Export CSV
+              </button>
+            </div>
+
+            {/* Comparison Table */}
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    {/* Group headers */}
+                    <tr className="border-b border-slate-200 dark:border-slate-800">
+                      <th
+                        rowSpan={2}
+                        className="sticky left-0 z-10 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-left font-bold text-slate-700 dark:text-slate-200 border-r border-slate-200 dark:border-slate-700"
+                      >
+                        Kode
+                      </th>
+                      <th
+                        colSpan={4}
+                        className="px-4 py-2 text-center font-bold text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 border-r border-slate-200 dark:border-slate-700"
+                      >
+                        📋 Data SBR
+                      </th>
+                      <th
+                        colSpan={8}
+                        className="px-4 py-2 text-center font-bold text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 border-r border-slate-200 dark:border-slate-700"
+                      >
+                        🔍 Data Fasih SM
+                      </th>
+                      <th
+                        colSpan={4}
+                        className="px-4 py-2 text-center font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20"
+                      >
+                        📊 Selisih (Fasih SM − SBR)
+                      </th>
+                    </tr>
+                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+                      {/* SBR */}
+                      <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
+                        UB
+                      </th>
+                      <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
+                        UM
+                      </th>
+                      <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
+                        UMK
+                      </th>
+                      <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700">
+                        Total
+                      </th>
+                      {/* Scraping */}
+                      <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
+                        Klg
+                      </th>
+                      <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
+                        UB
+                      </th>
+                      <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
+                        UM
+                      </th>
+                      <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
+                        UMK
+                      </th>
+                      <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
+                        BgnLain
+                      </th>
+                      <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
+                        Dummy
+                      </th>
+                      <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
+                        UMKM/Klg
+                      </th>
+                      <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700">
+                        Total
+                      </th>
+                      {/* Diff */}
+                      <th className="px-3 py-2 text-center font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                        UB
+                      </th>
+                      <th className="px-3 py-2 text-center font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                        UM
+                      </th>
+                      <th className="px-3 py-2 text-center font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                        UMK
+                      </th>
+                      <th className="px-3 py-2 text-center font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
+                        Total
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedRows.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={17}
+                          className="text-center py-12 text-slate-400"
+                        >
+                          <Layers className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                          <p>Tidak ada data ditemukan.</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      paginatedRows.map((row, idx) => (
+                        <tr
+                          key={row.kode}
+                          className={`border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${
+                            idx % 2 === 0
+                              ? ""
+                              : "bg-slate-25 dark:bg-slate-900/30"
+                          }`}
+                        >
+                          <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 px-4 py-2.5 font-mono font-bold text-slate-800 dark:text-slate-200 border-r border-slate-100 dark:border-slate-800">
+                            {row.kode}
+                          </td>
+                          {/* SBR */}
+                          <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
+                            {row.sbr_UB.toLocaleString("id-ID")}
+                          </td>
+                          <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
+                            {row.sbr_UM.toLocaleString("id-ID")}
+                          </td>
+                          <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
+                            {row.sbr_UMK.toLocaleString("id-ID")}
+                          </td>
+                          <td className="px-3 py-2.5 text-center font-bold text-orange-700 dark:text-orange-300 border-r border-slate-100 dark:border-slate-800">
+                            {row.sbr_Total.toLocaleString("id-ID")}
+                          </td>
+                          {/* Scraping */}
+                          <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
+                            {row.scr_Keluarga.toLocaleString("id-ID")}
+                          </td>
+                          <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
+                            {row.scr_UB.toLocaleString("id-ID")}
+                          </td>
+                          <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
+                            {row.scr_UM.toLocaleString("id-ID")}
+                          </td>
+                          <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
+                            {row.scr_UMK.toLocaleString("id-ID")}
+                          </td>
+                          <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
+                            {row.scr_UMKMBangunanLain.toLocaleString("id-ID")}
+                          </td>
+                          <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
+                            {row.scr_UMKMDummy.toLocaleString("id-ID")}
+                          </td>
+                          <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
+                            {row.scr_UMKMKeluarga.toLocaleString("id-ID")}
+                          </td>
+                          <td className="px-3 py-2.5 text-center font-bold text-orange-700 dark:text-orange-300 border-r border-slate-100 dark:border-slate-800">
+                            {row.scr_Total.toLocaleString("id-ID")}
+                          </td>
+                          {/* Diff */}
+                          <td className="px-3 py-2.5 text-center">
+                            <DiffBadge value={row.diff_UB} />
+                          </td>
+                          <td className="px-3 py-2.5 text-center">
+                            <DiffBadge value={row.diff_UM} />
+                          </td>
+                          <td className="px-3 py-2.5 text-center">
+                            <DiffBadge value={row.diff_UMK} />
+                          </td>
+                          <td className="px-3 py-2.5 text-center">
+                            <DiffBadge value={row.diff_Total} />
+                          </td>
+                        </tr>
+                      ))
+                    )}
+
+                    {/* Totals row */}
+                    {paginatedRows.length > 0 && (
+                      <tr className="bg-slate-50 dark:bg-slate-800/50 border-t-2 border-slate-300 dark:border-slate-600 font-bold">
+                        <td className="sticky left-0 z-10 bg-slate-50 dark:bg-slate-800/50 px-4 py-3 text-slate-800 dark:text-white border-r border-slate-200 dark:border-slate-700">
+                          TOTAL
+                        </td>
+                        {/* SBR */}
+                        <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300">
+                          {summaryTotals.sbr_UB.toLocaleString("id-ID")}
+                        </td>
+                        <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300">
+                          {summaryTotals.sbr_UM.toLocaleString("id-ID")}
+                        </td>
+                        <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300">
+                          {summaryTotals.sbr_UMK.toLocaleString("id-ID")}
+                        </td>
+                        <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300 border-r border-slate-200 dark:border-slate-700">
+                          {summaryTotals.sbr_Total.toLocaleString("id-ID")}
+                        </td>
+                        {/* Scraping */}
+                        <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300">
+                          {summaryTotals.scr_Keluarga.toLocaleString("id-ID")}
+                        </td>
+                        <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300">
+                          {summaryTotals.scr_UB.toLocaleString("id-ID")}
+                        </td>
+                        <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300">
+                          {summaryTotals.scr_UM.toLocaleString("id-ID")}
+                        </td>
+                        <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300">
+                          {summaryTotals.scr_UMK.toLocaleString("id-ID")}
+                        </td>
+                        <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300">
+                          {summaryTotals.scr_UMKMBangunanLain.toLocaleString(
+                            "id-ID"
+                          )}
+                        </td>
+                        <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300">
+                          {summaryTotals.scr_UMKMDummy.toLocaleString("id-ID")}
+                        </td>
+                        <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300">
+                          {summaryTotals.scr_UMKMKeluarga.toLocaleString(
+                            "id-ID"
+                          )}
+                        </td>
+                        <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300 border-r border-slate-200 dark:border-slate-700">
+                          {summaryTotals.scr_Total.toLocaleString("id-ID")}
+                        </td>
+                        {/* Diff */}
+                        <td className="px-3 py-3 text-center">
+                          <DiffBadge value={summaryTotals.diff_UB} />
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <DiffBadge value={summaryTotals.diff_UM} />
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <DiffBadge value={summaryTotals.diff_UMK} />
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <DiffBadge value={summaryTotals.diff_Total} />
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 dark:border-slate-800">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    Halaman {currentPage} dari {totalPages} (
+                    {filteredRows.length} baris)
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      disabled={currentPage === 1}
+                      onClick={() =>
+                        setCurrentPage((p) => Math.max(1, p - 1))
+                      }
+                      className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors cursor-pointer"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    {Array.from(
+                      { length: Math.min(5, totalPages) },
+                      (_, i) => {
+                        let page: number;
+                        if (totalPages <= 5) {
+                          page = i + 1;
+                        } else if (currentPage <= 3) {
+                          page = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          page = totalPages - 4 + i;
+                        } else {
+                          page = currentPage - 2 + i;
+                        }
+                        return (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`w-8 h-8 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                              currentPage === page
+                                ? "bg-orange-500 text-white shadow-sm"
+                                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        );
+                      }
+                    )}
+                    <button
+                      disabled={currentPage === totalPages}
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors cursor-pointer"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Legend */}
+            <div className="mt-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3">
+                Keterangan Kolom
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-600 dark:text-slate-400">
+                <div>
+                  <p className="font-bold text-orange-600 dark:text-orange-400 mb-1">
+                    📋 Data SBR
+                  </p>
+                  <ul className="space-y-0.5 pl-4 list-disc">
+                    <li>
+                      <b>UB</b> – Usaha Besar
+                    </li>
+                    <li>
+                      <b>UM</b> – Usaha Menengah
+                    </li>
+                    <li>
+                      <b>UMK</b> – Usaha Mikro Kecil
+                    </li>
+                    <li>
+                      <b>Total</b> – UB + UM + UMK
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-bold text-orange-600 dark:text-orange-400 mb-1">
+                    🔍 Data Fasih SM
+                  </p>
+                  <ul className="space-y-0.5 pl-4 list-disc">
+                    <li>
+                      <b>Klg</b> – Keluarga
+                    </li>
+                    <li>
+                      <b>BgnLain</b> – UMKM Bangunan Lain
+                    </li>
+                    <li>
+                      <b>Dummy</b> – UMKM/Dummy
+                    </li>
+                    <li>
+                      <b>UMKM/Klg</b> – UMKM/Keluarga
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+                    📊 Selisih
+                  </p>
+                  <ul className="space-y-0.5 pl-4 list-disc">
+                    <li>
+                      <span className="text-emerald-500">+positif</span> –
+                      Fasih SM lebih banyak dari SBR
+                    </li>
+                    <li>
+                      <span className="text-red-500">−negatif</span> – Fasih SM
+                      lebih sedikit dari SBR
+                    </li>
+                    <li>
+                      <span className="text-slate-400">0</span> – Sama persis
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+      </main>
+    </div>
+  );
+}

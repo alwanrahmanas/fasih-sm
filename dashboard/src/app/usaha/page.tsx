@@ -93,6 +93,9 @@ export default function UsahaPage() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string>("");
 
+  // Usaha dropdown nav
+  const [showUsahaDropdown, setShowUsahaDropdown] = useState(false);
+
   // Filters & Tabs
   const [activeTab, setActiveTab] = useState<"user" | "sls" | "kec" | "detail">("user");
   const [selectedKec, setSelectedKec] = useState<string>("all");
@@ -736,12 +739,33 @@ export default function UsahaPage() {
               >
                 Petugas
               </a>
-              <a 
-                href="/usaha" 
-                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-500 text-white shadow-sm"
-              >
-                Usaha
-              </a>
+              {/* Usaha dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowUsahaDropdown(!showUsahaDropdown)}
+                  onBlur={() => setTimeout(() => setShowUsahaDropdown(false), 200)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-500 text-white shadow-sm flex items-center gap-1 cursor-pointer"
+                >
+                  Usaha
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+                {showUsahaDropdown && (
+                  <div className="absolute right-0 mt-1 w-52 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl z-50 overflow-hidden">
+                    <a
+                      href="/usaha"
+                      className="block px-4 py-2.5 text-xs font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
+                    >
+                      📊 Rekapitulasi Usaha
+                    </a>
+                    <a
+                      href="/usaha/comparison-sbr"
+                      className="block px-4 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      🔄 Comparison × SBR
+                    </a>
+                  </div>
+                )}
+              </div>
             </nav>
 
             <button
