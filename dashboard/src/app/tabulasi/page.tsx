@@ -55,6 +55,7 @@ interface CellStats {
   submit: number;
   approve: number;
   reject: number;
+  revoked: number;
 }
 
 interface RowStats {
@@ -346,7 +347,8 @@ export default function TabulasiPage() {
     draft: 0,
     submit: 0,
     approve: 0,
-    reject: 0
+    reject: 0,
+    revoked: 0
   });
 
   // Unique lists from both data sources
@@ -428,7 +430,8 @@ export default function TabulasiPage() {
         const isSubmit = status === "submitted by pencacah" || status === "submit" || status === "submitted";
         const isApprove = status === "approve" || status === "approved" || status === "approved by pengawas";
         const isReject = status === "rejected by pengawas" || status === "reject" || status === "rejected";
-        const isRealisasi = isSubmit || isReject || isApprove;
+        const isRevoked = status === "revoked by pengawas" || status === "revoked";
+        const isRealisasi = isSubmit || isReject || isApprove || isRevoked;
 
         const val = tabulationMetric === "sampel" ? 1 : r.jumlahUsaha;
 
@@ -441,6 +444,7 @@ export default function TabulasiPage() {
           if (isSubmit) cell.submit += val;
           if (isApprove) cell.approve += val;
           if (isReject) cell.reject += val;
+          if (isRevoked) cell.revoked += val;
         };
 
         // Add to category
@@ -514,7 +518,8 @@ export default function TabulasiPage() {
         const isSubmit = status === "submitted by pencacah" || status === "submit" || status === "submitted";
         const isApprove = status === "approve" || status === "approved" || status === "approved by pengawas";
         const isReject = status === "rejected by pengawas" || status === "reject" || status === "rejected";
-        const isRealisasi = isReject || isApprove; // PML realisasi = reject + approve only
+        const isRevoked = status === "revoked by pengawas" || status === "revoked";
+        const isRealisasi = isReject || isApprove || isRevoked; // PML realisasi = reject + approve + revoked
 
         const val = tabulationMetric === "sampel" ? 1 : r.jumlahUsaha;
 
@@ -526,6 +531,7 @@ export default function TabulasiPage() {
           if (isSubmit) cell.submit += val;
           if (isApprove) cell.approve += val;
           if (isReject) cell.reject += val;
+          if (isRevoked) cell.revoked += val;
         };
 
         if (cat && rowStats.categories[cat]) {
@@ -570,7 +576,8 @@ export default function TabulasiPage() {
       const isSubmit = status === "submitted by pencacah" || status === "submit" || status === "submitted";
       const isApprove = status === "approve" || status === "approved" || status === "approved by pengawas";
       const isReject = status === "rejected by pengawas" || status === "reject" || status === "rejected";
-      const isRealisasi = isReject || isApprove; // PML realisasi = reject + approve only
+      const isRevoked = status === "revoked by pengawas" || status === "revoked";
+      const isRealisasi = isReject || isApprove || isRevoked; // PML realisasi = reject + approve + revoked
 
       const val = tabulationMetric === "sampel" ? 1 : r.jumlahUsaha;
       totalStats.target += val;
@@ -580,6 +587,7 @@ export default function TabulasiPage() {
       if (isSubmit) totalStats.submit += val;
       if (isApprove) totalStats.approve += val;
       if (isReject) totalStats.reject += val;
+      if (isRevoked) totalStats.revoked += val;
     });
     
     const completionRate = totalStats.target > 0 ? (totalStats.realisasi / totalStats.target) * 100 : 0;
@@ -621,7 +629,8 @@ export default function TabulasiPage() {
       const isSubmit = status === "submitted by pencacah" || status === "submit" || status === "submitted";
       const isApprove = status === "approve" || status === "approved" || status === "approved by pengawas";
       const isReject = status === "rejected by pengawas" || status === "reject" || status === "rejected";
-      const isRealisasi = isSubmit || isReject || isApprove;
+      const isRevoked = status === "revoked by pengawas" || status === "revoked";
+      const isRealisasi = isSubmit || isReject || isApprove || isRevoked;
 
       const val = tabulationMetric === "sampel" ? 1 : r.jumlahUsaha;
 
@@ -633,6 +642,7 @@ export default function TabulasiPage() {
         if (isSubmit) cell.submit += val;
         if (isApprove) cell.approve += val;
         if (isReject) cell.reject += val;
+        if (isRevoked) cell.revoked += val;
       };
 
       if (cat && statsMap[slsCode].categories[cat]) {
@@ -716,7 +726,8 @@ export default function TabulasiPage() {
         const isSubmit = status === "submitted by pencacah" || status === "submit" || status === "submitted";
         const isApprove = status === "approve" || status === "approved" || status === "approved by pengawas";
         const isReject = status === "rejected by pengawas" || status === "reject" || status === "rejected";
-        const isRealisasi = isSubmit || isReject || isApprove;
+        const isRevoked = status === "revoked by pengawas" || status === "revoked";
+        const isRealisasi = isSubmit || isReject || isApprove || isRevoked;
 
         const val = tabulationMetric === "sampel" ? 1 : r.jumlahUsaha;
 
@@ -728,6 +739,7 @@ export default function TabulasiPage() {
           if (isSubmit) cell.submit += val;
           if (isApprove) cell.approve += val;
           if (isReject) cell.reject += val;
+          if (isRevoked) cell.revoked += val;
         };
 
         if (cat && kecStats.categories[cat]) {
@@ -799,7 +811,8 @@ export default function TabulasiPage() {
         const isSubmit = status === "submitted by pencacah" || status === "submit" || status === "submitted";
         const isApprove = status === "approve" || status === "approved" || status === "approved by pengawas";
         const isReject = status === "rejected by pengawas" || status === "reject" || status === "rejected";
-        const isRealisasi = isReject || isApprove; // Kecamatan uses PML formula: reject + approve
+        const isRevoked = status === "revoked by pengawas" || status === "revoked";
+        const isRealisasi = isReject || isApprove || isRevoked; // Kecamatan uses PML formula: reject + approve + revoked
 
         const val = tabulationMetric === "sampel" ? 1 : r.jumlahUsaha;
 
@@ -811,6 +824,7 @@ export default function TabulasiPage() {
           if (isSubmit) cell.submit += val;
           if (isApprove) cell.approve += val;
           if (isReject) cell.reject += val;
+          if (isRevoked) cell.revoked += val;
         };
 
         if (cat && kecStats.categories[cat]) {
