@@ -470,6 +470,34 @@ export default function ComparisonSBRPage() {
     );
   };
 
+  const ProgressCell = ({ diff, scr, sbr }: { diff: number; scr: number; sbr: number }) => {
+    const pct = sbr === 0 ? (scr > 0 ? 100 : 0) : Math.min(100, (scr / sbr) * 100);
+    const displayPct = sbr === 0 ? (scr > 0 ? "100.00%" : "0.00%") : ((scr / sbr) * 100).toFixed(2) + "%";
+
+    // Progress bar color based on percentage
+    let barColor = "bg-orange-500";
+    if (pct >= 100) {
+      barColor = "bg-emerald-500";
+    } else if (pct > 50) {
+      barColor = "bg-amber-500";
+    }
+
+    return (
+      <div className="flex flex-col items-center justify-center gap-1 min-w-[70px]">
+        <DiffBadge value={diff} />
+        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
+          {displayPct}
+        </span>
+        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1 mt-0.5 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
+    );
+  };
+
   // ─── Usaha Nav Dropdown State ──────────────────────────────
   const [showUsahaDropdown, setShowUsahaDropdown] = useState(false);
 
@@ -755,7 +783,7 @@ export default function ComparisonSBRPage() {
                         colSpan={4}
                         className="px-4 py-2 text-center font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20"
                       >
-                        📊 Selisih (Fasih SM − SBR)
+                        📊 Selisih dan Progres (Fasih SM − SBR)
                       </th>
                     </tr>
                     <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
@@ -851,17 +879,17 @@ export default function ComparisonSBRPage() {
                             {row.scr_Total.toLocaleString("id-ID")}
                           </td>
                           {/* Diff */}
-                          <td className="px-3 py-2.5 text-center">
-                            <DiffBadge value={row.diff_UB} />
+                          <td className="px-3 py-2.5">
+                            <ProgressCell diff={row.diff_UB} scr={row.scr_UB} sbr={row.sbr_UB} />
                           </td>
-                          <td className="px-3 py-2.5 text-center">
-                            <DiffBadge value={row.diff_UM} />
+                          <td className="px-3 py-2.5">
+                            <ProgressCell diff={row.diff_UM} scr={row.scr_UM} sbr={row.sbr_UM} />
                           </td>
-                          <td className="px-3 py-2.5 text-center">
-                            <DiffBadge value={row.diff_UMK} />
+                          <td className="px-3 py-2.5">
+                            <ProgressCell diff={row.diff_UMK} scr={row.scr_UMK} sbr={row.sbr_UMK} />
                           </td>
-                          <td className="px-3 py-2.5 text-center">
-                            <DiffBadge value={row.diff_Total} />
+                          <td className="px-3 py-2.5">
+                            <ProgressCell diff={row.diff_Total} scr={row.scr_Total} sbr={row.sbr_Total} />
                           </td>
                         </tr>
                       ))
@@ -900,17 +928,17 @@ export default function ComparisonSBRPage() {
                           {summaryTotals.scr_Total.toLocaleString("id-ID")}
                         </td>
                         {/* Diff */}
-                        <td className="px-3 py-3 text-center">
-                          <DiffBadge value={summaryTotals.diff_UB} />
+                        <td className="px-3 py-3">
+                          <ProgressCell diff={summaryTotals.diff_UB} scr={summaryTotals.scr_UB} sbr={summaryTotals.sbr_UB} />
                         </td>
-                        <td className="px-3 py-3 text-center">
-                          <DiffBadge value={summaryTotals.diff_UM} />
+                        <td className="px-3 py-3">
+                          <ProgressCell diff={summaryTotals.diff_UM} scr={summaryTotals.scr_UM} sbr={summaryTotals.sbr_UM} />
                         </td>
-                        <td className="px-3 py-3 text-center">
-                          <DiffBadge value={summaryTotals.diff_UMK} />
+                        <td className="px-3 py-3">
+                          <ProgressCell diff={summaryTotals.diff_UMK} scr={summaryTotals.scr_UMK} sbr={summaryTotals.sbr_UMK} />
                         </td>
-                        <td className="px-3 py-3 text-center">
-                          <DiffBadge value={summaryTotals.diff_Total} />
+                        <td className="px-3 py-3">
+                          <ProgressCell diff={summaryTotals.diff_Total} scr={summaryTotals.scr_Total} sbr={summaryTotals.sbr_Total} />
                         </td>
                       </tr>
                     )}
