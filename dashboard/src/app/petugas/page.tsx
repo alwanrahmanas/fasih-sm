@@ -1193,7 +1193,7 @@ export default function PetugasPage() {
                       <th className="py-4 px-4 text-center bg-slate-50 dark:bg-slate-900">Revoked</th>
                       <th className="py-4 px-4 text-center bg-slate-50 dark:bg-slate-900">Progres</th>
                       <th className="py-4 px-4 text-center bg-slate-50 dark:bg-slate-900">Realisasi</th>
-                      <th className="py-4 px-4 text-center bg-slate-50 dark:bg-slate-900">% Realisasi</th>
+                      <th className="py-4 px-4 text-center bg-slate-50 dark:bg-slate-900 sticky right-0 top-0 z-30 border-l border-slate-200 dark:border-slate-800 shadow-[0_1px_0_0_rgba(226,232,240,1)] dark:shadow-[0_1px_0_0_rgba(30,41,59,1)]">% Realisasi</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1214,7 +1214,7 @@ export default function PetugasPage() {
                             <React.Fragment key={k.namaKec}>
                               {/* Kecamatan Summary Row */}
                               <tr
-                                className={`border-b border-slate-200 dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-950/10 transition-colors cursor-pointer text-xs ${
+                                className={`group border-b border-slate-200 dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-950/10 transition-colors cursor-pointer text-xs ${
                                   isRed 
                                     ? "bg-red-500/5 dark:bg-red-500/10 text-red-700 dark:text-red-400 font-semibold" 
                                     : ""
@@ -1245,7 +1245,11 @@ export default function PetugasPage() {
                                 <td className="py-3 px-4 text-center font-normal text-rose-600 dark:text-rose-500/90">{k.revoked}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">{k.progress}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">{k.realisasi}</td>
-                                <td className="py-3 px-4 text-center">
+                                <td className={`py-3 px-4 text-center sticky right-0 z-10 border-l border-slate-200 dark:border-slate-800/65 transition-colors ${
+                                  isRed
+                                    ? "bg-red-50 dark:bg-[#1a0f0f] group-hover:bg-red-100/50 dark:group-hover:bg-red-900/35"
+                                    : "bg-white dark:bg-slate-900 group-hover:bg-slate-50/80 dark:group-hover:bg-slate-950/80"
+                                }`}>
                                   <span className={`inline-flex px-2.5 py-0.5 rounded-full font-extrabold text-xs ${
                                     isRed
                                       ? "bg-red-500/10 text-red-500 border border-red-500/20"
@@ -1353,7 +1357,7 @@ export default function PetugasPage() {
                           return (
                             <tr
                               key={item.slsCode}
-                              className="border-b border-orange-500/20 dark:border-orange-500/10 bg-orange-500/[0.03] dark:bg-orange-500/[0.015] hover:bg-orange-500/[0.06] dark:hover:bg-orange-500/[0.03] transition-colors text-xs border-l-4 border-l-orange-500"
+                              className="group border-b border-orange-500/20 dark:border-orange-500/10 bg-orange-500/[0.03] dark:bg-orange-500/[0.015] hover:bg-orange-500/[0.06] dark:hover:bg-orange-500/[0.03] transition-colors text-xs border-l-4 border-l-orange-500"
                             >
                               <td className="py-3 px-2 text-center font-semibold text-slate-700 dark:text-slate-350">
                                 {index + 1}
@@ -1398,7 +1402,7 @@ export default function PetugasPage() {
                               <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">
                                 {item.realisasi}
                               </td>
-                              <td className="py-3 px-4 text-center">
+                              <td className="py-3 px-4 text-center sticky right-0 z-10 border-l border-slate-200 dark:border-slate-800 bg-[#fffbf6] dark:bg-[#15100d] group-hover:bg-[#ffebd6] dark:group-hover:bg-[#281a10] transition-colors">
                                 <span className={`inline-flex px-2.5 py-0.5 rounded-full font-extrabold text-xs bg-orange-500/10 text-orange-600 dark:text-orange-500 border border-orange-500/20`}>
                                   {pctRealisasi}%
                                 </span>
@@ -1424,7 +1428,7 @@ export default function PetugasPage() {
                             <React.Fragment key={o.email}>
                               {/* Officer Summary Row */}
                               <tr
-                                className={`border-b border-slate-200 dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-950/10 transition-colors cursor-pointer text-xs ${
+                                className={`group border-b border-slate-200 dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-950/10 transition-colors cursor-pointer text-xs ${
                                   isRed 
                                     ? "bg-red-500/5 dark:bg-red-500/10 text-red-700 dark:text-red-400 font-semibold" 
                                     : ""
@@ -1457,7 +1461,11 @@ export default function PetugasPage() {
                                 <td className="py-3 px-4 text-center font-normal text-rose-600 dark:text-rose-500/90">{o.revoked}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">{o.progress}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">{o.realisasi}</td>
-                                <td className="py-3 px-4 text-center">
+                                <td className={`py-3 px-4 text-center sticky right-0 z-10 border-l border-slate-200 dark:border-slate-800/65 transition-colors ${
+                                  isRed
+                                    ? "bg-red-50 dark:bg-[#1a0f0f] group-hover:bg-red-100/50 dark:group-hover:bg-red-900/35"
+                                    : "bg-white dark:bg-slate-900 group-hover:bg-slate-50/80 dark:group-hover:bg-slate-950/80"
+                                }`}>
                                   <span className={`inline-flex px-2.5 py-0.5 rounded-full font-extrabold text-xs ${
                                     isRed
                                       ? "bg-red-500/10 text-red-500 border border-red-500/20"
