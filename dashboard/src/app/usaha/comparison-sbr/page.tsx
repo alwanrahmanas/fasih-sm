@@ -261,24 +261,21 @@ export default function ComparisonSBRPage() {
         const s = r.scale.toUpperCase().trim();
         const status = r.status ? r.status.toLowerCase().trim() : "";
 
-        // Only count if scale is UB, UM, or UMK
-        if (s === "UB") {
-          entry.UB += r.jumlahUsaha || 1;
-        } else if (s === "UM") {
-          entry.UM += r.jumlahUsaha || 1;
-        } else if (s === "UMK" || s.includes("UMK")) {
-          // Only count UMK if status is submit, approve, reject, or revoke
-          const isFocusedStatus =
-            status === "submitted by pencacah" || status === "submit" || status === "submitted" ||
-            status === "approved by pengawas" || status === "approve" || status === "approved" ||
-            status === "rejected by pengawas" || status === "reject" || status === "rejected" ||
-            status === "revoked by pengawas" || status === "revoke" || status === "revoked";
+        // Only count if status is submit, approve, reject, or revoke
+        const isFocusedStatus =
+          status === "submitted by pencacah" || status === "submit" || status === "submitted" ||
+          status === "approved by pengawas" || status === "approve" || status === "approved" ||
+          status === "rejected by pengawas" || status === "reject" || status === "rejected" ||
+          status === "revoked by pengawas" || status === "revoke" || status === "revoked";
 
-          if (isFocusedStatus) {
+        if (isFocusedStatus) {
+          if (s === "UB") {
+            entry.UB += r.jumlahUsaha;
+          } else if (s === "UM") {
+            entry.UM += r.jumlahUsaha;
+          } else if (s === "UMK" || s.includes("UMK")) {
             entry.UMK += r.jumlahUsaha;
           }
-        } else {
-          return;
         }
 
         entry.Total = entry.UB + entry.UM + entry.UMK;
