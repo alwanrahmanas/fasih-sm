@@ -380,7 +380,7 @@ export default function PetugasPage() {
       const k = map[kec];
       const slsTotal = record.open + record.draft + record.submit + record.reject + record.approve + record.revoked;
       const slsProgress = record.submit + record.reject + record.approve + record.revoked;
-      const slsRealisasiPml = record.reject + record.approve + record.revoked; // PML realisasi = reject + approve + revoked
+      const slsRealisasiPml = record.submit + record.reject + record.approve + record.revoked; // Kecamatan uses: submit + reject + approve + revoked
 
       k.open += record.open;
       k.draft += record.draft;
@@ -419,7 +419,7 @@ export default function PetugasPage() {
       p.total += slsTotal;
       p.slsCount += 1;
       p.progress += slsProgress;
-      p.realisasi += slsRealisasiPml; // PML realisasi = reject + approve + revoked
+      p.realisasi += slsRealisasiPml; // Kecamatan uses: submit + reject + approve + revoked
     });
 
     return Object.values(map).map(k => {
@@ -508,8 +508,8 @@ export default function PetugasPage() {
         
         entry.total = slsTotal;
         entry.progress = slsProgress;
-        // Prioritas uses Pengawas data as source, so realisasi = reject + approve + revoked (PML formula)
-        entry.realisasi = record.reject + record.approve + record.revoked;
+        // Prioritas uses Pengawas data as source: realisasi = submit + reject + approve + revoked
+        entry.realisasi = record.submit + record.reject + record.approve + record.revoked;
 
         if (isPengawas) {
           entry.hasPengawasRecord = true;
@@ -1140,7 +1140,7 @@ export default function PetugasPage() {
                     <span className="font-bold">Progres</span> dihitung dari jumlah status yang bukan open dan draft (SUBMITTED + REJECTED + APPROVED + REVOKED).
                   </li>
                   <li>
-                    <span className="font-bold">Realisasi PCL</span> = SUBMITTED + REJECTED + APPROVED + REVOKED. <span className="font-bold">Realisasi PML</span> = REJECTED + APPROVED + REVOKED.
+                    <span className="font-bold">Realisasi PCL, Kecamatan & SLS Prioritas</span> = SUBMITTED + REJECTED + APPROVED + REVOKED. <span className="font-bold">Realisasi PML</span> = REJECTED + APPROVED + REVOKED.
                   </li>
                 </ul>
               </div>

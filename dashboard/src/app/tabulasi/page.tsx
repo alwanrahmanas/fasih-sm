@@ -812,7 +812,7 @@ export default function TabulasiPage() {
         const isApprove = status === "approve" || status === "approved" || status === "approved by pengawas";
         const isReject = status === "rejected by pengawas" || status === "reject" || status === "rejected";
         const isRevoked = status === "revoked by pengawas" || status === "revoked";
-        const isRealisasi = isReject || isApprove || isRevoked; // Kecamatan uses PML formula: reject + approve + revoked
+        const isRealisasi = isSubmit || isReject || isApprove || isRevoked; // Kecamatan uses: submit + reject + approve + revoked
 
         const val = tabulationMetric === "sampel" ? 1 : r.jumlahUsaha;
 
