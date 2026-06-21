@@ -38,13 +38,9 @@ interface SBRData {
 
 interface ScrapedTabulasi {
   kode: string;
-  Keluarga: number;
   UB: number;
   UM: number;
   UMK: number;
-  "UMKM Bangunan Lain": number;
-  "UMKM/Dummy": number;
-  "UMKM/Keluarga": number;
   Total: number;
 }
 
@@ -56,13 +52,9 @@ interface ComparisonRow {
   sbr_UMK: number;
   sbr_Total: number;
   // Scraping
-  scr_Keluarga: number;
   scr_UB: number;
   scr_UM: number;
   scr_UMK: number;
-  scr_UMKMBangunanLain: number;
-  scr_UMKMDummy: number;
-  scr_UMKMKeluarga: number;
   scr_Total: number;
   // Diff (scraping - SBR) for common cols
   diff_UB: number;
@@ -117,7 +109,7 @@ export default function ComparisonSBRPage() {
   // Data
   const [sbrData, setSbrData] = useState<SBRData | null>(null);
   const [rawCsvData, setRawCsvData] = useState<
-    { idCode: string; scale: string; nama_kec: string }[]
+    { idCode: string; scale: string; status: string; nama_kec: string }[]
   >([]);
 
   // Filters
@@ -145,7 +137,7 @@ export default function ComparisonSBRPage() {
       const dataText = await dataResponse.text();
 
       const lines = dataText.split("\n");
-      const parsed: { idCode: string; scale: string; nama_kec: string }[] = [];
+      const parsed: { idCode: string; scale: string; status: string; nama_kec: string }[] = [];
 
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
@@ -177,6 +169,7 @@ export default function ComparisonSBRPage() {
           parsed.push({
             idCode: row[1].replace(/"/g, "").trim(),
             scale: row[7].replace(/"/g, "").trim(),
+            status: row[12] ? row[12].replace(/"/g, "").trim() : "",
             nama_kec: row[17] ? row[17].replace(/"/g, "").trim() : "",
           });
         }
@@ -253,51 +246,38 @@ export default function ComparisonSBRPage() {
         if (!result[lvl][code]) {
           result[lvl][code] = {
             kode: code,
-            Keluarga: 0,
             UB: 0,
             UM: 0,
             UMK: 0,
-            "UMKM Bangunan Lain": 0,
-            "UMKM/Dummy": 0,
-            "UMKM/Keluarga": 0,
             Total: 0,
           };
         }
 
         const entry = result[lvl][code];
         const s = r.scale.toUpperCase().trim();
+        const status = r.status ? r.status.toLowerCase().trim() : "";
 
-        if (s.includes("DUMMY")) {
-          entry["UMKM/Dummy"]++;
-        } else if (
-          s.includes("BANGUNAN_LAIN") ||
-          s.includes("BANGUNAN LAIN")
-        ) {
-          entry["UMKM Bangunan Lain"]++;
-        } else if (s.includes("UMKM") && s.includes("KELUARGA")) {
-          entry["UMKM/Keluarga"]++;
-        } else if (s === "UB") {
+        // Only count if status is submit, approve, reject, or revoke
+        const isFocusedStatus =
+          status === "submitted by pencacah" || status === "submit" || status === "submitted" ||
+          status === "approved by pengawas" || status === "approve" || status === "approved" ||
+          status === "rejected by pengawas" || status === "reject" || status === "rejected" ||
+          status === "revoked by pengawas" || status === "revoke" || status === "revoked";
+
+        if (!isFocusedStatus) return;
+
+        // Only count if scale is UB, UM, or UMK
+        if (s === "UB") {
           entry.UB++;
         } else if (s === "UM") {
           entry.UM++;
-        } else if (s === "UMK") {
-          entry.UMK++;
-        } else if (s === "KELUARGA" || s === "" || s === "-") {
-          entry.Keluarga++;
-        } else if (s.includes("UMK")) {
+        } else if (s === "UMK" || s.includes("UMK")) {
           entry.UMK++;
         } else {
-          entry.Keluarga++;
+          return;
         }
 
-        entry.Total =
-          entry.Keluarga +
-          entry.UB +
-          entry.UM +
-          entry.UMK +
-          entry["UMKM Bangunan Lain"] +
-          entry["UMKM/Dummy"] +
-          entry["UMKM/Keluarga"];
+        entry.Total = entry.UB + entry.UM + entry.UMK;
       });
     });
 
@@ -337,13 +317,9 @@ export default function ComparisonSBRPage() {
       const sbr_UMK = sbr?.UMK || 0;
       const sbr_Total = sbr?.Total || 0;
 
-      const scr_Keluarga = scr?.Keluarga || 0;
       const scr_UB = scr?.UB || 0;
       const scr_UM = scr?.UM || 0;
       const scr_UMK = scr?.UMK || 0;
-      const scr_UMKMBangunanLain = scr?.["UMKM Bangunan Lain"] || 0;
-      const scr_UMKMDummy = scr?.["UMKM/Dummy"] || 0;
-      const scr_UMKMKeluarga = scr?.["UMKM/Keluarga"] || 0;
       const scr_Total = scr?.Total || 0;
 
       rows.push({
@@ -352,13 +328,9 @@ export default function ComparisonSBRPage() {
         sbr_UM,
         sbr_UMK,
         sbr_Total,
-        scr_Keluarga,
         scr_UB,
         scr_UM,
         scr_UMK,
-        scr_UMKMBangunanLain,
-        scr_UMKMDummy,
-        scr_UMKMKeluarga,
         scr_Total,
         diff_UB: scr_UB - sbr_UB,
         diff_UM: scr_UM - sbr_UM,
@@ -396,27 +368,19 @@ export default function ComparisonSBRPage() {
       sbr_UM = 0,
       sbr_UMK = 0,
       sbr_Total = 0;
-    let scr_Keluarga = 0,
-      scr_UB = 0,
+    let scr_UB = 0,
       scr_UM = 0,
       scr_UMK = 0,
       scr_Total = 0;
-    let scr_UMKMBangunanLain = 0,
-      scr_UMKMDummy = 0,
-      scr_UMKMKeluarga = 0;
 
     comparisonRows.forEach((r) => {
       sbr_UB += r.sbr_UB;
       sbr_UM += r.sbr_UM;
       sbr_UMK += r.sbr_UMK;
       sbr_Total += r.sbr_Total;
-      scr_Keluarga += r.scr_Keluarga;
       scr_UB += r.scr_UB;
       scr_UM += r.scr_UM;
       scr_UMK += r.scr_UMK;
-      scr_UMKMBangunanLain += r.scr_UMKMBangunanLain;
-      scr_UMKMDummy += r.scr_UMKMDummy;
-      scr_UMKMKeluarga += r.scr_UMKMKeluarga;
       scr_Total += r.scr_Total;
     });
 
@@ -425,14 +389,10 @@ export default function ComparisonSBRPage() {
       sbr_UM,
       sbr_UMK,
       sbr_Total,
-      scr_Keluarga,
       scr_UB,
       scr_UM,
       scr_UMK,
       scr_Total,
-      scr_UMKMBangunanLain,
-      scr_UMKMDummy,
-      scr_UMKMKeluarga,
       diff_UB: scr_UB - sbr_UB,
       diff_UM: scr_UM - sbr_UM,
       diff_UMK: scr_UMK - sbr_UMK,
@@ -449,13 +409,9 @@ export default function ComparisonSBRPage() {
       "SBR_UM",
       "SBR_UMK",
       "SBR_Total",
-      "FasihSM_Keluarga",
       "FasihSM_UB",
       "FasihSM_UM",
       "FasihSM_UMK",
-      "FasihSM_UMKM_Bangunan_Lain",
-      "FasihSM_UMKM_Dummy",
-      "FasihSM_UMKM_Keluarga",
       "FasihSM_Total",
       "Selisih_UB",
       "Selisih_UM",
@@ -469,13 +425,9 @@ export default function ComparisonSBRPage() {
         r.sbr_UM,
         r.sbr_UMK,
         r.sbr_Total,
-        r.scr_Keluarga,
         r.scr_UB,
         r.scr_UM,
         r.scr_UMK,
-        r.scr_UMKMBangunanLain,
-        r.scr_UMKMDummy,
-        r.scr_UMKMKeluarga,
         r.scr_Total,
         r.diff_UB,
         r.diff_UM,
@@ -697,14 +649,13 @@ export default function ComparisonSBRPage() {
               </div>
               <div className="rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
                 <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold mb-1">
-                  Total Fasih SM
+                  Total Fasih SM (UB+UM+UMK)
                 </p>
                 <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                   {summaryTotals.scr_Total.toLocaleString("id-ID")}
                 </p>
                 <p className="text-[10px] text-slate-400 mt-1">
-                  Klg:{summaryTotals.scr_Keluarga} · UB:
-                  {summaryTotals.scr_UB} · UM:{summaryTotals.scr_UM} · UMK:
+                  UB:{summaryTotals.scr_UB} · UM:{summaryTotals.scr_UM} · UMK:
                   {summaryTotals.scr_UMK}
                 </p>
               </div>
@@ -795,10 +746,10 @@ export default function ComparisonSBRPage() {
                         📋 Data SBR
                       </th>
                       <th
-                        colSpan={8}
+                        colSpan={4}
                         className="px-4 py-2 text-center font-bold text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 border-r border-slate-200 dark:border-slate-700"
                       >
-                        🔍 Data Fasih SM
+                        🔍 Data Fasih SM (UB, UM, UMK)
                       </th>
                       <th
                         colSpan={4}
@@ -821,10 +772,7 @@ export default function ComparisonSBRPage() {
                       <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700">
                         Total
                       </th>
-                      {/* Scraping */}
-                      <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
-                        Klg
-                      </th>
+                      {/* Scraping / Fasih SM */}
                       <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
                         UB
                       </th>
@@ -833,15 +781,6 @@ export default function ComparisonSBRPage() {
                       </th>
                       <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
                         UMK
-                      </th>
-                      <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
-                        BgnLain
-                      </th>
-                      <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
-                        Dummy
-                      </th>
-                      <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
-                        UMKM/Klg
                       </th>
                       <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700">
                         Total
@@ -865,7 +804,7 @@ export default function ComparisonSBRPage() {
                     {paginatedRows.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={17}
+                          colSpan={13}
                           className="text-center py-12 text-slate-400"
                         >
                           <Layers className="w-10 h-10 mx-auto mb-2 opacity-30" />
@@ -900,9 +839,6 @@ export default function ComparisonSBRPage() {
                           </td>
                           {/* Scraping */}
                           <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
-                            {row.scr_Keluarga.toLocaleString("id-ID")}
-                          </td>
-                          <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
                             {row.scr_UB.toLocaleString("id-ID")}
                           </td>
                           <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
@@ -910,15 +846,6 @@ export default function ComparisonSBRPage() {
                           </td>
                           <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
                             {row.scr_UMK.toLocaleString("id-ID")}
-                          </td>
-                          <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
-                            {row.scr_UMKMBangunanLain.toLocaleString("id-ID")}
-                          </td>
-                          <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
-                            {row.scr_UMKMDummy.toLocaleString("id-ID")}
-                          </td>
-                          <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
-                            {row.scr_UMKMKeluarga.toLocaleString("id-ID")}
                           </td>
                           <td className="px-3 py-2.5 text-center font-bold text-orange-700 dark:text-orange-300 border-r border-slate-100 dark:border-slate-800">
                             {row.scr_Total.toLocaleString("id-ID")}
@@ -961,9 +888,6 @@ export default function ComparisonSBRPage() {
                         </td>
                         {/* Scraping */}
                         <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300">
-                          {summaryTotals.scr_Keluarga.toLocaleString("id-ID")}
-                        </td>
-                        <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300">
                           {summaryTotals.scr_UB.toLocaleString("id-ID")}
                         </td>
                         <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300">
@@ -971,19 +895,6 @@ export default function ComparisonSBRPage() {
                         </td>
                         <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300">
                           {summaryTotals.scr_UMK.toLocaleString("id-ID")}
-                        </td>
-                        <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300">
-                          {summaryTotals.scr_UMKMBangunanLain.toLocaleString(
-                            "id-ID"
-                          )}
-                        </td>
-                        <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300">
-                          {summaryTotals.scr_UMKMDummy.toLocaleString("id-ID")}
-                        </td>
-                        <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300">
-                          {summaryTotals.scr_UMKMKeluarga.toLocaleString(
-                            "id-ID"
-                          )}
                         </td>
                         <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300 border-r border-slate-200 dark:border-slate-700">
                           {summaryTotals.scr_Total.toLocaleString("id-ID")}
@@ -1093,20 +1004,14 @@ export default function ComparisonSBRPage() {
                 </div>
                 <div>
                   <p className="font-bold text-orange-600 dark:text-orange-400 mb-1">
-                    🔍 Data Fasih SM
+                    🔍 Data Fasih SM (UB, UM, UMK)
                   </p>
                   <ul className="space-y-0.5 pl-4 list-disc">
                     <li>
-                      <b>Klg</b> – Keluarga
+                      <b>UB, UM, UMK</b> – Skala usaha teridentifikasi dengan status <b>submit, approve, reject, atau revoke</b>
                     </li>
                     <li>
-                      <b>BgnLain</b> – UMKM Bangunan Lain
-                    </li>
-                    <li>
-                      <b>Dummy</b> – UMKM/Dummy
-                    </li>
-                    <li>
-                      <b>UMKM/Klg</b> – UMKM/Keluarga
+                      <b>Total</b> – UB + UM + UMK
                     </li>
                   </ul>
                 </div>
