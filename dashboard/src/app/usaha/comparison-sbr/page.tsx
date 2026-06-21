@@ -751,7 +751,7 @@ export default function ComparisonSBRPage() {
               {/* Export */}
               <button
                 onClick={handleExportCSV}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-sm"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-sm md:ml-auto"
               >
                 <Download className="w-3.5 h-3.5" />
                 Export CSV
