@@ -1,0 +1,437 @@
+import os
+import re
+import csv
+import sys
+import time
+import json
+from playwright.sync_api import sync_playwright
+import process_data
+
+def load_env(env_path=".env"):
+    env_vars = {}
+    if os.path.exists(env_path):
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    parts = line.split("=", 1)
+                    if len(parts) == 2:
+                        key = parts[0].strip()
+                        val = parts[1].strip()
+                        if val.startswith('"') and val.endswith('"'):
+                            val = val[1:-1]
+                        elif val.startswith("'") and val.endswith("'"):
+                            val = val[1:-1]
+                        env_vars[key] = val
+    return env_vars
+
+def load_emails(file_path):
+    if not os.path.exists(file_path):
+        print(f"Error: Email list file '{file_path}' not found.")
+        sys.exit(1)
+    with open(file_path, "r", encoding="utf-8") as f:
+        emails = [line.strip() for line in f if line.strip()]
+    return emails
+
+def wait_for_table_load(page, searched_text=None, previous_first_row_text=None, timeout=45000):
+    start_time = time.time()
+    page.wait_for_timeout(500)
+    
+    try:
+        loaders = page.locator("svg.tabler-icon-loader, svg.tabler-icon-loader-2")
+        if loaders.count() > 0:
+            loaders.first.wait_for(state="hidden", timeout=timeout)
+    except Exception:
+        pass
+
+    while time.time() - start_time < (timeout / 1000.0):
+        rows = page.locator("table tbody tr")
+        row_count = rows.count()
+        
+        if row_count > 0:
+            first_row_text = rows.first.text_content()
+            first_row_text_lower = first_row_text.lower()
+            is_no_data = "tidak ada data" in first_row_text_lower or "empty" in first_row_text_lower or "no data" in first_row_text_lower
+            
+            if previous_first_row_text is not None:
+                if first_row_text != previous_first_row_text:
+                    break
+            elif searched_text is not None:
+                if is_no_data:
+                    break
+                tbody_text = page.locator("table tbody").text_content().lower()
+                if searched_text.lower() in tbody_text:
+                    break
+            else:
+                break
+        time.sleep(0.5)
+    time.sleep(1.0)
+
+def scrape_page(page, searched_email, csv_writer):
+    rows_locator = page.locator("table tbody tr")
+    row_count = rows_locator.count()
+    
+    if row_count == 0:
+        print(f"  No rows found in table.")
+        return 0
+        
+    first_row_text = rows_locator.first.text_content().lower()
+    if "tidak ada data" in first_row_text or "empty" in first_row_text or "no data" in first_row_text:
+        print(f"  No data matching search.")
+        return 0
+        
+    scraped_count = 0
+    for i in range(row_count):
+        cols = rows_locator.nth(i).locator("td").all_text_contents()
+        if len(cols) >= 16:
+            cleaned_cols = [c.strip() for c in cols]
+            csv_writer.writerow([searched_email] + cleaned_cols[1:16])
+            scraped_count += 1
+            
+    print(f"  Scraped {scraped_count} rows from current page.")
+    return scraped_count
+
+def run_data_scraper():
+    use_test = "--test" in sys.argv
+    email_file = os.path.join("data", "email_mitra_test.txt" if use_test else "email_mitra.txt")
+    auth_file = "auth_state.json"
+    output_csv = "scraped_data.csv"
+    checkpoint_file = "checkpoint.json"
+    
+    # Load configuration and emails
+    env = load_env()
+    username = env.get("USERNAME")
+    password = env.get("PASSWORD")
+    
+    if not username or not password:
+        print("Error: USERNAME or PASSWORD not set in .env file.")
+        sys.exit(1)
+        
+    emails = load_emails(email_file)
+    
+    # Default order: TOP TO BOTTOM (Normal - no prompting)
+    reverse_order = False
+    print("Scraping order: TOP TO BOTTOM (Normal - default for Task Scheduler).")
+    
+    # Check headless mode (headless=True by default for Task Scheduler)
+    headless_mode = True
+    if "--headed" in sys.argv:
+        headless_mode = False
+        print("Running in HEADED mode.")
+    else:
+        print("Running in HEADLESS mode (default for Task Scheduler).")
+
+    # Check checkpoint for detail scraping
+    use_fresh = "--fresh" in sys.argv
+    resume_index = 0
+    if not use_fresh and os.path.exists(checkpoint_file):
+        try:
+            with open(checkpoint_file, "r") as f:
+                cp = json.load(f)
+                last_email = cp.get("last_email")
+                if last_email and last_email in emails:
+                    resume_index = emails.index(last_email) + 1
+                    print(f"Resuming from checkpoint at email #{resume_index + 1} ({emails[resume_index]})")
+        except Exception as e:
+            print(f"Warning reading checkpoint: {e}. Starting fresh.")
+
+    with sync_playwright() as p:
+        print("Launching Chromium browser...")
+        browser = p.chromium.launch(
+            headless=headless_mode,
+            args=["--no-sandbox", "--disable-setuid-sandbox"]
+        )
+        
+        # Load saved session state if exists
+        if os.path.exists(auth_file):
+            print(f"Loading session from '{auth_file}'...")
+            context = browser.new_context(storage_state=auth_file)
+        else:
+            print("No saved session state found. Creating new context.")
+            context = browser.new_context()
+            
+        page = context.new_page()
+        
+        # Automated Login via SSO
+        max_attempts = 5
+        for attempt in range(1, max_attempts + 1):
+            try:
+                print(f"Navigating to BPS FASIH website (Attempt {attempt}/{max_attempts})...")
+                page.goto("https://fasih-sm.bps.go.id/", timeout=120000)
+                break
+            except Exception as e:
+                print(f"Error navigating to BPS FASIH website: {e}")
+                if attempt == max_attempts:
+                    raise
+                wait_sec = attempt * 10
+                print(f"Waiting {wait_sec} seconds before retrying...")
+                page.wait_for_timeout(wait_sec * 1000)
+        page.wait_for_timeout(3000)
+        
+        # Check if we need to log in
+        if "sso.bps.go.id" in page.url or page.locator("#username").count() > 0 or page.locator("text=Login SSO BPS").count() > 0:
+            print("Login SSO required.")
+            if page.locator("text=Login SSO BPS").count() > 0:
+                print("Clicking 'Login SSO BPS'...")
+                page.locator("text=Login SSO BPS").first.click()
+                page.wait_for_timeout(3000)
+                
+            if page.locator("#username").count() > 0:
+                print(f"Filling credentials for user: {username}...")
+                page.locator("#username").fill(username)
+                page.locator("#password").fill(password)
+                page.locator("#kc-login").click()
+                page.wait_for_timeout(5000)
+                
+        # Wait for redirect to /app
+        try:
+            page.wait_for_url("**/app**", timeout=45000)
+            print("Successfully reached the app workspace!")
+        except Exception:
+            print("Warning: Redirection timeout. Checking current URL: " + page.url)
+            
+        # Save session immediately
+        context.storage_state(path=auth_file)
+        print(f"Session state saved to '{auth_file}'")
+        
+        # Search and select survey
+        print("Searching for 'SENSUS EKONOMI 2026'...")
+        if not page.url.endswith("/app") and "/app/surveys" not in page.url:
+            page.goto("https://fasih-sm.bps.go.id/app")
+            page.wait_for_timeout(2000)
+            
+        search_input = page.locator('input[placeholder="Cari survei..."]')
+        search_input.wait_for(state="visible", timeout=30000)
+        search_input.fill("SENSUS EKONOMI 2026")
+        search_input.press("Enter")
+        page.wait_for_timeout(2500)
+        
+        # Click the row with exact text "SENSUS EKONOMI 2026"
+        print("Finding exact match for 'SENSUS EKONOMI 2026'...")
+        survey_items = page.locator("text=SENSUS EKONOMI 2026")
+        survey_items.first.wait_for(state="visible", timeout=30000)
+        
+        survey_item = None
+        count = survey_items.count()
+        for idx in range(count):
+            item = survey_items.nth(idx)
+            txt = item.text_content().strip()
+            if txt == "SENSUS EKONOMI 2026":
+                survey_item = item
+                break
+                
+        if survey_item is None:
+            try:
+                exact_loc = page.get_by_text("SENSUS EKONOMI 2026", exact=True).first
+                if exact_loc.count() > 0:
+                    survey_item = exact_loc
+            except Exception:
+                pass
+                
+        if survey_item is None:
+            survey_item = page.locator("text=SENSUS EKONOMI 2026").first
+            
+        print(f"Clicking survey item: '{survey_item.text_content().strip()}'")
+        survey_item.click()
+        page.wait_for_timeout(3000)
+        
+        # Click the "PENDATAAN" card/button to enter dashboard
+        print("Navigating to PENDATAAN period...")
+        pendataan_btn = page.locator("text=PENDATAAN").first
+        pendataan_btn.wait_for(state="visible", timeout=30000)
+        pendataan_btn.click()
+        page.wait_for_timeout(3000)
+        
+        # Transition to detail "Data" tab
+        print("\n--- Phase 3: Transitioning to Detail Data Tab ---")
+        
+        data_menu = None
+        selectors = [
+            "a[href$='/data']",
+            "a[href*='/data']",
+            "a:has-text('Data')"
+        ]
+        
+        for selector in selectors:
+            loc = page.locator(selector)
+            if loc.count() > 0:
+                try:
+                    loc.first.wait_for(state="visible", timeout=3000)
+                    data_menu = loc.first
+                    print(f"  Found Data tab using selector: '{selector}'")
+                    break
+                except Exception:
+                    continue
+                    
+        if data_menu:
+            data_menu.click()
+            page.wait_for_timeout(3000)
+            
+        current_url = page.url
+        base_url = current_url.split("?")[0]
+        if not base_url.endswith("/data"):
+            print("  Not on detail data page yet. Constructing target URL directly...")
+            if base_url.endswith("/"):
+                data_url = base_url + "data"
+            else:
+                data_url = base_url + "/data"
+            print(f"  Direct navigation to: {data_url}")
+            page.goto(data_url)
+            page.wait_for_timeout(3000)
+            
+        # Ensure 100 items per page parameters
+        current_url = page.url
+        if "perPage=100" not in current_url:
+            print("  Forcing 100 items per page by updating URL query parameters...")
+            if "?" in current_url:
+                if "perPage=" in current_url:
+                    target_url = re.sub(r"perPage=\d+", "perPage=100", current_url)
+                else:
+                    target_url = current_url + "&perPage=100"
+            else:
+                target_url = current_url + "?perPage=100"
+            page.goto(target_url)
+            page.wait_for_timeout(3000)
+            
+        print("Waiting for detail data table to load...")
+        try:
+            page.wait_for_selector("table", timeout=45000)
+            print("Table loaded successfully. Starting detail scraper...")
+        except Exception:
+            print("Error: Table not found on data page. Aborting.")
+            browser.close()
+            return
+
+        # Prepare detail CSV headers & file
+        detail_headers = [
+            "Searched Email", "Kode Identitas", "Nama Keluarga/Bangunan/Usaha", "Alamat Prelist",
+            "Nomor Urut Bangunan / IDSBR", "NIB", "Email", "Skala Usaha / Jenis Prelist",
+            "Jumlah Usaha", "Kode Pos", "Perubahan SLS", "IDSBR UMKM SLS Sama",
+            "Status", "Mode", "Petugas Saat Ini", "Keterangan"
+        ]
+        
+        if resume_index > 0 and os.path.exists(output_csv):
+            print(f"Appending new detail results to existing '{output_csv}'...")
+            csv_file = open(output_csv, "a", newline="", encoding="utf-8")
+            csv_writer = csv.writer(csv_file)
+        else:
+            print(f"Overwriting/initializing '{output_csv}' with headers...")
+            csv_file = open(output_csv, "w", newline="", encoding="utf-8")
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(detail_headers)
+            csv_file.flush()
+
+        # Scrape Detail Data Mitra
+        print(f"Loaded {len(emails)} emails to scrape.")
+        for index in range(resume_index, len(emails)):
+            email = emails[index]
+            print(f"[{index + 1}/{len(emails)}] Searching detail for: {email}")
+            
+            attempts = 2
+            total_scraped = 0
+            success = False
+            
+            for attempt in range(1, attempts + 1):
+                if attempt > 1:
+                    print(f"  [Retry] Retry attempt #{attempt} for {email}...")
+                try:
+                    search_input = page.locator('input[placeholder="Cari..."]')
+                    if search_input.count() == 0:
+                        print("  Search input not found! Reloading data page...")
+                        page.goto(page.url)
+                        page.wait_for_selector("table", timeout=45000)
+                        search_input = page.locator('input[placeholder="Cari..."]')
+                        
+                    search_input.click()
+                    search_input.fill("")
+                    search_input.fill(email)
+                    search_input.press("Enter")
+                    
+                    wait_for_table_load(page, searched_text=email)
+                    
+                    page_num = 1
+                    current_scraped = 0
+                    while True:
+                        print(f"  Scraping detail page {page_num}...")
+                        scraped_in_page = scrape_page(page, email, csv_writer)
+                        current_scraped += scraped_in_page
+                        csv_file.flush()
+                        
+                        next_button = page.locator('button[aria-label="Go to next page"]')
+                        if next_button.count() > 0 and next_button.is_visible() and not next_button.is_disabled():
+                            print(f"  Navigating to next page...")
+                            prev_row_text = page.locator("table tbody tr").first.text_content() if page.locator("table tbody tr").count() > 0 else None
+                            next_button.click()
+                            page_num += 1
+                            wait_for_table_load(page, previous_first_row_text=prev_row_text)
+                        else:
+                            break
+                            
+                    total_scraped = current_scraped
+                    if total_scraped > 0:
+                        print(f"  Finished search for {email}. Total: {total_scraped} rows.")
+                        success = True
+                        break
+                    else:
+                        print(f"  Warning: Scraped 0 rows for {email}.")
+                        first_row = page.locator("table tbody tr").first
+                        first_row_text = first_row.text_content().lower() if first_row.count() > 0 else ""
+                        is_genuine_no_data = "tidak ada data" in first_row_text or "empty" in first_row_text or "no data" in first_row_text
+                        if is_genuine_no_data:
+                            print(f"  Confirmed: No data for {email}.")
+                        
+                        if attempt < attempts:
+                            print(f"  Retrying to ensure fresh state...")
+                            try:
+                                page.goto(page.url)
+                                page.wait_for_selector("table", timeout=45000)
+                            except Exception:
+                                pass
+                        else:
+                            print(f"  Finished after {attempts} attempts. Scraped: {total_scraped} rows.")
+                            success = True
+                except Exception as e:
+                    print(f"  Error processing email {email} (Attempt {attempt}/{attempts}): {e}")
+                    if attempt < attempts:
+                        try:
+                            page.goto(page.url)
+                            page.wait_for_selector("table", timeout=45000)
+                        except Exception:
+                            pass
+                    else:
+                        print(f"  Failed to process {email} after {attempts} attempts.")
+            
+            # Save checkpoint
+            try:
+                with open(checkpoint_file, "w") as f:
+                    json.dump({"last_index": index, "last_email": email, "reverse_order": reverse_order}, f)
+            except Exception as e:
+                print(f"Warning saving checkpoint: {e}")
+
+        # Cleanup detail csv and browser
+        if 'csv_file' in locals() and not csv_file.closed:
+            csv_file.close()
+        
+        # Remove checkpoint on successful completion
+        if os.path.exists(checkpoint_file):
+            try:
+                os.remove(checkpoint_file)
+                print("All detail scraping completed. Checkpoint removed.")
+            except Exception as e:
+                print(f"Warning removing checkpoint: {e}")
+                
+        browser.close()
+        
+        # Run final data processing pipeline
+        print("\nRunning final data processing pipeline...")
+        try:
+            process_data.process_data()
+        except Exception as proc_err:
+            print(f"Warning: Error during final data processing: {proc_err}")
+
+        print("\n" + "="*50)
+        print("DETAIL DATA SCRAPING COMPLETED")
+        print("="*50)
+
+if __name__ == "__main__":
+    run_data_scraper()
