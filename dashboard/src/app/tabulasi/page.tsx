@@ -1173,7 +1173,7 @@ export default function TabulasiPage() {
                 Usaha
               </Link>
               <Link 
-                href="/usaha/comparison-sbr" 
+                href="/comparison-sbr" 
                 className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
               >
                 Comparison SBR

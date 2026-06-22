@@ -556,7 +556,7 @@ export default function ComparisonSBRPage() {
                 Usaha
               </Link>
               <Link
-                href="/usaha/comparison-sbr"
+                href="/comparison-sbr"
                 className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all bg-orange-500 text-white shadow-sm shrink-0"
               >
                 Comparison SBR
