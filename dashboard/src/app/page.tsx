@@ -182,20 +182,6 @@ export default function DashboardPage() {
   // Theme state
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
-  const [showUsahaDropdown, setShowUsahaDropdown] = useState(false);
-  const usahaDropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (usahaDropdownRef.current && !usahaDropdownRef.current.contains(event.target as Node)) {
-        setShowUsahaDropdown(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   // Data states
   const [rawData, setRawData] = useState<ScraperRecord[]>([]);
@@ -867,7 +853,7 @@ export default function DashboardPage() {
           </div>
           
           <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto">
-            <nav className="flex items-center gap-0.5 sm:gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-0.5 sm:p-1 bg-slate-50/50 dark:bg-slate-950/50 flex-1 md:flex-none justify-center">
+            <nav className="flex items-center gap-0.5 sm:gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-0.5 sm:p-1 bg-slate-50/50 dark:bg-slate-950/50 flex-1 md:flex-none justify-center overflow-x-auto scrollbar-none flex-nowrap min-w-0">
               <Link 
                 href="/" 
                 className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all bg-orange-500 text-white shadow-sm shrink-0"
@@ -886,34 +872,18 @@ export default function DashboardPage() {
               >
                 Petugas
               </Link>
-              {/* Usaha dropdown */}
-              <div className="relative" ref={usahaDropdownRef}>
-                <button
-                  onClick={() => setShowUsahaDropdown(!showUsahaDropdown)}
-                  className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0 flex items-center gap-1 cursor-pointer"
-                >
-                  Usaha
-                  <ChevronDown className="w-3 h-3" />
-                </button>
-                {showUsahaDropdown && (
-                  <div className="absolute right-0 mt-1 w-52 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl z-50 overflow-hidden">
-                    <Link
-                      href="/usaha"
-                      onClick={() => setShowUsahaDropdown(false)}
-                      className="block px-4 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                    >
-                      📊 Rekapitulasi Usaha
-                    </Link>
-                    <Link
-                      href="/usaha/comparison-sbr"
-                      onClick={() => setShowUsahaDropdown(false)}
-                      className="block px-4 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                    >
-                      🔄 Comparison × SBR
-                    </Link>
-                  </div>
-                )}
-              </div>
+              <Link 
+                href="/usaha" 
+                className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
+              >
+                Usaha
+              </Link>
+              <Link 
+                href="/usaha/comparison-sbr" 
+                className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
+              >
+                Comparison SBR
+              </Link>
             </nav>
 
             <div className="flex items-center gap-2 shrink-0">
