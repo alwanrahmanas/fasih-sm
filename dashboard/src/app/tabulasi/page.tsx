@@ -1130,38 +1130,39 @@ export default function TabulasiPage() {
       
       {/* Header Bar */}
       <header className="sticky top-0 z-30 border-b backdrop-blur-md transition-colors bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 rounded-xl p-1 shadow-md border border-slate-200 dark:border-slate-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-0 md:h-16 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-0">
+          <div className="flex items-center gap-3 self-start md:self-auto">
+            {/* Visual BPS Logo Icon */}
+            <div className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 rounded-xl p-1 shadow-md border border-slate-200 dark:border-slate-700 shrink-0">
               <img src="/icon.png" alt="Logo BPS" className="w-8 h-8 object-contain" />
             </div>
             <div>
-              <h1 className="text-sm sm:text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+              <h1 className="text-xs sm:text-sm md:text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                 BPS Kabupaten Kepulauan Sangihe
               </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400">
                 Dashboard Monitoring Sensus Ekonomi 2026
               </p>
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
-            <nav className="flex items-center gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50/50 dark:bg-slate-950/50">
+          <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto">
+            <nav className="flex items-center gap-0.5 sm:gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-0.5 sm:p-1 bg-slate-50/50 dark:bg-slate-950/50 flex-1 md:flex-none justify-center">
               <a 
                 href="/" 
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
               >
                 Dashboard
               </a>
               <a 
                 href="/tabulasi" 
-                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-500 text-white shadow-sm"
+                className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all bg-orange-500 text-white shadow-sm shrink-0"
               >
                 Tabulasi
               </a>
               <a 
                 href="/petugas" 
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
               >
                 Petugas
               </a>
@@ -1170,7 +1171,7 @@ export default function TabulasiPage() {
                 <button
                   onClick={() => setShowUsahaDropdown(!showUsahaDropdown)}
                   onBlur={() => setTimeout(() => setShowUsahaDropdown(false), 200)}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer"
+                  className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0 flex items-center gap-1 cursor-pointer"
                 >
                   Usaha
                   <ChevronDown className="w-3 h-3" />
@@ -1194,21 +1195,23 @@ export default function TabulasiPage() {
               </div>
             </nav>
 
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
-              title="Ganti Tema"
-            >
-              {isDarkMode ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
-            </button>
-            <button
-              onClick={fetchData}
-              disabled={loading}
-              className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors disabled:opacity-50"
-              title="Segarkan Data"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-orange-500" : ""}`} />
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors cursor-pointer"
+                title="Ganti Tema"
+              >
+                {isDarkMode ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
+              </button>
+              <button
+                onClick={fetchData}
+                disabled={loading}
+                className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors disabled:opacity-50 cursor-pointer"
+                title="Segarkan Data"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-orange-500" : ""}`} />
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -1217,28 +1220,28 @@ export default function TabulasiPage() {
       <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {/* Banner Title */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-orange-600 to-amber-500 p-8 sm:p-10 text-white shadow-xl shadow-orange-600/10 mb-8">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-orange-600 to-amber-500 p-5 sm:p-10 text-white shadow-xl shadow-orange-600/10 mb-8">
           <div className="absolute right-0 top-0 w-80 h-80 rounded-full bg-white/10 blur-3xl translate-x-20 -translate-y-20"></div>
           <div className="absolute right-1/4 bottom-0 w-60 h-60 rounded-full bg-orange-400/20 blur-2xl translate-y-20"></div>
           
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4 sm:gap-6">
             <div>
-              <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/20 text-white mb-3 inline-block">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold uppercase tracking-wider bg-white/20 text-white mb-2 inline-block">
                 Tabulasi & Kalkulasi Progres
               </span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2">
+              <h2 className="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-2">
                 Tabel Kalkulasi Progres Pendataan
               </h2>
-              <p className="text-sm sm:text-lg text-orange-50 max-w-2xl font-light">
+              <p className="text-xs sm:text-base md:text-lg text-orange-50 max-w-2xl font-light">
                 Perhitungan real-time target dan realisasi status sampel per Petugas (PCL) dan Kecamatan di wilayah Kabupaten Kepulauan Sangihe.
               </p>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 self-start md:self-auto flex flex-col items-end border border-white/10 text-right">
-              <span className="text-xs text-orange-200">Terakhir Diperbarui</span>
-              <span className="text-base font-bold flex items-center gap-1.5 mt-0.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                {loading ? "Menyinkronkan..." : lastUpdated || "Belum ada data"}
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 sm:p-4 self-start md:self-auto flex flex-col items-start md:items-end border border-white/10 text-left md:text-right">
+              <span className="text-[10px] sm:text-xs text-orange-200">Terakhir Diperbarui</span>
+              <span className="text-xs sm:text-sm md:text-base font-bold flex items-center gap-1.5 mt-0.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping flex-shrink-0"></span>
+                <span className="truncate">{loading ? "Menyinkronkan..." : lastUpdated || "Belum ada data"}</span>
               </span>
             </div>
           </div>
@@ -1270,10 +1273,10 @@ export default function TabulasiPage() {
         ) : (
           <>
             {/* View Tabs */}
-            <div className="flex border-b border-slate-200 dark:border-slate-800 mb-8">
+            <div className="flex border-b border-slate-200 dark:border-slate-800 mb-8 overflow-x-auto scrollbar-none flex-nowrap min-w-0 w-full">
               <button
                 onClick={() => { setActiveTab("pcl"); setSelectedKec("all"); }}
-                className={`py-4 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
+                className={`py-4 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 shrink-0 whitespace-nowrap ${
                   activeTab === "pcl"
                     ? "border-orange-500 text-orange-500 dark:text-orange-400"
                     : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
@@ -1284,7 +1287,7 @@ export default function TabulasiPage() {
               </button>
               <button
                 onClick={() => { setActiveTab("pml"); setSelectedKec("all"); }}
-                className={`py-4 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
+                className={`py-4 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 shrink-0 whitespace-nowrap ${
                   activeTab === "pml"
                     ? "border-orange-500 text-orange-500 dark:text-orange-400"
                     : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
@@ -1295,7 +1298,7 @@ export default function TabulasiPage() {
               </button>
               <button
                 onClick={() => { setActiveTab("sls"); setSelectedKec("all"); }}
-                className={`py-4 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
+                className={`py-4 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 shrink-0 whitespace-nowrap ${
                   activeTab === "sls"
                     ? "border-orange-500 text-orange-500 dark:text-orange-400"
                     : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
@@ -1306,7 +1309,7 @@ export default function TabulasiPage() {
               </button>
               <button
                 onClick={() => { setActiveTab("sumber_data"); setSelectedKec("all"); }}
-                className={`py-4 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
+                className={`py-4 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 shrink-0 whitespace-nowrap ${
                   activeTab === "sumber_data"
                     ? "border-orange-500 text-orange-500 dark:text-orange-400"
                     : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
@@ -1317,7 +1320,7 @@ export default function TabulasiPage() {
               </button>
               <button
                 onClick={() => { setActiveTab("kec"); setSelectedKec("all"); }}
-                className={`py-4 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 ${
+                className={`py-4 px-6 font-bold text-sm border-b-2 transition-all flex items-center gap-2 shrink-0 whitespace-nowrap ${
                   activeTab === "kec"
                     ? "border-orange-500 text-orange-500 dark:text-orange-400"
                     : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
@@ -1561,7 +1564,7 @@ export default function TabulasiPage() {
               <div 
                 ref={topScrollRef}
                 onScroll={handleTopScroll}
-                className="overflow-x-auto overflow-y-hidden w-full bg-slate-50/30 dark:bg-slate-900/30 border-b border-slate-200 dark:border-slate-800"
+                className="hidden md:block overflow-x-auto overflow-y-hidden w-full bg-slate-50/30 dark:bg-slate-900/30 border-b border-slate-200 dark:border-slate-800"
                 style={{ height: "10px" }}
               >
                 <div style={{ width: `${tableWidth}px`, height: "10px" }} />
@@ -1612,10 +1615,10 @@ export default function TabulasiPage() {
                         filteredPclStats.map((pcl, idx) => (
                           <tr 
                             key={idx} 
-                            className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all border-b border-slate-100 dark:border-slate-800"
+                            className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all border-b border-slate-100 dark:border-slate-800"
                           >
                             {/* PCL Name cell */}
-                            <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-950 dark:text-white sticky left-0 bg-white dark:bg-slate-900 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
+                            <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-950 dark:text-white sticky left-0 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 transition-colors z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
                               <div>{pcl.nama}</div>
                               <div className="text-[10px] text-slate-500 dark:text-slate-400 font-normal mt-0.5">{pcl.kec}</div>
                             </td>
@@ -1675,10 +1678,10 @@ export default function TabulasiPage() {
                         filteredPmlStats.map((pml, idx) => (
                           <tr 
                             key={idx} 
-                            className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all border-b border-slate-100 dark:border-slate-800"
+                            className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all border-b border-slate-100 dark:border-slate-800"
                           >
                             {/* PML Name cell */}
-                            <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-950 dark:text-white sticky left-0 bg-white dark:bg-slate-900 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
+                            <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-950 dark:text-white sticky left-0 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 transition-colors z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
                               <div>{pml.nama}</div>
                               <div className="text-[10px] text-slate-500 dark:text-slate-400 font-normal mt-0.5">{pml.kec}</div>
                             </td>
@@ -1739,17 +1742,17 @@ export default function TabulasiPage() {
                           paginatedSlsStats.map((sls, idx) => (
                             <tr 
                               key={idx} 
-                              className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all border-b border-slate-100 dark:border-slate-800 ${
+                              className={`group hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all border-b border-slate-100 dark:border-slate-800 ${
                                 sls.isPrioritas 
                                   ? "bg-orange-500/5 hover:bg-orange-500/10 dark:bg-orange-500/5 dark:hover:bg-orange-500/10" 
                                   : ""
                               }`}
                             >
                               {/* SLS Code cell */}
-                              <td className={`px-4 py-3 border-r border-slate-200 dark:border-slate-800 font-bold sticky left-0 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] ${
+                              <td className={`px-4 py-3 border-r border-slate-200 dark:border-slate-800 font-bold sticky left-0 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] transition-colors ${
                                 sls.isPrioritas
-                                  ? "bg-orange-50/90 dark:bg-orange-950/20 text-orange-900 dark:text-orange-300 border-l-2 border-l-orange-500"
-                                  : "bg-white dark:bg-slate-900 text-slate-950 dark:text-white border-l-2 border-l-transparent"
+                                  ? "bg-orange-50/90 dark:bg-orange-950/20 text-orange-900 dark:text-orange-300 border-l-2 border-l-orange-500 group-hover:bg-orange-100/90 dark:group-hover:bg-orange-950/40"
+                                  : "bg-white dark:bg-slate-900 text-slate-950 dark:text-white border-l-2 border-l-transparent group-hover:bg-slate-50 dark:group-hover:bg-slate-800"
                               }`}>
                                 <div className="flex items-center gap-1.5">
                                   <span className="font-mono text-sm tracking-wider">{sls.slsCode}</span>
@@ -1868,10 +1871,10 @@ export default function TabulasiPage() {
                         filteredSumberDataStats.map((sumber, idx) => (
                           <tr 
                             key={idx} 
-                            className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all border-b border-slate-100 dark:border-slate-800"
+                            className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all border-b border-slate-100 dark:border-slate-800"
                           >
                             {/* Sumber Data Name cell */}
-                            <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-950 dark:text-white sticky left-0 bg-white dark:bg-slate-900 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] font-mono">
+                            <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-950 dark:text-white sticky left-0 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 transition-colors z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)] font-mono">
                               <div>{sumber.kecName}</div>
                             </td>
 
@@ -1923,10 +1926,10 @@ export default function TabulasiPage() {
                       {kecamatanStats.map((kec, idx) => (
                         <tr 
                           key={idx} 
-                          className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all border-b border-slate-100 dark:border-slate-800"
+                          className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all border-b border-slate-100 dark:border-slate-800"
                         >
                           {/* Kecamatan Name cell */}
-                          <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-950 dark:text-white sticky left-0 bg-white dark:bg-slate-900 z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
+                          <td className="px-4 py-3 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-950 dark:text-white sticky left-0 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800 transition-colors z-10 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
                             <div>{kec.kecName}</div>
                             <div className="text-[10px] text-slate-500 dark:text-slate-400 font-normal mt-0.5">Koseka: {kec.koseka}</div>
                           </td>

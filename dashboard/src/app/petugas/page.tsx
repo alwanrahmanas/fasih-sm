@@ -841,35 +841,35 @@ export default function PetugasPage() {
               <h1 className="text-xs sm:text-sm md:text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                 BPS Kabupaten Kepulauan Sangihe
               </h1>
-              <p className="text-[10px] sm:text-xs text-slate-600 dark:text-slate-400">
+              <p className="text-[10px] sm:text-xs text-slate-650 dark:text-slate-400">
                 Dashboard Monitoring Sensus Ekonomi 2026
               </p>
             </div>
           </div>
           
           <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto">
-            <nav className="flex items-center gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50/50 dark:bg-slate-950/50 flex-1 md:flex-none justify-center">
+            <nav className="flex items-center gap-0.5 sm:gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-0.5 sm:p-1 bg-slate-50/50 dark:bg-slate-950/50 flex-1 md:flex-none justify-center">
               <a 
                 href="/" 
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
+                className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
               >
                 Dashboard
               </a>
               <a 
                 href="/tabulasi" 
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
+                className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
               >
                 Tabulasi
               </a>
               <a 
                 href="/petugas" 
-                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-500 text-white shadow-sm shrink-0"
+                className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all bg-orange-500 text-white shadow-sm shrink-0"
               >
                 Petugas
               </a>
               <a 
                 href="/usaha" 
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
+                className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
               >
                 Usaha
               </a>
@@ -878,7 +878,7 @@ export default function PetugasPage() {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
-                className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-350 transition-colors cursor-pointer"
+                className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-350 transition-colors cursor-pointer"
                 title="Ganti Tema"
               >
                 {isDarkMode ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
@@ -886,7 +886,7 @@ export default function PetugasPage() {
               <button
                 onClick={fetchData}
                 disabled={loading}
-                className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-350 transition-colors disabled:opacity-50 cursor-pointer"
+                className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-350 transition-colors disabled:opacity-50 cursor-pointer"
                 title="Segarkan Data"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-orange-500" : ""}`} />
@@ -900,27 +900,27 @@ export default function PetugasPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {/* Banner Title */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-orange-600 to-amber-500 p-8 sm:p-10 text-white shadow-xl shadow-orange-600/10 mb-8">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-orange-600 to-amber-500 p-5 sm:p-10 text-white shadow-xl shadow-orange-600/10 mb-8">
           <div className="absolute right-0 top-0 w-80 h-80 rounded-full bg-white/10 blur-3xl translate-x-20 -translate-y-20"></div>
           <div className="absolute right-1/4 bottom-0 w-60 h-60 rounded-full bg-orange-400/20 blur-2xl translate-y-20"></div>
           
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4 sm:gap-6">
             <div>
-              <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/20 text-white mb-3 inline-block">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold uppercase tracking-wider bg-white/20 text-white mb-2 inline-block">
                 Monitoring Kinerja Petugas
               </span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2">
+              <h2 className="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-2">
                 Monitoring Progres Petugas (Rekap)
               </h2>
-              <p className="text-sm sm:text-lg text-orange-50 max-w-2xl font-light">
+              <p className="text-xs sm:text-base md:text-lg text-orange-50 max-w-2xl font-light">
                 Analisis detail capaian kinerja dari Pencacah (PCL/PPL) dan Pengawas (PML) secara real-time.
               </p>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 self-stretch md:self-auto flex flex-col items-start md:items-end border border-white/10 text-left md:text-right">
-              <span className="text-xs text-orange-200">Terakhir Diperbarui</span>
-              <span className="text-sm sm:text-base font-bold flex items-center gap-1.5 mt-0.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping flex-shrink-0"></span>
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 sm:p-4 self-start md:self-auto flex flex-col items-start md:items-end border border-white/10 text-left md:text-right">
+              <span className="text-[10px] sm:text-xs text-orange-200">Terakhir Diperbarui</span>
+              <span className="text-xs sm:text-sm md:text-base font-bold flex items-center gap-1.5 mt-0.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping flex-shrink-0"></span>
                 <span className="truncate">{loading ? "Menyinkronkan..." : lastUpdated || "Belum ada data"}</span>
               </span>
             </div>

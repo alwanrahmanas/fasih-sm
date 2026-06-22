@@ -510,9 +510,9 @@ export default function ComparisonSBRPage() {
     >
       {/* Header Bar */}
       <header className="sticky top-0 z-30 border-b backdrop-blur-md transition-colors bg-white/80 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 rounded-xl p-1 shadow-md border border-slate-200 dark:border-slate-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-0 md:h-16 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-0">
+          <div className="flex items-center gap-3 self-start md:self-auto">
+            <div className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 rounded-xl p-1 shadow-md border border-slate-200 dark:border-slate-700 shrink-0">
               <img
                 src="/icon.png"
                 alt="Logo BPS"
@@ -520,32 +520,32 @@ export default function ComparisonSBRPage() {
               />
             </div>
             <div>
-              <h1 className="text-sm sm:text-base font-bold tracking-tight text-slate-900 dark:text-white">
+              <h1 className="text-xs sm:text-sm md:text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                 BPS Kabupaten Kepulauan Sangihe
               </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400">
                 Dashboard Monitoring Sensus Ekonomi 2026
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <nav className="flex items-center gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50/50 dark:bg-slate-950/50">
+          <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto">
+            <nav className="flex items-center gap-0.5 sm:gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-0.5 sm:p-1 bg-slate-50/50 dark:bg-slate-950/50 flex-1 md:flex-none justify-center overflow-x-auto scrollbar-none flex-nowrap min-w-0">
               <a
                 href="/"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
               >
                 Dashboard
               </a>
               <a
                 href="/tabulasi"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
               >
                 Tabulasi
               </a>
               <a
                 href="/petugas"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
               >
                 Petugas
               </a>
@@ -556,7 +556,7 @@ export default function ComparisonSBRPage() {
                   onBlur={() =>
                     setTimeout(() => setShowUsahaDropdown(false), 200)
                   }
-                  className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-500 text-white shadow-sm flex items-center gap-1 cursor-pointer"
+                  className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all bg-orange-500 text-white shadow-sm shrink-0 flex items-center gap-1 cursor-pointer"
                 >
                   Usaha
                   <ChevronDown className="w-3 h-3" />
@@ -580,27 +580,29 @@ export default function ComparisonSBRPage() {
               </div>
             </nav>
 
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors cursor-pointer"
-              title="Ganti Tema"
-            >
-              {isDarkMode ? (
-                <Sun className="w-4 h-4 text-orange-400" />
-              ) : (
-                <Moon className="w-4 h-4 text-slate-700" />
-              )}
-            </button>
-            <button
-              onClick={fetchData}
-              disabled={loading}
-              className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors disabled:opacity-50 cursor-pointer"
-              title="Segarkan Data"
-            >
-              <RefreshCw
-                className={`w-4 h-4 ${loading ? "animate-spin text-orange-500" : ""}`}
-              />
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors cursor-pointer"
+                title="Ganti Tema"
+              >
+                {isDarkMode ? (
+                  <Sun className="w-4 h-4 text-orange-400" />
+                ) : (
+                  <Moon className="w-4 h-4 text-slate-700" />
+                )}
+              </button>
+              <button
+                onClick={fetchData}
+                disabled={loading}
+                className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors disabled:opacity-50 cursor-pointer"
+                title="Segarkan Data"
+              >
+                <RefreshCw
+                  className={`w-4 h-4 ${loading ? "animate-spin text-orange-500" : ""}`}
+                />
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -608,33 +610,31 @@ export default function ComparisonSBRPage() {
       {/* Main Body */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Banner */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 p-8 sm:p-10 text-white shadow-xl shadow-orange-600/10 mb-8">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 p-5 sm:p-10 text-white shadow-xl shadow-orange-600/10 mb-8">
           <div className="absolute right-0 top-0 w-80 h-80 rounded-full bg-white/10 blur-3xl translate-x-20 -translate-y-20"></div>
           <div className="absolute right-1/4 bottom-0 w-60 h-60 rounded-full bg-orange-400/20 blur-2xl translate-y-20"></div>
 
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4 sm:gap-6">
             <div>
-              <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/20 text-white mb-3 inline-block">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold uppercase tracking-wider bg-white/20 text-white mb-2 inline-block">
                 Comparison × SBR
               </span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2">
+              <h2 className="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-2">
                 Perbandingan Data Fasih SM vs SBR
               </h2>
-              <p className="text-sm sm:text-lg text-orange-100 max-w-2xl font-light">
+              <p className="text-xs sm:text-base md:text-lg text-orange-100 max-w-2xl font-light">
                 Membandingkan hasil tabulasi data hasil pendataan FASIH dengan data
                 Sensus Basis Register (SBR) per level wilayah.
               </p>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 self-start md:self-auto flex flex-col items-end border border-white/10 text-right">
-              <span className="text-xs text-orange-200">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 sm:p-4 self-start md:self-auto flex flex-col items-start md:items-end border border-white/10 text-left md:text-right">
+              <span className="text-[10px] sm:text-xs text-orange-200">
                 Terakhir Diperbarui
               </span>
-              <span className="text-base font-bold flex items-center gap-1.5 mt-0.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                {loading
-                  ? "Menyinkronkan..."
-                  : lastUpdated || "Belum ada data"}
+              <span className="text-xs sm:text-sm md:text-base font-bold flex items-center gap-1.5 mt-0.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping flex-shrink-0"></span>
+                <span className="truncate">{loading ? "Menyinkronkan..." : lastUpdated || "Belum ada data"}</span>
               </span>
             </div>
           </div>
@@ -662,67 +662,67 @@ export default function ComparisonSBRPage() {
           </div>
         ) : (
           <>
-            {/* Summary Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <div className="rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-                <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold mb-1">
-                  Total SBR
-                </p>
-                <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                  {summaryTotals.sbr_Total.toLocaleString("id-ID")}
-                </p>
-                <p className="text-[10px] text-slate-400 mt-1">
-                  UB:{summaryTotals.sbr_UB} · UM:{summaryTotals.sbr_UM} · UMK:
-                  {summaryTotals.sbr_UMK}
-                </p>
-              </div>
-              <div className="rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-                <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold mb-1">
-                  Total Fasih SM (UB+UM+UMK)
-                </p>
-                <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                  {summaryTotals.scr_Total.toLocaleString("id-ID")}
-                </p>
-                <p className="text-[10px] text-slate-400 mt-1">
-                  UB:{summaryTotals.scr_UB} · UM:{summaryTotals.scr_UM} · UMK:
-                  {summaryTotals.scr_UMK}
-                </p>
-              </div>
-              <div className="rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-                <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold mb-1">
-                  Selisih Total
-                </p>
-                <p className="text-2xl font-bold">
-                  <DiffBadge value={summaryTotals.diff_Total} />
-                </p>
-                <p className="text-[10px] text-slate-400 mt-1">
-                  Fasih SM − SBR
-                </p>
-              </div>
-              <div className="rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-                <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold mb-1">
-                  Jumlah Wilayah
-                </p>
-                <p className="text-2xl font-bold text-slate-700 dark:text-slate-200">
-                  {filteredRows.length.toLocaleString("id-ID")}
-                </p>
-                <p className="text-[10px] text-slate-400 mt-1">
-                  Level: {LEVEL_LABELS[activeLevel]}
-                </p>
-              </div>
-            </div>
+             {/* Summary Cards */}
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+               <div className="rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+                 <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold mb-1">
+                   Total SBR
+                 </p>
+                 <p className="text-lg sm:text-xl md:text-2xl font-bold text-orange-600 dark:text-orange-400">
+                   {summaryTotals.sbr_Total.toLocaleString("id-ID")}
+                 </p>
+                 <p className="text-[10px] text-slate-400 mt-1">
+                   UB:{summaryTotals.sbr_UB} · UM:{summaryTotals.sbr_UM} · UMK:
+                   {summaryTotals.sbr_UMK}
+                 </p>
+               </div>
+               <div className="rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+                 <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold mb-1">
+                   Total Fasih SM (UB+UM+UMK)
+                 </p>
+                 <p className="text-lg sm:text-xl md:text-2xl font-bold text-orange-600 dark:text-orange-400">
+                   {summaryTotals.scr_Total.toLocaleString("id-ID")}
+                 </p>
+                 <p className="text-[10px] text-slate-400 mt-1">
+                   UB:{summaryTotals.scr_UB} · UM:{summaryTotals.scr_UM} · UMK:
+                   {summaryTotals.scr_UMK}
+                 </p>
+               </div>
+               <div className="rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+                 <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold mb-1">
+                   Selisih Total
+                 </p>
+                 <p className="text-lg sm:text-xl md:text-2xl font-bold">
+                   <DiffBadge value={summaryTotals.diff_Total} />
+                 </p>
+                 <p className="text-[10px] text-slate-400 mt-1">
+                   Fasih SM − SBR
+                 </p>
+               </div>
+               <div className="rounded-2xl p-3.5 sm:p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+                 <p className="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold mb-1">
+                   Jumlah Wilayah
+                 </p>
+                 <p className="text-lg sm:text-xl md:text-2xl font-bold text-slate-700 dark:text-slate-200">
+                   {filteredRows.length.toLocaleString("id-ID")}
+                 </p>
+                 <p className="text-[10px] text-slate-400 mt-1">
+                   Level: {LEVEL_LABELS[activeLevel]}
+                 </p>
+               </div>
+             </div>
 
             {/* Controls Bar */}
             <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
               {/* Level Tabs */}
-              <div className="flex items-center gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50 dark:bg-slate-900 overflow-x-auto">
+              <div className="flex items-center gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50 dark:bg-slate-900 overflow-x-auto scrollbar-none flex-nowrap min-w-0 w-full md:w-auto shrink-0">
                 {(
                   Object.entries(LEVEL_LABELS) as [LevelKey, string][]
                 ).map(([key, label]) => (
                   <button
                     key={key}
                     onClick={() => setActiveLevel(key)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                       activeLevel === key
                         ? "bg-orange-500 text-white shadow-sm font-bold"
                         : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
@@ -734,7 +734,7 @@ export default function ComparisonSBRPage() {
               </div>
 
               {/* Search */}
-              <div className="relative flex-1 max-w-xs">
+              <div className="relative flex-1 max-w-xs w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
@@ -748,7 +748,7 @@ export default function ComparisonSBRPage() {
               {/* Export */}
               <button
                 onClick={handleExportCSV}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-sm md:ml-auto"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold transition-colors cursor-pointer shadow-sm md:ml-auto w-full md:w-auto justify-center"
               >
                 <Download className="w-3.5 h-3.5" />
                 Export CSV
@@ -758,13 +758,13 @@ export default function ComparisonSBRPage() {
             {/* Comparison Table */}
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-xs">
+                <table className="w-full text-xs min-w-[1000px]">
                   <thead>
                     {/* Group headers */}
                     <tr className="border-b border-slate-200 dark:border-slate-800">
                       <th
                         rowSpan={2}
-                        className="sticky left-0 z-10 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-left font-bold text-slate-700 dark:text-slate-200 border-r border-slate-200 dark:border-slate-700"
+                        className="sticky left-0 top-0 z-30 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-left font-bold text-slate-700 dark:text-slate-200 border-r border-slate-200 dark:border-slate-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
                       >
                         Kode
                       </th>
@@ -844,13 +844,17 @@ export default function ComparisonSBRPage() {
                       paginatedRows.map((row, idx) => (
                         <tr
                           key={row.kode}
-                          className={`border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${
+                          className={`group border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors ${
                             idx % 2 === 0
                               ? ""
                               : "bg-slate-25 dark:bg-slate-900/30"
                           }`}
                         >
-                          <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 px-4 py-2.5 font-mono font-bold text-slate-800 dark:text-slate-200 border-r border-slate-100 dark:border-slate-800">
+                          <td className={`sticky left-0 z-10 px-4 py-2.5 font-mono font-bold text-slate-800 dark:text-slate-200 border-r border-slate-100 dark:border-slate-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.12)] transition-colors ${
+                            idx % 2 === 0
+                              ? "bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800"
+                              : "bg-slate-25 dark:bg-slate-900/40 group-hover:bg-slate-50 dark:group-hover:bg-slate-800"
+                          }`}>
                             {row.kode}
                           </td>
                           {/* SBR */}
@@ -899,7 +903,7 @@ export default function ComparisonSBRPage() {
                     {/* Totals row */}
                     {paginatedRows.length > 0 && (
                       <tr className="bg-slate-50 dark:bg-slate-800/50 border-t-2 border-slate-300 dark:border-slate-600 font-bold">
-                        <td className="sticky left-0 z-10 bg-slate-50 dark:bg-slate-800/50 px-4 py-3 text-slate-800 dark:text-white border-r border-slate-200 dark:border-slate-700">
+                        <td className="sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-slate-800 dark:text-white border-r border-slate-200 dark:border-slate-700 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.12)]">
                           TOTAL
                         </td>
                         {/* SBR */}

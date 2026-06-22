@@ -853,22 +853,22 @@ export default function DashboardPage() {
           </div>
           
           <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto">
-            <nav className="flex items-center gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50/50 dark:bg-slate-950/50 flex-1 md:flex-none justify-center">
+            <nav className="flex items-center gap-0.5 sm:gap-1 border border-slate-200 dark:border-slate-800 rounded-xl p-0.5 sm:p-1 bg-slate-50/50 dark:bg-slate-950/50 flex-1 md:flex-none justify-center">
               <a 
                 href="/" 
-                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-orange-500 text-white shadow-sm shrink-0"
+                className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all bg-orange-500 text-white shadow-sm shrink-0"
               >
                 Dashboard
               </a>
               <a 
                 href="/tabulasi" 
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
+                className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
               >
                 Tabulasi
               </a>
               <a 
                 href="/petugas" 
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
+                className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0"
               >
                 Petugas
               </a>
@@ -877,7 +877,7 @@ export default function DashboardPage() {
                 <button
                   onClick={() => setShowUsahaDropdown(!showUsahaDropdown)}
                   onBlur={() => setTimeout(() => setShowUsahaDropdown(false), 200)}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0 flex items-center gap-1 cursor-pointer"
+                  className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 shrink-0 flex items-center gap-1 cursor-pointer"
                 >
                   Usaha
                   <ChevronDown className="w-3 h-3" />
@@ -904,7 +904,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
-                className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors cursor-pointer"
+                className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors cursor-pointer"
                 title="Ganti Tema"
               >
                 {isDarkMode ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
@@ -912,7 +912,7 @@ export default function DashboardPage() {
               <button
                 onClick={fetchData}
                 disabled={loading}
-                className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors disabled:opacity-50 cursor-pointer"
+                className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors disabled:opacity-50 cursor-pointer"
                 title="Segarkan Data"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-orange-500" : ""}`} />
@@ -926,28 +926,28 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {/* Banner Title */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-orange-600 to-amber-500 p-8 sm:p-10 text-white shadow-xl shadow-orange-600/10 mb-8">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-orange-600 to-amber-500 p-5 sm:p-10 text-white shadow-xl shadow-orange-600/10 mb-8">
           {/* Decorative shapes */}
           <div className="absolute right-0 top-0 w-80 h-80 rounded-full bg-white/10 blur-3xl translate-x-20 -translate-y-20"></div>
           <div className="absolute right-1/4 bottom-0 w-60 h-60 rounded-full bg-orange-400/20 blur-2xl translate-y-20"></div>
           
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4 sm:gap-6">
             <div>
-              <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-white/20 text-white mb-3 inline-block">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold uppercase tracking-wider bg-white/20 text-white mb-2 inline-block">
                 Monitoring Real-time
               </span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2">
+              <h2 className="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-2">
                 Dashboard Monitoring SE2026
               </h2>
-              <p className="text-sm sm:text-lg text-orange-50 max-w-2xl font-light">
+              <p className="text-xs sm:text-base md:text-lg text-orange-50 max-w-2xl font-light">
                 Pantau progres pendataan petugas Sensus Ekonomi 2026 secara akurat di wilayah Kabupaten Kepulauan Sangihe.
               </p>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 self-stretch md:self-auto flex flex-col items-start md:items-end border border-white/10 text-left md:text-right">
-              <span className="text-xs text-orange-200">Terakhir Diperbarui</span>
-              <span className="text-sm sm:text-base font-bold flex items-center gap-1.5 mt-0.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping flex-shrink-0"></span>
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 sm:p-4 self-start md:self-auto flex flex-col items-start md:items-end border border-white/10 text-left md:text-right">
+              <span className="text-[10px] sm:text-xs text-orange-200">Terakhir Diperbarui</span>
+              <span className="text-xs sm:text-sm md:text-base font-bold flex items-center gap-1.5 mt-0.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping flex-shrink-0"></span>
                 <span className="truncate">{loading ? "Menyinkronkan..." : lastUpdated || "Belum ada data"}</span>
               </span>
             </div>
@@ -987,11 +987,11 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
+                className="bg-white dark:bg-slate-900 p-3 sm:p-5 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                 <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Total Target Prelist</span>
-                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-slate-900 dark:text-white">
+                <span className="text-lg sm:text-2xl md:text-3xl font-extrabold mt-2 block text-slate-900 dark:text-white">
                   {displayTotal.toLocaleString("id-ID")}
                 </span>
                 <span className="text-[9px] sm:text-xs text-slate-500 dark:text-slate-400 mt-2 block flex items-center gap-1">
@@ -999,18 +999,18 @@ export default function DashboardPage() {
                   <span className="truncate">{totalPrelistSummary ? "Target resmi BPS" : "Baris data valid"}</span>
                 </span>
               </motion.div>
-
+ 
               {/* Total Realisasi */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.03 }}
-                className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300 flex flex-col justify-between"
+                className="bg-white dark:bg-slate-900 p-3 sm:p-5 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300 flex flex-col justify-between"
               >
                 <div>
                   <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                   <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Total Realisasi</span>
-                  <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-emerald-600 dark:text-emerald-500">
+                  <span className="text-lg sm:text-2xl md:text-3xl font-extrabold mt-2 block text-emerald-600 dark:text-emerald-500">
                     {displayRealisasi.toLocaleString("id-ID")}
                   </span>
                 </div>
@@ -1026,18 +1026,18 @@ export default function DashboardPage() {
                   </span>
                 </div>
               </motion.div>
-
+ 
               {/* Realisasi via Fasih SM */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.06 }}
-                className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300 flex flex-col justify-between"
+                className="bg-white dark:bg-slate-900 p-3 sm:p-5 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300 flex flex-col justify-between"
               >
                 <div>
                   <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                   <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Realisasi via Fasih SM</span>
-                  <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-teal-600 dark:text-teal-500">
+                  <span className="text-lg sm:text-2xl md:text-3xl font-extrabold mt-2 block text-teal-600 dark:text-teal-500">
                     {displayRealisasiFasih.toLocaleString("id-ID")}
                   </span>
                 </div>
@@ -1053,17 +1053,17 @@ export default function DashboardPage() {
                   </span>
                 </div>
               </motion.div>
-
+ 
               {/* Status Terbuka (Open) */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.09 }}
-                className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
+                className="bg-white dark:bg-slate-900 p-3 sm:p-5 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                 <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Status Terbuka (Open)</span>
-                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-amber-600 dark:text-amber-500">
+                <span className="text-lg sm:text-2xl md:text-3xl font-extrabold mt-2 block text-amber-600 dark:text-amber-500">
                   {displayOpen.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center justify-between mt-3 gap-2">
@@ -1073,17 +1073,17 @@ export default function DashboardPage() {
                   <span className="text-[10px] sm:text-xs md:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayOpen / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
                 </div>
               </motion.div>
-
+ 
               {/* Status Submitted by Pencacah */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.12 }}
-                className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
+                className="bg-white dark:bg-slate-900 p-3 sm:p-5 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                 <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Submitted by Pencacah</span>
-                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-teal-600 dark:text-teal-500">
+                <span className="text-lg sm:text-2xl md:text-3xl font-extrabold mt-2 block text-teal-600 dark:text-teal-500">
                   {displaySubmit.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center justify-between mt-3 gap-2">
@@ -1093,17 +1093,17 @@ export default function DashboardPage() {
                   <span className="text-[10px] sm:text-xs md:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displaySubmit / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
                 </div>
               </motion.div>
-
+ 
               {/* Status Approved by Pengawas */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.15 }}
-                className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
+                className="bg-white dark:bg-slate-900 p-3 sm:p-5 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                 <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Approved by Pengawas</span>
-                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-emerald-600 dark:text-emerald-500">
+                <span className="text-lg sm:text-2xl md:text-3xl font-extrabold mt-2 block text-emerald-600 dark:text-emerald-500">
                   {displayApprove.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center justify-between mt-3 gap-2">
@@ -1113,17 +1113,17 @@ export default function DashboardPage() {
                   <span className="text-[10px] sm:text-xs md:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayApprove / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
                 </div>
               </motion.div>
-
+ 
               {/* Status Draft */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.18 }}
-                className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
+                className="bg-white dark:bg-slate-900 p-3 sm:p-5 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                 <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Status Draft</span>
-                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-blue-600 dark:text-blue-500">
+                <span className="text-lg sm:text-2xl md:text-3xl font-extrabold mt-2 block text-blue-600 dark:text-blue-500">
                   {displayDraft.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center justify-between mt-3 gap-2">
@@ -1133,17 +1133,17 @@ export default function DashboardPage() {
                   <span className="text-[10px] sm:text-xs md:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayDraft / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
                 </div>
               </motion.div>
-
+ 
               {/* Status Rejected by Pengawas */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.21 }}
-                className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
+                className="bg-white dark:bg-slate-900 p-3 sm:p-5 md:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all duration-300"
               >
                 <div className="absolute right-0 top-0 translate-x-3 -translate-y-3 w-24 h-24 rounded-full bg-slate-100 dark:bg-slate-800/40 group-hover:bg-orange-500/5 transition-colors duration-300"></div>
                 <span className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 font-semibold block uppercase tracking-wider">Rejected by Pengawas</span>
-                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold mt-2 block text-red-600 dark:text-red-500">
+                <span className="text-lg sm:text-2xl md:text-3xl font-extrabold mt-2 block text-red-600 dark:text-red-500">
                   {displayReject.toLocaleString("id-ID")}
                 </span>
                 <div className="flex items-center justify-between mt-3 gap-2">
@@ -1153,7 +1153,7 @@ export default function DashboardPage() {
                   <span className="text-[10px] sm:text-xs md:text-sm font-extrabold text-slate-700 dark:text-slate-200 whitespace-nowrap">{displayTotal > 0 ? ((displayReject / displayTotal) * 100).toFixed(2) : "0.00"}%</span>
                 </div>
               </motion.div>
-
+ 
             </div>
 
             {/* Kecamatan Realization Ranking Card */}
@@ -1595,7 +1595,7 @@ export default function DashboardPage() {
               <div 
                 ref={topScrollRef}
                 onScroll={handleTopScroll}
-                className="overflow-x-auto overflow-y-hidden w-full bg-slate-50/30 dark:bg-slate-900/30 border-b border-slate-200 dark:border-slate-800"
+                className="hidden md:block overflow-x-auto overflow-y-hidden w-full bg-slate-50/30 dark:bg-slate-900/30 border-b border-slate-200 dark:border-slate-800"
                 style={{ height: "10px" }}
               >
                 <div style={{ width: `${tableWidth}px`, height: "10px" }} />
@@ -1610,7 +1610,7 @@ export default function DashboardPage() {
                 <table className="w-full text-left border-collapse">
                   <thead className="sticky top-0 z-20 bg-slate-50 dark:bg-slate-900 shadow-[0_1px_0_0_rgba(226,232,240,1)] dark:shadow-[0_1px_0_0_rgba(30,41,59,1)]">
                     <tr className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                      <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Kode Identitas</th>
+                      <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900 sticky left-0 z-30 border-r border-slate-200 dark:border-slate-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Kode Identitas</th>
                       <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Sumber Data</th>
                       <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Nama Keluarga/Bangunan/Usaha</th>
                       <th className="py-3 px-3 sm:px-4 sm:py-4 bg-slate-50 dark:bg-slate-900">Kecamatan</th>
@@ -1628,14 +1628,18 @@ export default function DashboardPage() {
                       paginatedData.map((row, idx) => (
                         <tr
                           key={idx}
-                          className={`hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-all border-l-2 ${
+                          className={`group hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-all border-l-2 ${
                             row.isPrioritas === "Ya"
                               ? "bg-orange-500/5 hover:bg-orange-500/10 dark:bg-orange-500/5 dark:hover:bg-orange-500/10 border-l-orange-500"
                               : "border-l-transparent"
                           }`}
                         >
                           {/* ID Code */}
-                          <td className="py-3 px-3 sm:px-4 sm:py-4 font-mono text-xs font-semibold text-slate-800 dark:text-slate-300 whitespace-nowrap">
+                          <td className={`py-3 px-3 sm:px-4 sm:py-4 font-mono text-xs font-semibold text-slate-800 dark:text-slate-300 whitespace-nowrap sticky left-0 z-10 border-r border-slate-200 dark:border-slate-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.12)] ${
+                            row.isPrioritas === "Ya"
+                              ? "bg-orange-500/5 dark:bg-slate-950/20 group-hover:bg-orange-500/10 dark:group-hover:bg-orange-950/30"
+                              : "bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800"
+                          }`}>
                             <div className="flex items-center gap-2">
                                <span>{row.idCode}</span>
                               {row.isPrioritas === "Ya" && (
