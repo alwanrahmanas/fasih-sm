@@ -1188,7 +1188,7 @@ export default function PetugasPage() {
 
             {/* Officers Data Table */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="overflow-auto max-h-[650px] w-full">
+              <div className="overflow-auto max-h-[800px] w-full">
                 <table className="w-full text-left border-collapse">
                   <thead className="sticky top-0 z-20 bg-slate-50 dark:bg-slate-900 shadow-[0_1px_0_0_rgba(226,232,240,1)] dark:shadow-[0_1px_0_0_rgba(30,41,59,1)]">
                     <tr className="text-[10px] uppercase font-bold text-slate-700 dark:text-slate-300 tracking-wider">
