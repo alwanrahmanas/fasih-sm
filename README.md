@@ -6,6 +6,12 @@ Repositori ini berisi sistem pemantauan terpadu untuk Sensus Ekonomi 2026 BPS Ka
 
 ---
 
+## 📋 Panduan untuk Kabupaten Lain
+
+Jika Anda ingin menduplikasi sistem monitoring ini untuk wilayah kabupaten Anda sendiri, silakan ikuti petunjuk langkah demi langkah di **[panduan_clone.md](panduan_clone.md)** untuk proses setup data wilayah, penyesuaian kode wilayah, dan deployment.
+
+---
+
 ## 📂 Struktur Proyek
 
 Proyek ini terstruktur sebagai berikut:
