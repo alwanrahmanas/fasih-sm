@@ -105,6 +105,37 @@ interface KecamatanStats {
   }[];
 }
 
+const calculateTargetAndDiff = (realisasiPct: number) => {
+  const startDate = new Date("2026-06-15");
+  const today = new Date();
+  
+  // Reset time to midnight for accurate day calculations
+  const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  const current = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  
+  const diffTime = current.getTime() - start.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // 15 to 15 is 1 day, 15 to 23 is 9 days
+  
+  // Daily target addition happens at 12:00 PM (noon)
+  let elapsedDays = diffDays;
+  if (today.getHours() < 12) {
+    elapsedDays = diffDays - 1;
+  }
+  elapsedDays = Math.max(0, elapsedDays);
+  
+  const dailyTarget = 1.67;
+  const cumulativeTarget = elapsedDays * dailyTarget;
+  const diff = realisasiPct - cumulativeTarget;
+  
+  return {
+    elapsedDays,
+    cumulativeTarget,
+    diff,
+    isAboveTarget: diff >= 0,
+    isBelowHalfTarget: realisasiPct < (0.5 * cumulativeTarget)
+  };
+};
+
 export default function PetugasPage() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
@@ -120,6 +151,8 @@ export default function PetugasPage() {
   const [selectedKec, setSelectedKec] = useState("all");
   const [sortBy, setSortBy] = useState<"nama" | "realisasi_desc" | "realisasi_asc" | "pct_desc" | "pct_asc">("nama");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  const bannerTargetInfo = useMemo(() => calculateTargetAndDiff(0), [lastUpdated]);
 
 
   // Fetch and parse the CSV
@@ -843,7 +876,7 @@ export default function PetugasPage() {
               <h1 className="text-xs sm:text-sm md:text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                 BPS Kabupaten Kepulauan Sangihe
               </h1>
-              <p className="text-[10px] sm:text-xs text-slate-650 dark:text-slate-400">
+              <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400">
                 Dashboard Monitoring Sensus Ekonomi 2026
               </p>
             </div>
@@ -886,7 +919,7 @@ export default function PetugasPage() {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
-                className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-350 transition-colors cursor-pointer"
+                className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
                 title="Ganti Tema"
               >
                 {isDarkMode ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
@@ -894,7 +927,7 @@ export default function PetugasPage() {
               <button
                 onClick={fetchData}
                 disabled={loading}
-                className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-350 transition-colors disabled:opacity-50 cursor-pointer"
+                className="p-2 sm:p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors disabled:opacity-50 cursor-pointer"
                 title="Segarkan Data"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-orange-500" : ""}`} />
@@ -976,7 +1009,7 @@ export default function PetugasPage() {
                     className={`shrink-0 flex-1 lg:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${
                       activeTab === "pcl"
                         ? "bg-white dark:bg-slate-900 text-orange-500 shadow-sm"
-                        : "text-slate-700 dark:text-slate-350 hover:text-slate-900 dark:hover:text-slate-200"
+                        : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-200"
                     }`}
                   >
                     <User className="w-4 h-4" />
@@ -990,7 +1023,7 @@ export default function PetugasPage() {
                     className={`shrink-0 flex-1 lg:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${
                       activeTab === "pml"
                         ? "bg-white dark:bg-slate-900 text-orange-500 shadow-sm"
-                        : "text-slate-700 dark:text-slate-350 hover:text-slate-900 dark:hover:text-slate-200"
+                        : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-200"
                     }`}
                   >
                     <UserCheck className="w-4 h-4" />
@@ -1004,7 +1037,7 @@ export default function PetugasPage() {
                     className={`shrink-0 flex-1 lg:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${
                       activeTab === "kecamatan"
                         ? "bg-white dark:bg-slate-900 text-orange-500 shadow-sm"
-                        : "text-slate-700 dark:text-slate-350 hover:text-slate-900 dark:hover:text-slate-200"
+                        : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-200"
                     }`}
                   >
                     <Building className="w-4 h-4" />
@@ -1018,7 +1051,7 @@ export default function PetugasPage() {
                     className={`shrink-0 flex-1 lg:flex-initial flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-xs font-bold transition-all ${
                       activeTab === "prioritas"
                         ? "bg-white dark:bg-slate-900 text-orange-500 shadow-sm"
-                        : "text-slate-700 dark:text-slate-350 hover:text-slate-900 dark:hover:text-slate-200"
+                        : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-200"
                     }`}
                   >
                     <Layers className="w-4 h-4" />
@@ -1120,30 +1153,29 @@ export default function PetugasPage() {
                 </div>
               </div>
             </div>
-
             {/* Warning Banner Info */}
             <div className="mb-6 p-4 rounded-xl border bg-amber-500/5 dark:bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs flex gap-2.5 items-start">
               <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
               <div>
-                <span className="font-bold">Ketentuan Pewarnaan & Rekapitulasi:</span>
-                <ul className="list-disc list-inside mt-1 flex flex-col gap-0.5">
-                  {activeTab === "pcl" ? (
-                    <li>
-                      Untuk <span className="font-bold">Pencacah (PCL)</span>: Baris diwarnai <span className="text-red-500 font-bold">merah</span> jika status <span className="font-bold">DRAFT</span>, <span className="font-bold">SUBMIT</span>, <span className="font-bold">REJECT</span>, <span className="font-bold">APPROVE</span>, dan <span className="font-bold">REVOKED</span>-nya 0 (belum mulai bekerja).
-                    </li>
-                  ) : activeTab === "pml" ? (
-                    <li>
-                      Untuk <span className="font-bold">Pengawas (PML)</span>: Baris diwarnai <span className="text-red-500 font-bold">merah</span> jika status <span className="font-bold">APPROVE</span> dan <span className="font-bold">REJECT</span>-nya masih 0 (menandakan belum ada berkas yang diperiksa).
-                    </li>
-                  ) : activeTab === "kecamatan" ? (
-                    <li>
-                      Untuk <span className="font-bold">Kecamatan</span>: Baris diwarnai <span className="text-red-500 font-bold">merah</span> jika status <span className="font-bold">APPROVE</span> dan <span className="font-bold">REJECT</span>-nya masih 0 (menandakan belum ada berkas PML di kecamatan tersebut yang diperiksa).
-                    </li>
-                  ) : (
-                    <li>
-                      Untuk <span className="font-bold">SLS Prioritas</span>: Baris diwarnai dengan warna latar belakang <span className="text-orange-500 font-bold">oranye</span> premium. Nama PCL dan PML digabung, dan rekap menggunakan data Pengawas sebagai sumber utama.
-                    </li>
-                  )}
+                <span className="font-bold text-slate-800 dark:text-slate-200">Ketentuan Pewarnaan & Rekapitulasi Target Harian:</span>
+                <ul className="list-disc list-inside mt-1 flex flex-col gap-1 text-slate-600 dark:text-slate-300">
+                  <li>
+                    Target Harian: <span className="font-bold text-slate-800 dark:text-slate-200">1,67%</span> per hari | Dimulai: <span className="font-bold text-slate-800 dark:text-slate-200">15 Juni 2026</span> | Hari ke-<span className="font-bold text-slate-800 dark:text-slate-200">{bannerTargetInfo.elapsedDays}</span> (Target Akumulatif: <span className="font-bold text-slate-800 dark:text-slate-200">{bannerTargetInfo.cumulativeTarget.toFixed(2)}%</span>).
+                  </li>
+                  <li>
+                    Aturan Pewarnaan Baris & Realisasi (PCL, PML, Kecamatan):
+                    <ul className="list-disc list-inside pl-5 mt-0.5 flex flex-col gap-0.5">
+                      <li>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">Hijau</span>: Di atas target harian akumulatif (<span className="font-bold font-mono">&gt;= {bannerTargetInfo.cumulativeTarget.toFixed(2)}%</span>).
+                      </li>
+                      <li>
+                        <span className="text-red-500 dark:text-red-400 font-extrabold">Merah</span>: Di bawah 50% target harian akumulatif (<span className="font-bold font-mono">&lt; {(bannerTargetInfo.cumulativeTarget * 0.5).toFixed(2)}%</span>).
+                      </li>
+                      <li>
+                        <span className="text-amber-650 dark:text-amber-500 font-extrabold">Kuning</span>: Di antara 50% target s.d target harian akumulatif (<span className="font-bold font-mono">{(bannerTargetInfo.cumulativeTarget * 0.5).toFixed(2)}% s.d {bannerTargetInfo.cumulativeTarget.toFixed(2)}%</span>).
+                      </li>
+                    </ul>
+                  </li>
                   <li>
                     <span className="font-bold">Progres</span> dihitung dari jumlah status yang bukan open dan draft (SUBMITTED + REJECTED + APPROVED + REVOKED).
                   </li>
@@ -1218,15 +1250,19 @@ export default function PetugasPage() {
                           const isExpanded = expandedRows.has(k.namaKec);
                           const pctRealisasi = k.total > 0 ? ((k.realisasi / k.total) * 100).toFixed(2) : "0.00";
 
+                          const targetInfo = calculateTargetAndDiff(parseFloat(pctRealisasi));
+                          let rowColor = "bg-amber-500/5 dark:bg-amber-950/10";
+                          if (targetInfo.isAboveTarget) {
+                            rowColor = "bg-emerald-500/5 dark:bg-emerald-950/10";
+                          } else if (targetInfo.isBelowHalfTarget) {
+                            rowColor = "bg-rose-500/5 dark:bg-rose-950/10";
+                          }
+
                           return (
                             <React.Fragment key={k.namaKec}>
                               {/* Kecamatan Summary Row */}
                               <tr
-                                className={`group border-b border-slate-200 dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-950/10 transition-colors cursor-pointer text-xs ${
-                                  isRed 
-                                    ? "bg-red-500/5 dark:bg-red-500/10 text-red-700 dark:text-red-400 font-semibold" 
-                                    : ""
-                                }`}
+                                className={`group border-b border-slate-200 dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-950/10 transition-colors cursor-pointer text-xs ${rowColor}`}
                                 onClick={() => toggleRow(k.namaKec)}
                               >
                                 <td className="py-3 px-4 text-center">
@@ -1236,7 +1272,7 @@ export default function PetugasPage() {
                                     <ChevronRight className="w-4 h-4 text-slate-400" />
                                   )}
                                 </td>
-                                <td className="py-3 px-2 text-center font-semibold text-slate-700 dark:text-slate-350">
+                                <td className="py-3 px-2 text-center font-semibold text-slate-700 dark:text-slate-300">
                                   {index + 1}
                                 </td>
                                 <td className="py-3 px-4 font-semibold">
@@ -1253,22 +1289,29 @@ export default function PetugasPage() {
                                 <td className="py-3 px-4 text-center font-normal text-rose-600 dark:text-rose-500/90">{k.revoked}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">{k.progress}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">{k.realisasi}</td>
-                                <td className={`py-3 px-4 text-center sticky right-0 z-10 border-l border-slate-200 dark:border-slate-800/65 transition-colors ${
-                                  isRed
-                                    ? "bg-red-50 dark:bg-[#1a0f0f] group-hover:bg-red-100/50 dark:group-hover:bg-red-900/35"
-                                    : "bg-white dark:bg-slate-900 group-hover:bg-slate-50/80 dark:group-hover:bg-slate-950/80"
-                                }`}>
-                                  <span className={`inline-flex px-2.5 py-0.5 rounded-full font-extrabold text-xs ${
-                                    isRed
-                                      ? "bg-red-500/10 text-red-500 border border-red-500/20"
-                                      : parseFloat(pctRealisasi) >= 80
-                                      ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                                      : parseFloat(pctRealisasi) >= 40
-                                      ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
-                                      : "bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20"
-                                  }`}>
-                                    {pctRealisasi}%
-                                  </span>
+                                <td className="py-3 px-4 text-center sticky right-0 z-10 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-950 transition-colors">
+                                  <div className="flex flex-col items-center gap-0.5">
+                                    <span className={`inline-flex px-2.5 py-0.5 rounded-full font-extrabold text-xs ${
+                                      targetInfo.isAboveTarget
+                                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-450 border border-emerald-500/20"
+                                        : targetInfo.isBelowHalfTarget
+                                        ? "bg-rose-500/10 text-rose-600 dark:text-rose-450 border border-rose-500/20"
+                                        : "bg-amber-500/10 text-amber-600 dark:text-amber-500 border border-amber-500/20"
+                                    }`}>
+                                      {pctRealisasi}%
+                                    </span>
+                                    <span className={`text-[9px] font-bold ${
+                                      targetInfo.isAboveTarget
+                                        ? "text-emerald-600 dark:text-emerald-450"
+                                        : targetInfo.isBelowHalfTarget
+                                        ? "text-rose-500 dark:text-rose-405"
+                                        : "text-amber-600 dark:text-amber-500"
+                                    }`}>
+                                      {targetInfo.diff >= 0 
+                                        ? `+${targetInfo.diff.toFixed(2)}% (Lebih)` 
+                                        : `${targetInfo.diff.toFixed(2)}% (Kurang)`}
+                                    </span>
+                                  </div>
                                 </td>
                               </tr>
 
@@ -1303,18 +1346,21 @@ export default function PetugasPage() {
                                           <tbody>
                                             {k.pmlList.map((pml) => {
                                               const pmlPct = pml.total > 0 ? ((pml.realisasi / pml.total) * 100).toFixed(2) : "0.00";
-                                              const isPmlRedRow = pml.approve === 0 && pml.reject === 0;
+                                              const pmlTargetInfo = calculateTargetAndDiff(parseFloat(pmlPct));
+                                              let rowColor = "bg-amber-500/5 dark:bg-amber-950/10";
+                                              if (pmlTargetInfo.isAboveTarget) {
+                                                rowColor = "bg-emerald-500/5 dark:bg-emerald-950/10";
+                                              } else if (pmlTargetInfo.isBelowHalfTarget) {
+                                                rowColor = "bg-rose-500/5 dark:bg-rose-950/10";
+                                              }
+
                                               return (
                                                 <tr
                                                   key={pml.email}
-                                                  className={`border-b border-slate-100 dark:border-slate-800/40 py-2 hover:bg-slate-50/50 dark:hover:bg-slate-950/10 transition-colors ${
-                                                    isPmlRedRow
-                                                      ? "bg-red-500/5 dark:bg-red-500/10 text-red-700 dark:text-red-400 font-semibold"
-                                                      : ""
-                                                  }`}
+                                                  className={`border-b border-slate-100 dark:border-slate-800/40 py-2 hover:bg-slate-50/50 dark:hover:bg-slate-950/10 transition-colors ${rowColor}`}
                                                 >
                                                   <td className="py-2 font-semibold text-slate-900 dark:text-slate-100">{pml.namaPetugas}</td>
-                                                  <td className="py-2 text-slate-700 dark:text-slate-350 font-normal">{pml.email}</td>
+                                                  <td className="py-2 text-slate-700 dark:text-slate-300 font-normal">{pml.email}</td>
                                                   <td className="py-2 text-center">{pml.slsCount}</td>
                                                   <td className="py-2 text-center font-semibold text-slate-800 dark:text-slate-200">{pml.total}</td>
                                                   <td className="py-2 text-center text-amber-600 dark:text-amber-500/90">{pml.open}</td>
@@ -1326,17 +1372,28 @@ export default function PetugasPage() {
                                                   <td className="py-2 text-center font-semibold text-slate-700 dark:text-slate-300">{pml.progress}</td>
                                                   <td className="py-2 text-center font-semibold text-slate-700 dark:text-slate-300">{pml.realisasi}</td>
                                                   <td className="py-2 text-center">
-                                                    <span className={`inline-flex px-2 py-0.5 rounded-full font-extrabold text-[10px] ${
-                                                      isPmlRedRow
-                                                        ? "bg-red-500/10 text-red-500 border border-red-500/20"
-                                                        : parseFloat(pmlPct) >= 80
-                                                        ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                                                        : parseFloat(pmlPct) >= 40
-                                                        ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
-                                                        : "bg-slate-500/10 text-slate-700 dark:text-slate-350 border border-slate-500/20"
-                                                    }`}>
-                                                      {pmlPct}%
-                                                    </span>
+                                                    <div className="flex flex-col items-center gap-0.5">
+                                                      <span className={`inline-flex px-2 py-0.5 rounded-full font-extrabold text-[10px] ${
+                                                        pmlTargetInfo.isAboveTarget
+                                                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-450 border border-emerald-500/20"
+                                                          : pmlTargetInfo.isBelowHalfTarget
+                                                          ? "bg-rose-500/10 text-rose-600 dark:text-rose-450 border border-rose-500/20"
+                                                          : "bg-amber-500/10 text-amber-600 dark:text-amber-500 border border-amber-500/20"
+                                                      }`}>
+                                                        {pmlPct}%
+                                                      </span>
+                                                      <span className={`text-[8px] font-bold ${
+                                                        pmlTargetInfo.isAboveTarget
+                                                          ? "text-emerald-600 dark:text-emerald-450"
+                                                          : pmlTargetInfo.isBelowHalfTarget
+                                                          ? "text-rose-500 dark:text-rose-405"
+                                                          : "text-amber-600 dark:text-amber-500"
+                                                      }`}>
+                                                        {pmlTargetInfo.diff >= 0 
+                                                          ? `+${pmlTargetInfo.diff.toFixed(1)}%` 
+                                                          : `${pmlTargetInfo.diff.toFixed(1)}%`}
+                                                      </span>
+                                                    </div>
                                                   </td>
                                                 </tr>
                                               );
@@ -1365,9 +1422,9 @@ export default function PetugasPage() {
                           return (
                             <tr
                               key={item.slsCode}
-                              className="group border-b border-orange-500/20 dark:border-orange-500/10 bg-orange-500/[0.03] dark:bg-orange-500/[0.015] hover:bg-orange-500/[0.06] dark:hover:bg-orange-500/[0.03] transition-colors text-xs border-l-4 border-l-orange-500"
+                              className="group border-b border-orange-500/20 dark:border-orange-500/10 bg-orange-500/5 dark:bg-orange-950/10 hover:bg-orange-500/10 dark:hover:bg-orange-950/20 transition-colors text-xs border-l-4 border-l-orange-500"
                             >
-                              <td className="py-3 px-2 text-center font-semibold text-slate-700 dark:text-slate-350">
+                              <td className="py-3 px-2 text-center font-semibold text-slate-700 dark:text-slate-300">
                                 {index + 1}
                               </td>
                               <td className="py-3 px-4 font-bold text-slate-900 dark:text-slate-100 font-mono">
@@ -1431,16 +1488,19 @@ export default function PetugasPage() {
                           const isRed = activeTab === "pcl" ? isPclRed(o) : isPmlRed(o);
                           const isExpanded = expandedRows.has(o.email);
                           const pctRealisasi = o.total > 0 ? ((o.realisasi / o.total) * 100).toFixed(2) : "0.00";
+                          const targetInfo = calculateTargetAndDiff(parseFloat(pctRealisasi));
+                          let rowColor = "bg-amber-500/5 dark:bg-amber-950/10";
+                          if (targetInfo.isAboveTarget) {
+                            rowColor = "bg-emerald-500/5 dark:bg-emerald-950/10";
+                          } else if (targetInfo.isBelowHalfTarget || isRed) {
+                            rowColor = "bg-rose-500/5 dark:bg-rose-950/10";
+                          }
 
                           return (
                             <React.Fragment key={o.email}>
                               {/* Officer Summary Row */}
                               <tr
-                                className={`group border-b border-slate-200 dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-950/10 transition-colors cursor-pointer text-xs ${
-                                  isRed 
-                                    ? "bg-red-500/5 dark:bg-red-500/10 text-red-700 dark:text-red-400 font-semibold" 
-                                    : ""
-                                }`}
+                                className={`group border-b border-slate-200 dark:border-slate-800/60 hover:bg-slate-50/50 dark:hover:bg-slate-950/10 transition-colors cursor-pointer text-xs ${rowColor}`}
                                 onClick={() => toggleRow(o.email)}
                               >
                                 <td className="py-3 px-4 text-center">
@@ -1450,12 +1510,12 @@ export default function PetugasPage() {
                                     <ChevronRight className="w-4 h-4 text-slate-400" />
                                   )}
                                 </td>
-                                <td className="py-3 px-2 text-center font-semibold text-slate-700 dark:text-slate-350">
+                                <td className="py-3 px-2 text-center font-semibold text-slate-700 dark:text-slate-300">
                                   {index + 1}
                                 </td>
                                 <td className="py-3 px-4 font-semibold">
                                   <div className="font-semibold text-slate-900 dark:text-slate-100">{o.namaPetugas}</div>
-                                  <div className="text-[10px] text-slate-700 dark:text-slate-350 font-normal mt-0.5">{o.email}</div>
+                                  <div className="text-[10px] text-slate-700 dark:text-slate-300 font-normal mt-0.5">{o.email}</div>
                                 </td>
                                 <td className="py-3 px-4 font-normal">{formatKecName(o.namaKec)}</td>
                                 <td className="py-3 px-4 font-normal">{o.koseka}</td>
@@ -1469,22 +1529,29 @@ export default function PetugasPage() {
                                 <td className="py-3 px-4 text-center font-normal text-rose-600 dark:text-rose-500/90">{o.revoked}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">{o.progress}</td>
                                 <td className="py-3 px-4 text-center font-semibold text-slate-700 dark:text-slate-300">{o.realisasi}</td>
-                                <td className={`py-3 px-4 text-center sticky right-0 z-10 border-l border-slate-200 dark:border-slate-800/65 transition-colors ${
-                                  isRed
-                                    ? "bg-red-50 dark:bg-[#1a0f0f] group-hover:bg-red-100/50 dark:group-hover:bg-red-900/35"
-                                    : "bg-white dark:bg-slate-900 group-hover:bg-slate-50/80 dark:group-hover:bg-slate-950/80"
-                                }`}>
-                                  <span className={`inline-flex px-2.5 py-0.5 rounded-full font-extrabold text-xs ${
-                                    isRed
-                                      ? "bg-red-500/10 text-red-500 border border-red-500/20"
-                                      : parseFloat(pctRealisasi) >= 80
-                                      ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                                      : parseFloat(pctRealisasi) >= 40
-                                      ? "bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20"
-                                      : "bg-slate-500/10 text-slate-700 dark:text-slate-350 border border-slate-500/20"
-                                  }`}>
-                                    {pctRealisasi}%
-                                  </span>
+                                <td className="py-3 px-4 text-center sticky right-0 z-10 border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-950 transition-colors">
+                                  <div className="flex flex-col items-center gap-0.5">
+                                    <span className={`inline-flex px-2.5 py-0.5 rounded-full font-extrabold text-xs ${
+                                      targetInfo.isAboveTarget
+                                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-450 border border-emerald-500/20"
+                                        : (targetInfo.isBelowHalfTarget || isRed)
+                                        ? "bg-rose-500/10 text-rose-600 dark:text-rose-450 border border-rose-500/20"
+                                        : "bg-amber-500/10 text-amber-600 dark:text-amber-500 border border-amber-500/20"
+                                    }`}>
+                                      {pctRealisasi}%
+                                    </span>
+                                    <span className={`text-[9px] font-bold ${
+                                      targetInfo.isAboveTarget
+                                        ? "text-emerald-600 dark:text-emerald-450"
+                                        : (targetInfo.isBelowHalfTarget || isRed)
+                                        ? "text-rose-500 dark:text-rose-405"
+                                        : "text-amber-600 dark:text-amber-500"
+                                    }`}>
+                                      {targetInfo.diff >= 0 
+                                        ? `+${targetInfo.diff.toFixed(2)}% (Lebih)` 
+                                        : `${targetInfo.diff.toFixed(2)}% (Kurang)`}
+                                    </span>
+                                  </div>
                                 </td>
                               </tr>
 
@@ -1505,7 +1572,7 @@ export default function PetugasPage() {
                                               key={sls.slsCode}
                                               className={`p-3.5 rounded-xl border flex flex-col gap-2.5 shadow-sm hover:shadow transition-all ${
                                                 sls.isPrioritas
-                                                  ? "border-orange-500/60 dark:border-orange-500/40 bg-orange-500/[0.02] dark:bg-orange-500/[0.01] ring-1 ring-orange-500/20"
+                                                  ? "border-orange-500/60 dark:border-orange-500/40 bg-orange-500/5 dark:bg-orange-950/10 ring-1 ring-orange-500/20"
                                                   : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950"
                                               }`}
                                             >

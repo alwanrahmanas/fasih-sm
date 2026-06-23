@@ -178,6 +178,38 @@ const parseDashboardScrapedCSV = (csvText: string): DashboardRecord[] => {
   return parsed;
 };
 
+const calculateTargetAndDiff = (realisasiPct: number) => {
+  const startDate = new Date("2026-06-15");
+  const today = new Date();
+  
+  // Reset time to midnight for accurate day calculations
+  const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  const current = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  
+  const diffTime = current.getTime() - start.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // 15 to 15 is 1 day, 15 to 23 is 9 days
+  
+  // Daily target addition happens at 12:00 PM (noon)
+  let elapsedDays = diffDays;
+  if (today.getHours() < 12) {
+    elapsedDays = diffDays - 1;
+  }
+  elapsedDays = Math.max(0, elapsedDays);
+  
+  const dailyTarget = 1.67;
+  const cumulativeTarget = elapsedDays * dailyTarget;
+  const diff = realisasiPct - cumulativeTarget;
+  
+  return {
+    elapsedDays,
+    cumulativeTarget,
+    diff,
+    isAboveTarget: diff >= 0,
+    isBelowHalfTarget: realisasiPct < (0.5 * cumulativeTarget)
+  };
+};
+
+
 export default function DashboardPage() {
   // Theme state
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -484,6 +516,13 @@ export default function DashboardPage() {
       displayRealisasiFasih: dSubmit + dApprove + dReject
     };
   }, [totalPrelistSummary, summaryStatusCounts, stats]);
+
+  // Kabupaten realization and target calculations
+  const { kabPct, kabTargetInfo } = useMemo(() => {
+    const pct = displayTotal > 0 ? (displayRealisasiFasih / displayTotal) * 100 : 0;
+    const targetInfo = calculateTargetAndDiff(pct);
+    return { kabPct: pct, kabTargetInfo: targetInfo };
+  }, [displayTotal, displayRealisasiFasih]);
 
   // Unique filters data
   const filterOptions = useMemo(() => {
@@ -964,6 +1003,52 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
+            {/* Target Monitoring Banner */}
+            <div className={`mb-8 p-6 rounded-3xl border transition-all ${
+              kabTargetInfo.isAboveTarget
+                ? "bg-emerald-500/5 dark:bg-emerald-950/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                : kabTargetInfo.isBelowHalfTarget
+                ? "bg-red-500/5 dark:bg-red-950/10 border-red-500/20 text-red-600 dark:text-red-400"
+                : "bg-amber-500/5 dark:bg-amber-950/10 border-amber-500/20 text-amber-600 dark:text-amber-500"
+            }`}>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-3 rounded-2xl shrink-0 ${
+                    kabTargetInfo.isAboveTarget
+                      ? "bg-emerald-500/10 text-emerald-500"
+                      : kabTargetInfo.isBelowHalfTarget
+                      ? "bg-red-500/10 text-red-500"
+                      : "bg-amber-500/10 text-amber-500"
+                  }`}>
+                    <TrendingUp className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">
+                      Monitoring Target Kinerja Kabupaten Kepulauan Sangihe
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Target Harian: <span className="font-bold text-slate-800 dark:text-slate-200">1,67%</span> per hari | Dimulai: <span className="font-bold text-slate-800 dark:text-slate-200">15 Juni 2026</span> | Hari ke-<span className="font-bold text-slate-800 dark:text-slate-200">{kabTargetInfo.elapsedDays}</span> (Target Akumulatif: <span className="font-bold text-slate-800 dark:text-slate-200">{kabTargetInfo.cumulativeTarget.toFixed(2)}%</span>)
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-start md:items-end bg-white dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 shadow-sm min-w-[200px] w-full md:w-auto">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Status Capaian</span>
+                  <span className={`text-sm sm:text-base font-black mt-1 flex items-center gap-1.5 ${
+                    kabTargetInfo.isAboveTarget
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : kabTargetInfo.isBelowHalfTarget
+                      ? "text-red-500 dark:text-red-400"
+                      : "text-amber-600 dark:text-amber-500"
+                  }`}>
+                    {kabTargetInfo.isAboveTarget ? "DI ATAS TARGET" : kabTargetInfo.isBelowHalfTarget ? "DI BAWAH 50% TARGET" : "DI BAWAH TARGET (WASPADA)"}
+                  </span>
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 mt-1">
+                    Realisasi: <span className="font-extrabold">{kabPct.toFixed(2)}%</span> ({kabTargetInfo.diff >= 0 ? `Lebih +${kabTargetInfo.diff.toFixed(2)}%` : `Kurang ${kabTargetInfo.diff.toFixed(2)}%`})
+                  </span>
+                </div>
+              </div>
+            </div>
+
             {/* Stats Overview */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 mb-8">
               
@@ -1165,24 +1250,25 @@ export default function DashboardPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                     {kecamatanRealisasiStats.map((item, idx) => {
                       const pct = item.pctRealisasi;
+                      const targetInfo = calculateTargetAndDiff(pct);
                       
-                      let colorClass = "from-orange-500 to-amber-500";
-                      let bgClass = "bg-orange-500/10";
-                      let textClass = "text-orange-600 dark:text-orange-500";
+                      let colorClass = "from-amber-500 to-yellow-400";
+                      let bgClass = "bg-amber-500/10";
+                      let textClass = "text-amber-600 dark:text-amber-500";
                       
-                      if (pct >= 80) {
+                      if (targetInfo.isAboveTarget) {
                         colorClass = "from-emerald-500 to-teal-500";
                         bgClass = "bg-emerald-500/10";
-                        textClass = "text-emerald-600 dark:text-emerald-500";
-                      } else if (pct >= 40) {
-                        colorClass = "from-blue-600 to-cyan-500";
-                        bgClass = "bg-blue-500/10";
-                        textClass = "text-blue-600 dark:text-blue-500";
+                        textClass = "text-emerald-650 dark:text-emerald-450";
+                      } else if (targetInfo.isBelowHalfTarget) {
+                        colorClass = "from-red-500 to-rose-500";
+                        bgClass = "bg-red-500/10";
+                        textClass = "text-red-500 dark:text-red-400";
                       }
 
                       return (
                         <div key={item.namaKec} className="flex flex-col gap-1.5 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                          <div className="flex justify-between items-center text-xs font-semibold">
+                          <div className="flex justify-between items-start text-xs font-semibold">
                             <span className="flex items-center gap-2">
                               <span className={`w-5 h-5 flex items-center justify-center rounded-lg text-[10px] font-bold ${
                                 idx === 0 
@@ -1195,18 +1281,25 @@ export default function DashboardPage() {
                               }`}>
                                 {idx + 1}
                               </span>
-                              <span className="uppercase tracking-wider text-slate-700 dark:text-slate-300 truncate max-w-[150px]">
+                              <span className="uppercase tracking-wider text-slate-700 dark:text-slate-355 truncate max-w-[140px] md:max-w-[185px]">
                                 {formatKecName(item.namaKec)}
                               </span>
                             </span>
-                            <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">
-                                {item.realisasi.toLocaleString("id-ID")} / {item.total.toLocaleString("id-ID")}
+                            <div className="flex flex-col items-end">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal font-mono">
+                                  {item.realisasi.toLocaleString("id-ID")} / {item.total.toLocaleString("id-ID")}
+                                </span>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${bgClass} ${textClass}`}>
+                                  {pct.toFixed(2)}%
+                                </span>
+                              </div>
+                              <span className={`text-[9px] font-bold mt-0.5 ${textClass}`}>
+                                {targetInfo.diff >= 0 
+                                  ? `+${targetInfo.diff.toFixed(2)}% (Lebih)` 
+                                  : `${targetInfo.diff.toFixed(2)}% (Kurang)`}
                               </span>
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${bgClass} ${textClass}`}>
-                                {pct.toFixed(2)}%
-                              </span>
-                            </span>
+                            </div>
                           </div>
                           <div className="h-3 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden flex shadow-inner">
                             <div
