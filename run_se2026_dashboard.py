@@ -113,7 +113,65 @@ def run_dashboard_scraper():
                 page.locator("#username").fill(username)
                 page.locator("#password").fill(password)
                 page.locator("#kc-login").click()
-                page.wait_for_timeout(5000)
+                
+                # Wait to see if we get redirected to app or if an OTP page is displayed
+                print("Waiting for login response...")
+                is_otp_page = False
+                for _ in range(15):
+                    page.wait_for_timeout(1000)
+                    if "/app" in page.url:
+                        break
+                    # Check if OTP inputs or OTP terms exist
+                    for sel in ["input#otp", "input#code", "input#totp", "input[name='otp']", "input[name='code']"]:
+                        if page.locator(sel).count() > 0:
+                            is_otp_page = True
+                            break
+                    if is_otp_page:
+                        break
+                    
+                    try:
+                        body_text = page.locator("body").text_content().lower()
+                        if "otp" in body_text or "authenticator" in body_text or "kode verifikasi" in body_text or "verification code" in body_text:
+                            is_otp_page = True
+                            break
+                    except Exception:
+                        pass
+                
+                if is_otp_page:
+                    if headless_mode:
+                        print("\n" + "!"*80)
+                        print("ERROR: OTP / Verifikasi login diperlukan oleh BPS SSO, tetapi script berjalan dalam mode HEADLESS.")
+                        print("Silakan jalankan ulang script dengan menambahkan argumen --headed (contoh: python run_se2026_dashboard.py --headed) agar browser terbuka,")
+                        print("sehingga Anda dapat memasukkan OTP secara manual di jendela browser.")
+                        print("!"*80 + "\n")
+                        sys.exit(1)
+                    else:
+                        print("\n" + "="*80)
+                        print("OTP / VERIFIKASI LOGIN TERDETEKSI!")
+                        print("Silakan masukkan kode OTP / Verifikasi secara manual pada browser Chromium yang terbuka.")
+                        print("Script akan otomatis melanjutkan setelah Anda berhasil masuk ke Dashboard FASIH.")
+                        print("="*80 + "\n")
+                        
+                        # Wait loop until logged in (redirected to /app or sso domain left)
+                        start_wait = time.time()
+                        last_print = 0
+                        while True:
+                            if "/app" in page.url:
+                                print("Successfully logged in via OTP!")
+                                break
+                            if "sso.bps.go.id" not in page.url and "/app" not in page.url:
+                                page.wait_for_timeout(2000)
+                                if "/app" in page.url:
+                                    break
+                                print("Warning: Left BPS SSO but did not reach app. Current URL: " + page.url)
+                                break
+                            elapsed = int(time.time() - start_wait)
+                            if elapsed - last_print >= 10:
+                                print(f"  [Waiting {elapsed}s] Menunggu input OTP manual di browser...")
+                                last_print = elapsed
+                            page.wait_for_timeout(1000)
+                else:
+                    page.wait_for_timeout(2000)
                 
         # Wait for redirect to /app
         try:
