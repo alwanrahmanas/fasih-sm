@@ -77,6 +77,7 @@ def run_git_commands(timestamp_str):
             os.path.join("dashboard", "public", "update_data.csv"),
             os.path.join("dashboard", "public", "dashboard_scraped_data.csv"),
             os.path.join("dashboard", "public", "pml_ppl.csv"),
+            os.path.join("dashboard", "public", "koseka.csv"),
             os.path.join("dashboard", "public", "ringkasan_Assign.csv"),
             os.path.join("dashboard", "public", "ringkasan_Progres.csv"),
             os.path.join("dashboard", "public", "last_updated.txt")
@@ -439,6 +440,12 @@ def process_data():
             if os.path.exists(pml_ppl_src):
                 shutil.copy2(pml_ppl_src, os.path.join(public_dir, "pml_ppl.csv"))
                 print(f"Copied '{pml_ppl_src}' to dashboard public folder.")
+            
+            # Copy Koseka CSV
+            koseka_src = os.path.join("data", "koseka.csv")
+            if os.path.exists(koseka_src):
+                shutil.copy2(koseka_src, os.path.join(public_dir, "koseka.csv"))
+                print(f"Copied '{koseka_src}' to dashboard public folder.")
             
             # Copy ringkasan_Assign.csv
             assign_src = os.path.join("data", "ringkasan_Assign.csv")

@@ -115,6 +115,7 @@ export default function ComparisonSBRPage() {
 
   // Data
   const [sbrData, setSbrData] = useState<SBRData | null>(null);
+  const [kosekaNames, setKosekaNames] = useState<Record<string, string>>({});
   const [rawCsvData, setRawCsvData] = useState<
     { idCode: string; scale: string; status: string; nama_kec: string; jumlahUsaha: number }[]
   >([]);
@@ -137,7 +138,30 @@ export default function ComparisonSBRPage() {
       const sbrJson: SBRData = await sbrResponse.json();
       setSbrData(sbrJson);
 
-      // 2) Fetch update_data.csv for scraping data
+      // 2) Fetch koseka.csv for subdistrict names mapping
+      let kosekaMap: Record<string, string> = {};
+      try {
+        const kosekaResponse = await fetch("/koseka.csv");
+        if (kosekaResponse.ok) {
+          const kosekaText = await kosekaResponse.text();
+          const kosekaLines = kosekaText.split("\n");
+          for (let i = 1; i < kosekaLines.length; i++) {
+            const line = kosekaLines[i].trim();
+            if (!line) continue;
+            const parts = line.split(";");
+            if (parts.length >= 2) {
+              const code = parts[0].trim();
+              const name = parts[1].trim();
+              kosekaMap[code] = name;
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Gagal memuat koseka.csv:", err);
+      }
+      setKosekaNames(kosekaMap);
+
+      // 3) Fetch update_data.csv for scraping data
       const dataResponse = await fetch("/update_data.csv");
       if (!dataResponse.ok)
         throw new Error("Gagal mengambil file update_data.csv.");
@@ -369,8 +393,17 @@ export default function ComparisonSBRPage() {
   const filteredRows = useMemo(() => {
     if (!searchQuery) return comparisonRows;
     const q = searchQuery.toLowerCase();
-    return comparisonRows.filter((r) => r.kode.includes(q));
-  }, [comparisonRows, searchQuery]);
+    return comparisonRows.filter((r) => {
+      const kodeMatch = r.kode.includes(q);
+      let nameMatch = false;
+      if (activeLevel === "kab" && r.kode === "7103") {
+        nameMatch = "kepulauan sangihe".includes(q);
+      } else if (activeLevel === "kec" && kosekaNames[r.kode]) {
+        nameMatch = kosekaNames[r.kode].toLowerCase().includes(q);
+      }
+      return kodeMatch || nameMatch;
+    });
+  }, [comparisonRows, searchQuery, activeLevel, kosekaNames]);
 
   // Paginated
   const totalPages = Math.ceil(filteredRows.length / pageSize) || 1;
@@ -435,6 +468,7 @@ export default function ComparisonSBRPage() {
   const handleExportCSV = () => {
     const headers = [
       "Kode",
+      "Nama Wilayah",
       "SBR_UB",
       "SBR_UM",
       "SBR_UMK",
@@ -451,9 +485,16 @@ export default function ComparisonSBRPage() {
       "Selisih_UMK",
       "Selisih_Total",
     ];
-    const rows = filteredRows.map((r) =>
-      [
+    const rows = filteredRows.map((r) => {
+      let namaWilayah = "";
+      if (activeLevel === "kab" && r.kode === "7103") {
+        namaWilayah = "Kabupaten Kepulauan Sangihe";
+      } else if (activeLevel === "kec" && kosekaNames[r.kode]) {
+        namaWilayah = formatKecName(kosekaNames[r.kode]);
+      }
+      return [
         r.kode,
+        `"${namaWilayah.replace(/"/g, '""')}"`,
         r.sbr_UB,
         r.sbr_UM,
         r.sbr_UMK,
@@ -469,8 +510,8 @@ export default function ComparisonSBRPage() {
         r.diff_UM,
         r.diff_UMK,
         r.diff_Total,
-      ].join(",")
-    );
+      ].join(",");
+    });
     const csvContent = [headers.join(","), ...rows].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -755,7 +796,7 @@ export default function ComparisonSBRPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Cari kode wilayah..."
+                  placeholder="Cari kode atau nama wilayah..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
@@ -888,7 +929,19 @@ export default function ComparisonSBRPage() {
                               ? "bg-white dark:bg-slate-900 group-hover:bg-slate-50 dark:group-hover:bg-slate-800"
                               : "bg-slate-25 dark:bg-slate-900/40 group-hover:bg-slate-50 dark:group-hover:bg-slate-800"
                           }`}>
-                            {row.kode}
+                            <div className="flex flex-col">
+                              <span>{row.kode}</span>
+                              {activeLevel === "kab" && row.kode === "7103" && (
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">
+                                  Kab. Kepulauan Sangihe
+                                </span>
+                              )}
+                              {activeLevel === "kec" && kosekaNames[row.kode] && (
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">
+                                  {formatKecName(kosekaNames[row.kode])}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           {/* SBR */}
                           <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">

@@ -670,6 +670,10 @@ def run_unified_scraper():
                     if os.path.exists(pml_ppl_src):
                         shutil.copy2(pml_ppl_src, os.path.join(public_dir, "pml_ppl.csv"))
                     
+                    koseka_src = os.path.join("data", "koseka.csv")
+                    if os.path.exists(koseka_src):
+                        shutil.copy2(koseka_src, os.path.join(public_dir, "koseka.csv"))
+                    
                     assign_src = os.path.join("data", "ringkasan_Assign.csv")
                     if os.path.exists(assign_src):
                         shutil.copy2(assign_src, os.path.join(public_dir, "ringkasan_Assign.csv"))
