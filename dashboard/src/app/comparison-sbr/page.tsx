@@ -43,6 +43,8 @@ interface ScrapedTabulasi {
   UM: number;
   UMK: number;
   Total: number;
+  fasih_Target: number;
+  fasih_Realisasi: number;
 }
 
 interface ComparisonRow {
@@ -62,6 +64,10 @@ interface ComparisonRow {
   diff_UM: number;
   diff_UMK: number;
   diff_Total: number;
+  // Realisasi Petugas
+  fasih_Target: number;
+  fasih_Realisasi: number;
+  fasih_Pct: number;
 }
 
 type LevelKey = "kab" | "kec" | "desa" | "sls" | "sub_sls";
@@ -255,6 +261,8 @@ export default function ComparisonSBRPage() {
             UM: 0,
             UMK: 0,
             Total: 0,
+            fasih_Target: 0,
+            fasih_Realisasi: 0,
           };
         }
 
@@ -269,7 +277,13 @@ export default function ComparisonSBRPage() {
           status === "rejected by pengawas" || status === "reject" || status === "rejected" ||
           status === "revoked by pengawas" || status === "revoke" || status === "revoked";
 
+        // Increment target prelist count
+        entry.fasih_Target += 1;
+
         if (isFocusedStatus) {
+          // Increment realisasi prelist count
+          entry.fasih_Realisasi += 1;
+
           if (s === "UB") {
             entry.UB += r.jumlahUsaha;
           } else if (s === "UM") {
@@ -324,6 +338,10 @@ export default function ComparisonSBRPage() {
       const scr_UMK = scr?.UMK || 0;
       const scr_Total = scr?.Total || 0;
 
+      const fasih_Target = scr?.fasih_Target || 0;
+      const fasih_Realisasi = scr?.fasih_Realisasi || 0;
+      const fasih_Pct = fasih_Target > 0 ? (fasih_Realisasi / fasih_Target) * 100 : 0;
+
       rows.push({
         kode,
         sbr_UB,
@@ -338,6 +356,9 @@ export default function ComparisonSBRPage() {
         diff_UM: scr_UM - sbr_UM,
         diff_UMK: scr_UMK - sbr_UMK,
         diff_Total: scr_Total - sbr_Total,
+        fasih_Target,
+        fasih_Realisasi,
+        fasih_Pct,
       });
     });
 
@@ -374,6 +395,8 @@ export default function ComparisonSBRPage() {
       scr_UM = 0,
       scr_UMK = 0,
       scr_Total = 0;
+    let fasih_Target = 0,
+      fasih_Realisasi = 0;
 
     comparisonRows.forEach((r) => {
       sbr_UB += r.sbr_UB;
@@ -384,6 +407,8 @@ export default function ComparisonSBRPage() {
       scr_UM += r.scr_UM;
       scr_UMK += r.scr_UMK;
       scr_Total += r.scr_Total;
+      fasih_Target += r.fasih_Target;
+      fasih_Realisasi += r.fasih_Realisasi;
     });
 
     return {
@@ -399,6 +424,9 @@ export default function ComparisonSBRPage() {
       diff_UM: scr_UM - sbr_UM,
       diff_UMK: scr_UMK - sbr_UMK,
       diff_Total: scr_Total - sbr_Total,
+      fasih_Target,
+      fasih_Realisasi,
+      fasih_Pct: fasih_Target > 0 ? (fasih_Realisasi / fasih_Target) * 100 : 0,
     };
   }, [comparisonRows]);
 
@@ -415,6 +443,9 @@ export default function ComparisonSBRPage() {
       "FasihSM_UM",
       "FasihSM_UMK",
       "FasihSM_Total",
+      "FasihSM_Target_Petugas",
+      "FasihSM_Realisasi_Petugas",
+      "FasihSM_Persentase_Petugas",
       "Selisih_UB",
       "Selisih_UM",
       "Selisih_UMK",
@@ -431,6 +462,9 @@ export default function ComparisonSBRPage() {
         r.scr_UM,
         r.scr_UMK,
         r.scr_Total,
+        r.fasih_Target,
+        r.fasih_Realisasi,
+        r.fasih_Pct.toFixed(2) + "%",
         r.diff_UB,
         r.diff_UM,
         r.diff_UMK,
@@ -741,7 +775,7 @@ export default function ComparisonSBRPage() {
             {/* Comparison Table */}
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-xs min-w-[1000px]">
+                <table className="w-full text-xs min-w-[1250px]">
                   <thead>
                     {/* Group headers */}
                     <tr className="border-b border-slate-200 dark:border-slate-800">
@@ -762,6 +796,12 @@ export default function ComparisonSBRPage() {
                         className="px-4 py-2 text-center font-bold text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 border-r border-slate-200 dark:border-slate-700"
                       >
                         🔍 Data Fasih SM (UB, UM, UMK)
+                      </th>
+                      <th
+                        colSpan={3}
+                        className="px-4 py-2 text-center font-bold text-blue-700 dark:text-blue-300 bg-blue-50/50 dark:bg-blue-900/10 border-r border-slate-200 dark:border-slate-700"
+                      >
+                        ⚡ Progres Realisasi Petugas
                       </th>
                       <th
                         colSpan={4}
@@ -797,6 +837,16 @@ export default function ComparisonSBRPage() {
                       <th className="px-3 py-2 text-center font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700">
                         Total
                       </th>
+                      {/* Realisasi Petugas */}
+                      <th className="px-3 py-2 text-center font-semibold text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                        Target
+                      </th>
+                      <th className="px-3 py-2 text-center font-semibold text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                        Realisasi
+                      </th>
+                      <th className="px-3 py-2 text-center font-semibold text-blue-600 dark:text-blue-400 whitespace-nowrap border-r border-slate-200 dark:border-slate-700">
+                        %
+                      </th>
                       {/* Diff */}
                       <th className="px-3 py-2 text-center font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
                         UB
@@ -816,7 +866,7 @@ export default function ComparisonSBRPage() {
                     {paginatedRows.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={13}
+                          colSpan={16}
                           className="text-center py-12 text-slate-400"
                         >
                           <Layers className="w-10 h-10 mx-auto mb-2 opacity-30" />
@@ -866,6 +916,16 @@ export default function ComparisonSBRPage() {
                           <td className="px-3 py-2.5 text-center font-bold text-orange-700 dark:text-orange-300 border-r border-slate-100 dark:border-slate-800">
                             {row.scr_Total.toLocaleString("id-ID")}
                           </td>
+                          {/* Realisasi Petugas */}
+                          <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
+                            {row.fasih_Target.toLocaleString("id-ID")}
+                          </td>
+                          <td className="px-3 py-2.5 text-center text-slate-600 dark:text-slate-300">
+                            {row.fasih_Realisasi.toLocaleString("id-ID")}
+                          </td>
+                          <td className="px-3 py-2.5 text-center font-bold text-blue-700 dark:text-blue-400 border-r border-slate-100 dark:border-slate-800">
+                            {row.fasih_Pct.toFixed(2)}%
+                          </td>
                           {/* Diff */}
                           <td className="px-3 py-2.5">
                             <ProgressCell diff={row.diff_UB} scr={row.scr_UB} sbr={row.sbr_UB} />
@@ -914,6 +974,16 @@ export default function ComparisonSBRPage() {
                         </td>
                         <td className="px-3 py-3 text-center text-orange-700 dark:text-orange-300 border-r border-slate-200 dark:border-slate-700">
                           {summaryTotals.scr_Total.toLocaleString("id-ID")}
+                        </td>
+                        {/* Realisasi Petugas */}
+                        <td className="px-3 py-3 text-center text-slate-700 dark:text-slate-300">
+                          {summaryTotals.fasih_Target.toLocaleString("id-ID")}
+                        </td>
+                        <td className="px-3 py-3 text-center text-slate-700 dark:text-slate-300">
+                          {summaryTotals.fasih_Realisasi.toLocaleString("id-ID")}
+                        </td>
+                        <td className="px-3 py-3 text-center text-blue-700 dark:text-blue-300 border-r border-slate-200 dark:border-slate-700">
+                          {summaryTotals.fasih_Pct.toFixed(2)}%
                         </td>
                         {/* Diff */}
                         <td className="px-3 py-3">
@@ -998,7 +1068,7 @@ export default function ComparisonSBRPage() {
               <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3">
                 Keterangan Kolom
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-slate-600 dark:text-slate-400">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs text-slate-600 dark:text-slate-400">
                 <div>
                   <p className="font-bold text-orange-600 dark:text-orange-400 mb-1">
                     📋 Data SBR
@@ -1028,6 +1098,22 @@ export default function ComparisonSBRPage() {
                     </li>
                     <li>
                       <b>Total</b> – UB + UM + UMK
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-bold text-blue-600 dark:text-blue-400 mb-1">
+                    ⚡ Progres Realisasi Petugas
+                  </p>
+                  <ul className="space-y-0.5 pl-4 list-disc">
+                    <li>
+                      <b>Target</b> – Total prelist yang ditugaskan ke petugas pencacah
+                    </li>
+                    <li>
+                      <b>Realisasi</b> – Prelist yang berstatus <b>submit, approve, reject, atau revoke</b>
+                    </li>
+                    <li>
+                      <b>%</b> – Persentase realisasi petugas (Realisasi / Target)
                     </li>
                   </ul>
                 </div>
