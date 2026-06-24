@@ -2,6 +2,8 @@ import os
 import sys
 from playwright.sync_api import sync_playwright
 
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 def main():
     print("Starting Playwright interactive session...")
     
@@ -31,13 +33,13 @@ def main():
         input("Press Enter here once you are on the target survey page...")
         
         # Save storage state
-        auth_file = "auth_state.json"
+        auth_file = os.path.join(ROOT_DIR, "auth_state.json")
         context.storage_state(path=auth_file)
         print(f"Session state successfully saved to '{auth_file}'")
         
         # Save target URL
         current_url = page.url
-        url_file = "target_url.txt"
+        url_file = os.path.join(ROOT_DIR, "target_url.txt")
         with open(url_file, "w", encoding="utf-8") as f:
             f.write(current_url)
         print(f"Target survey URL saved to '{url_file}': {current_url}")

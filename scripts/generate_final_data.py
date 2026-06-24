@@ -4,6 +4,11 @@ import zipfile
 import re
 import xml.etree.ElementTree as ET
 
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(ROOT_DIR, "data")
+INPUTS_DIR = os.path.join(ROOT_DIR, "inputs")
+OUTPUT_DIR = os.path.join(ROOT_DIR, "outputs")
+
 def parse_xlsx(filename):
     try:
         with zipfile.ZipFile(filename, 'r') as z:
@@ -45,7 +50,7 @@ def parse_xlsx(filename):
         return {}
 
 def process_mitra():
-    rows = parse_xlsx('temp_mitra.xlsx')
+    rows = parse_xlsx(os.path.join(INPUTS_DIR, 'temp_mitra.xlsx'))
     petugas_list = []
     emails = []
     
@@ -83,15 +88,15 @@ def process_mitra():
         if email and email not in emails:
             emails.append(email)
             
-    with open('data/email_mitra.txt', 'w', encoding='utf-8') as f:
+    with open(os.path.join(DATA_DIR, 'email_mitra.txt'), 'w', encoding='utf-8') as f:
         for email in emails:
             f.write(email + '\n')
             
-    with open('data/email_mitra_test.txt', 'w', encoding='utf-8') as f:
+    with open(os.path.join(DATA_DIR, 'email_mitra_test.txt'), 'w', encoding='utf-8') as f:
         for email in emails[:3]:
             f.write(email + '\n')
             
-    with open('data/pml_ppl.csv', 'w', encoding='utf-8') as f:
+    with open(os.path.join(DATA_DIR, 'pml_ppl.csv'), 'w', encoding='utf-8') as f:
         f.write("nama_petugas;kec;jabatan_petugas;email\n")
         for p in petugas_list:
             f.write(f"{p['nama']};{p['kec']};{p['jabatan']};{p['email']}\n")
@@ -99,7 +104,7 @@ def process_mitra():
     print(f"[OK] Parsed Mitra: {len(petugas_list)} petugas, {len(emails)} unique emails")
 
 def process_prelist():
-    rows = parse_xlsx('temp_prelist.xlsx')
+    rows = parse_xlsx(os.path.join(INPUTS_DIR, 'temp_prelist.xlsx'))
     
     sbr_data = {
         "kab": {},
@@ -171,7 +176,7 @@ def process_prelist():
         "sub_sls": []
     }
     
-    with open('dashboard/public/sbr_data.json', 'w', encoding='utf-8') as f:
+    with open(os.path.join(ROOT_DIR, 'dashboard', 'public', 'sbr_data.json'), 'w', encoding='utf-8') as f:
         json.dump(final_sbr, f, indent=2)
         
     print(f"[OK] Parsed Prelist: {total_usaha} SBR records mapped with SLS targets.")

@@ -4,6 +4,10 @@ import sys
 import time
 from playwright.sync_api import sync_playwright
 
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(ROOT_DIR, "data")
+OUTPUT_DIR = os.path.join(ROOT_DIR, "outputs")
+
 def load_emails(file_path):
     if not os.path.exists(file_path):
         print(f"Error: Email list file '{file_path}' not found.")
@@ -81,10 +85,10 @@ def scrape_page(page, searched_email, csv_writer):
     return scraped_count
 
 def main():
-    email_file = "email_mitra.txt"
-    auth_file = "auth_state.json"
-    url_file = "target_url.txt"
-    output_csv = "scraped_data.csv"
+    email_file = os.path.join(DATA_DIR, "email_mitra.txt")
+    auth_file = os.path.join(ROOT_DIR, "auth_state.json")
+    url_file = os.path.join(ROOT_DIR, "target_url.txt")
+    output_csv = os.path.join(OUTPUT_DIR, "scraped_data.csv")
     
     # Check prerequisites
     if not os.path.exists(auth_file):

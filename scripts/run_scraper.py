@@ -7,6 +7,10 @@ import json
 from playwright.sync_api import sync_playwright
 import process_data
 
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(ROOT_DIR, "data")
+OUTPUT_DIR = os.path.join(ROOT_DIR, "outputs")
+
 def load_emails(file_path):
     if not os.path.exists(file_path):
         print(f"Error: Email list file '{file_path}' not found.")
@@ -116,10 +120,10 @@ def scrape_page(page, searched_email, csv_writer):
     return scraped_count
 
 def run_scraper(use_test_emails=False):
-    email_file = os.path.join("data", "email_mitra_test.txt" if use_test_emails else "email_mitra.txt")
-    auth_file = "auth_state.json"
-    output_csv = "scraped_data.csv"
-    checkpoint_file = "checkpoint.json"
+    email_file = os.path.join(DATA_DIR, "email_mitra_test.txt" if use_test_emails else "email_mitra.txt")
+    auth_file = os.path.join(ROOT_DIR, "auth_state.json")
+    output_csv = os.path.join(OUTPUT_DIR, "scraped_data.csv")
+    checkpoint_file = os.path.join(ROOT_DIR, "checkpoint.json")
     
     emails = load_emails(email_file)
     

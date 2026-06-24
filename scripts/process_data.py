@@ -4,6 +4,11 @@ import shutil
 import subprocess
 from datetime import datetime, timezone, timedelta
 
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(ROOT_DIR, "data")
+OUTPUT_DIR = os.path.join(ROOT_DIR, "outputs")
+PUBLIC_DIR = os.path.join(ROOT_DIR, "dashboard", "public")
+
 # Capture execution start time (WITA is UTC+8)
 wita_tz = timezone(timedelta(hours=8))
 START_TIME = datetime.now(wita_tz)
@@ -68,19 +73,19 @@ def run_git_commands(timestamp_str):
 
         # Add files to git
         files_to_add = [
-            "scraped_data.csv",
-            "update_data.csv",
-            "dashboard_scraped_data.csv",
-            os.path.join("data", "pml_ppl.csv"),
-            os.path.join("data", "ringkasan_Assign.csv"),
-            os.path.join("data", "ringkasan_Progres.csv"),
-            os.path.join("dashboard", "public", "update_data.csv"),
-            os.path.join("dashboard", "public", "dashboard_scraped_data.csv"),
-            os.path.join("dashboard", "public", "pml_ppl.csv"),
-            os.path.join("dashboard", "public", "koseka.csv"),
-            os.path.join("dashboard", "public", "ringkasan_Assign.csv"),
-            os.path.join("dashboard", "public", "ringkasan_Progres.csv"),
-            os.path.join("dashboard", "public", "last_updated.txt")
+            os.path.join(OUTPUT_DIR, "scraped_data.csv"),
+            os.path.join(OUTPUT_DIR, "update_data.csv"),
+            os.path.join(OUTPUT_DIR, "dashboard_scraped_data.csv"),
+            os.path.join(DATA_DIR, "pml_ppl.csv"),
+            os.path.join(DATA_DIR, "ringkasan_Assign.csv"),
+            os.path.join(DATA_DIR, "ringkasan_Progres.csv"),
+            os.path.join(PUBLIC_DIR, "update_data.csv"),
+            os.path.join(PUBLIC_DIR, "dashboard_scraped_data.csv"),
+            os.path.join(PUBLIC_DIR, "pml_ppl.csv"),
+            os.path.join(PUBLIC_DIR, "koseka.csv"),
+            os.path.join(PUBLIC_DIR, "ringkasan_Assign.csv"),
+            os.path.join(PUBLIC_DIR, "ringkasan_Progres.csv"),
+            os.path.join(PUBLIC_DIR, "last_updated.txt")
         ]
         
         # Check which files exist and add them
@@ -108,7 +113,7 @@ def run_git_commands(timestamp_str):
         print(f"Warning: Failed to execute Git commands: {e}")
 
 def load_priority_sls():
-    priority_file = os.path.join("data", "kdsls_prioritas.txt")
+    priority_file = os.path.join(DATA_DIR, "kdsls_prioritas.txt")
     if not os.path.exists(priority_file):
         print(f"Warning: Priority SLS file '{priority_file}' not found.")
         return set()
@@ -124,9 +129,9 @@ def load_priority_sls():
 def process_dashboard_scraped_data(priority_sls=None):
     if priority_sls is None:
         priority_sls = load_priority_sls()
-    scraped_file = "dashboard_scraped_data.csv"
-    koseka_file = os.path.join("data", "koseka.csv")
-    pml_ppl_file = os.path.join("data", "pml_ppl.csv")
+    scraped_file = os.path.join(OUTPUT_DIR, "dashboard_scraped_data.csv")
+    koseka_file = os.path.join(DATA_DIR, "koseka.csv")
+    pml_ppl_file = os.path.join(DATA_DIR, "pml_ppl.csv")
     
     print("\n" + "="*50)
     print("PROCESSING DASHBOARD SCRAPED DATA")
@@ -249,9 +254,9 @@ def process_dashboard_scraped_data(priority_sls=None):
         return False
 
 def process_data():
-    scraped_file = "scraped_data.csv"
-    koseka_file = os.path.join("data", "koseka.csv")
-    output_file = "update_data.csv"
+    scraped_file = os.path.join(OUTPUT_DIR, "scraped_data.csv")
+    koseka_file = os.path.join(DATA_DIR, "koseka.csv")
+    output_file = os.path.join(OUTPUT_DIR, "update_data.csv")
     
     print("\n" + "="*50)
     print("STARTING DATA PROCESSING PIPELINE")
@@ -421,7 +426,7 @@ def process_data():
     process_dashboard_scraped_data(priority_sls)
 
     # 3. Copy to Next.js dashboard public folder & write timestamp
-    public_dir = os.path.join("dashboard", "public")
+    public_dir = PUBLIC_DIR
     if os.path.exists(public_dir):
         print(f"Copying files to dashboard public directory...")
         try:
@@ -430,31 +435,31 @@ def process_data():
             print(f"Copied '{output_file}' to dashboard public folder.")
             
             # Copy dashboard_scraped_data.csv
-            dashboard_scraped_src = "dashboard_scraped_data.csv"
+            dashboard_scraped_src = os.path.join(OUTPUT_DIR, "dashboard_scraped_data.csv")
             if os.path.exists(dashboard_scraped_src):
                 shutil.copy2(dashboard_scraped_src, os.path.join(public_dir, "dashboard_scraped_data.csv"))
                 print(f"Copied '{dashboard_scraped_src}' to dashboard public folder.")
             
             # Copy PML PPL CSV
-            pml_ppl_src = os.path.join("data", "pml_ppl.csv")
+            pml_ppl_src = os.path.join(DATA_DIR, "pml_ppl.csv")
             if os.path.exists(pml_ppl_src):
                 shutil.copy2(pml_ppl_src, os.path.join(public_dir, "pml_ppl.csv"))
                 print(f"Copied '{pml_ppl_src}' to dashboard public folder.")
             
             # Copy Koseka CSV
-            koseka_src = os.path.join("data", "koseka.csv")
+            koseka_src = os.path.join(DATA_DIR, "koseka.csv")
             if os.path.exists(koseka_src):
                 shutil.copy2(koseka_src, os.path.join(public_dir, "koseka.csv"))
                 print(f"Copied '{koseka_src}' to dashboard public folder.")
             
             # Copy ringkasan_Assign.csv
-            assign_src = os.path.join("data", "ringkasan_Assign.csv")
+            assign_src = os.path.join(DATA_DIR, "ringkasan_Assign.csv")
             if os.path.exists(assign_src):
                 shutil.copy2(assign_src, os.path.join(public_dir, "ringkasan_Assign.csv"))
                 print(f"Copied '{assign_src}' to dashboard public folder.")
             
             # Copy ringkasan_Progres.csv
-            progres_src = os.path.join("data", "ringkasan_Progres.csv")
+            progres_src = os.path.join(DATA_DIR, "ringkasan_Progres.csv")
             if os.path.exists(progres_src):
                 shutil.copy2(progres_src, os.path.join(public_dir, "ringkasan_Progres.csv"))
                 print(f"Copied '{progres_src}' to dashboard public folder.")

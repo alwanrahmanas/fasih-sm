@@ -7,6 +7,11 @@ import json
 from playwright.sync_api import sync_playwright
 import process_data
 
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(ROOT_DIR, "data")
+OUTPUT_DIR = os.path.join(ROOT_DIR, "outputs")
+DEBUG_DIR = os.path.join(ROOT_DIR, "debug")
+
 def load_env(env_path=".env"):
     env_vars = {}
     if os.path.exists(env_path):
@@ -102,9 +107,9 @@ def scrape_page(page, searched_email, csv_writer):
     return scraped_count
 
 def save_debug_artifacts(page, prefix):
-    os.makedirs("debug", exist_ok=True)
+    os.makedirs(DEBUG_DIR, exist_ok=True)
     timestamp = time.strftime("%Y%m%d-%H%M%S")
-    base_path = os.path.join("debug", f"{prefix}_{timestamp}")
+    base_path = os.path.join(DEBUG_DIR, f"{prefix}_{timestamp}")
     try:
         page.screenshot(path=f"{base_path}.png", full_page=True)
         print(f"Debug screenshot saved to '{base_path}.png'")
@@ -217,11 +222,11 @@ def open_se2026_period(page, env):
 
 def run_unified_scraper():
     use_test = "--test" in sys.argv
-    email_file = os.path.join("data", "email_mitra_test.txt" if use_test else "email_mitra.txt")
-    auth_file = "auth_state.json"
-    dashboard_csv = "dashboard_scraped_data.csv"
-    output_csv = "scraped_data.csv"
-    checkpoint_file = "checkpoint.json"
+    email_file = os.path.join(DATA_DIR, "email_mitra_test.txt" if use_test else "email_mitra.txt")
+    auth_file = os.path.join(ROOT_DIR, "auth_state.json")
+    dashboard_csv = os.path.join(OUTPUT_DIR, "dashboard_scraped_data.csv")
+    output_csv = os.path.join(OUTPUT_DIR, "scraped_data.csv")
+    checkpoint_file = os.path.join(ROOT_DIR, "checkpoint.json")
     
     # 1. Load configuration and emails
     env = load_env()

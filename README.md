@@ -8,7 +8,7 @@ Repositori ini berisi sistem pemantauan terpadu untuk Sensus Ekonomi 2026 BPS Ka
 
 ## 📋 Panduan untuk Kabupaten Lain
 
-Jika Anda ingin menduplikasi sistem monitoring ini untuk wilayah kabupaten Anda sendiri, silakan ikuti petunjuk langkah demi langkah di **[panduan_clone.md](panduan_clone.md)** untuk proses setup data wilayah, penyesuaian kode wilayah, dan deployment.
+Jika Anda ingin menduplikasi sistem monitoring ini untuk wilayah kabupaten Anda sendiri, silakan ikuti petunjuk langkah demi langkah di **[docs/panduan_clone.md](docs/panduan_clone.md)** untuk proses setup data wilayah, penyesuaian kode wilayah, dan deployment.
 
 ---
 
@@ -37,19 +37,42 @@ scraper-fasih-sm/
 │   │               └── page.tsx # Halaman perbandingan data Fasih SM vs SBR (tema oranye)
 │   ├── package.json
 │   └── tsconfig.json
+├── docs/                        # Dokumentasi proyek tambahan
+│   ├── PENJELASAN_PROJECT.md
+│   └── panduan_clone.md
+├── inputs/                      # Data kerja dan file sumber
+│   ├── mitra-email.xlsx
+│   ├── prelist_se2026.xlsx
+│   └── raw/
+│       └── GC Tahap 2/
 ├── legacy/                      # Script lama (login terpisah & scraper manual)
 │   ├── login.py
 │   └── scraper.py
+├── notebooks/                   # Notebook eksplorasi
+│   └── processing.ipynb
 ├── research/                    # File riset, screenshot, dan berkas analisis HTML offline
 │   ├── analyze_html.py
 │   ├── inspect_pagination.py
 │   ├── FASIH_ Flexible Authentic Survey Instrument in Harmony.html
 │   └── FASIH_ Flexible Authentic Survey Instrument in Harmony_files/
+├── scripts/                     # Script eksekusi scraper dan pengolahan data
+│   ├── generate_final_data.py
+│   ├── process_data.py
+│   ├── run_dashboard_scraper.py
+│   ├── run_data.bat
+│   ├── run_dashboard.bat
+│   ├── run_scraper.py
+│   ├── run_se2026.py
+│   ├── run_se2026_dashboard.py
+│   └── run_se2026_data.py
+├── outputs/                     # Hasil scraping dan olahan yang dipakai dashboard
+│   ├── dashboard_scraped_data.csv
+│   ├── dashboard_scraped_data_processed.csv
+│   ├── scraped_data.csv
+│   └── update_data.csv
 ├── .gitignore                   # Konfigurasi pengabaian file sensitif / sementara
 ├── README.md                    # Dokumentasi panduan ini
-├── requirements.txt             # Dependensi Python untuk scraper
-├── run_se2026.py                # Script utama scraper terpadu (menimpa CSV & menyalin hasil ke dashboard)
-└── scraped_data.csv             # Backup data lokal hasil scraper terakhir
+└── requirements.txt             # Dependensi Python untuk scraper
 ```
 
 ---
@@ -79,14 +102,14 @@ Jalankan scraper untuk mengambil data terbaru dari BPS FASIH. Anda akan ditanyak
 
 * **Pilihan Mode Eksekusi:**
   * **Full Run (Default):** Mengunduh ringkasan, memperbarui status rekap petugas dashboard, dan melakukan pencarian/scraping data detail mitra.
-    * Jalankan: `python run_se2026.py` atau `python run_se2026.py --full`
+    * Jalankan: `python scripts/run_se2026.py` atau `python scripts/run_se2026.py --full`
   * **Dashboard Only:** Hanya mengunduh ringkasan csv (`ringkasan_Assign.csv` & `ringkasan_Progres.csv`) dan rekap petugas untuk dashboard, kemudian memproses dan mengunggahnya ke repositori (sangat cepat).
-    * Jalankan: `python run_se2026.py --dashboard`
+    * Jalankan: `python scripts/run_se2026.py --dashboard`
   * **Ambil Data Only:** Hanya melakukan pencarian dan penarikan data detail per mitra dari halaman tabel data.
-    * Jalankan: `python run_se2026.py --data` (atau `--scrape` / `--ambil-data`)
+    * Jalankan: `python scripts/run_se2026.py --data` (atau `--scrape` / `--ambil-data`)
 
 * **Pilihan Target Email:**
-  * **Mode Uji Coba (3 email):** Tambahkan `--test` (contoh: `python run_se2026.py --test --dashboard` atau `python run_se2026.py --test --data`)
+  * **Mode Uji Coba (3 email):** Tambahkan `--test` (contoh: `python scripts/run_se2026.py --test --dashboard` atau `python scripts/run_se2026.py --test --data`)
   * **Mode Produksi (Semua email):** Jalankan tanpa parameter `--test`
 
 *Catatan: Setiap kali scraper selesai dijalankan, berkas CSV yang sesuai akan diperbarui secara otomatis dengan data status terbaru, kemudian diproses dan disalin langsung ke folder `dashboard/public/`.*
