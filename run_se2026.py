@@ -101,6 +101,120 @@ def scrape_page(page, searched_email, csv_writer):
     print(f"  Scraped {scraped_count} rows from current page.")
     return scraped_count
 
+def save_debug_artifacts(page, prefix):
+    os.makedirs("debug", exist_ok=True)
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+    base_path = os.path.join("debug", f"{prefix}_{timestamp}")
+    try:
+        page.screenshot(path=f"{base_path}.png", full_page=True)
+        print(f"Debug screenshot saved to '{base_path}.png'")
+    except Exception as e:
+        print(f"Warning: failed to save debug screenshot: {e}")
+    try:
+        with open(f"{base_path}.html", "w", encoding="utf-8") as f:
+            f.write(page.content())
+        print(f"Debug HTML saved to '{base_path}.html'")
+    except Exception as e:
+        print(f"Warning: failed to save debug HTML: {e}")
+
+def first_visible_locator(page, locators, timeout=30000):
+    deadline = time.time() + (timeout / 1000.0)
+    last_error = None
+    while time.time() < deadline:
+        for locator in locators:
+            try:
+                count = locator.count()
+                for idx in range(count):
+                    item = locator.nth(idx)
+                    if item.is_visible():
+                        return item
+            except Exception as e:
+                last_error = e
+        page.wait_for_timeout(500)
+    if last_error:
+        print(f"Last locator check error: {last_error}")
+    return None
+
+def open_se2026_period(page, env):
+    survey_name = env.get("SURVEY_NAME", "SENSUS EKONOMI 2026")
+    period_name = env.get("SURVEY_PERIOD_NAME", "PENDATAAN")
+    period_url = env.get(
+        "SURVEY_PERIOD_URL",
+        "https://fasih-sm.bps.go.id/app/surveys/a0429e96-51a5-477b-a415-485f9c153004/fd68e454-ba45-4b85-8205-f3bf777ded24",
+    )
+
+    if period_url in page.url:
+        print(f"Already on {period_name} period page.")
+        return
+
+    print(f"Searching for '{survey_name}'...")
+    if not page.url.endswith("/app") and "/app/surveys" not in page.url:
+        page.goto("https://fasih-sm.bps.go.id/app")
+        page.wait_for_timeout(2000)
+
+    search_input = page.locator('input[placeholder="Cari survei..."]')
+    try:
+        search_input.wait_for(state="visible", timeout=30000)
+        search_input.fill(survey_name)
+        search_input.press("Enter")
+        try:
+            page.wait_for_load_state("networkidle", timeout=10000)
+        except Exception:
+            pass
+        page.wait_for_timeout(1500)
+
+        print(f"Finding visible match for '{survey_name}'...")
+        survey_pattern = re.compile(r"SENSUS\s+EKONOMI\s+2026", re.IGNORECASE)
+        survey_item = first_visible_locator(
+            page,
+            [
+                page.get_by_text(survey_name, exact=True),
+                page.get_by_text(survey_pattern),
+                page.locator("a, button, [role='button']").filter(has_text=survey_pattern),
+            ],
+            timeout=15000,
+        )
+
+        if survey_item is not None:
+            print(f"Clicking survey item: '{survey_item.text_content().strip()}'")
+            survey_item.click()
+            page.wait_for_timeout(3000)
+
+            if period_url in page.url:
+                return
+
+            print(f"Navigating to {period_name} period...")
+            period_pattern = re.compile(rf"^{re.escape(period_name)}$", re.IGNORECASE)
+            period_item = first_visible_locator(
+                page,
+                [
+                    page.get_by_text(period_name, exact=True),
+                    page.locator("a, button, [role='button']").filter(has_text=period_pattern),
+                    page.locator("text=PENDATAAN"),
+                ],
+                timeout=15000,
+            )
+            if period_item is not None:
+                period_item.click()
+                page.wait_for_timeout(3000)
+                return
+    except Exception as e:
+        print(f"Warning: survey search flow failed: {e}")
+
+    print(f"Falling back to direct {period_name} URL...")
+    page.goto(period_url, timeout=120000)
+    try:
+        page.wait_for_load_state("networkidle", timeout=15000)
+    except Exception:
+        pass
+    page.wait_for_timeout(2000)
+    if "sso.bps.go.id" in page.url or page.locator("#username").count() > 0:
+        save_debug_artifacts(page, "se2026_period_login_required")
+        raise RuntimeError("Direct period URL redirected to login. Please refresh auth_state.json by logging in again.")
+    if "/app/surveys/" not in page.url:
+        save_debug_artifacts(page, "se2026_period_open_failed")
+        raise RuntimeError(f"Failed to open SE2026 period page. Current URL: {page.url}")
+
 def run_unified_scraper():
     use_test = "--test" in sys.argv
     email_file = os.path.join("data", "email_mitra_test.txt" if use_test else "email_mitra.txt")
@@ -215,7 +329,12 @@ def run_unified_scraper():
         print("Launching Chromium browser in headed mode...")
         browser = p.chromium.launch(
             headless=False,
-            args=["--no-sandbox", "--disable-setuid-sandbox"]
+            args=[
+                "--no-sandbox", 
+                "--disable-setuid-sandbox",
+                "--disable-blink-features=AutomationControlled",
+                "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            ]
         )
         
         # Load saved session state if exists
@@ -320,55 +439,9 @@ def run_unified_scraper():
         context.storage_state(path=auth_file)
         print(f"Session state saved to '{auth_file}'")
         
-        # 3. Search and select survey
-        print("Searching for 'SENSUS EKONOMI 2026'...")
-        if not page.url.endswith("/app") and "/app/surveys" not in page.url:
-            page.goto("https://fasih-sm.bps.go.id/app")
-            page.wait_for_timeout(2000)
-            
-        search_input = page.locator('input[placeholder="Cari survei..."]')
-        search_input.wait_for(state="visible", timeout=30000)
-        search_input.fill("SENSUS EKONOMI 2026")
-        search_input.press("Enter")
-        page.wait_for_timeout(2500)
-        
-        # Click the row with exact text "SENSUS EKONOMI 2026"
-        print("Finding exact match for 'SENSUS EKONOMI 2026'...")
-        survey_items = page.locator("text=SENSUS EKONOMI 2026")
-        survey_items.first.wait_for(state="visible", timeout=30000)
-        
-        survey_item = None
-        count = survey_items.count()
-        for idx in range(count):
-            item = survey_items.nth(idx)
-            txt = item.text_content().strip()
-            if txt == "SENSUS EKONOMI 2026":
-                survey_item = item
-                break
-                
-        if survey_item is None:
-            print("Exact match 'SENSUS EKONOMI 2026' not found by scanning text. Trying get_by_text exact match...")
-            try:
-                exact_loc = page.get_by_text("SENSUS EKONOMI 2026", exact=True).first
-                if exact_loc.count() > 0:
-                    survey_item = exact_loc
-            except Exception:
-                pass
-                
-        if survey_item is None:
-            print("Warning: Exact match 'SENSUS EKONOMI 2026' not found, falling back to first partial match.")
-            survey_item = page.locator("text=SENSUS EKONOMI 2026").first
-            
-        print(f"Clicking survey item: '{survey_item.text_content().strip()}'")
-        survey_item.click()
-        page.wait_for_timeout(3000)
-        
-        # Click the "PENDATAAN" card/button to enter dashboard
-        print("Navigating to PENDATAAN period...")
-        pendataan_btn = page.locator("text=PENDATAAN").first
-        pendataan_btn.wait_for(state="visible", timeout=30000)
-        pendataan_btn.click()
-        page.wait_for_timeout(3000)
+        # 3. Open the SE2026 PENDATAAN period. Prefer the UI flow, but fall
+        # back to the known period URL when the survey search list is flaky.
+        open_se2026_period(page, env)
         
         if run_mode in ["full", "dashboard"]:
             # 4. Scrape Dashboard Rekap Data

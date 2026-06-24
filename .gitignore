@@ -8,12 +8,19 @@ venv/
 .venv/
 env/
 
+# Local workspace caches and scratch outputs
+.pnpm-store/
+debug/
+
 # Project Specific
 auth_state.json
 target_url.txt
 .env
 *.png
 !dashboard/**/*.png
+mitra-email.xlsx
+prelist_se2026.xlsx
+GC Tahap 2/
 
 # Exclude temporary offline HTML logs / downloads from git tracking
 research/*.html
