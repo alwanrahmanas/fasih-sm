@@ -45,7 +45,7 @@ def parse_xlsx(filename):
         return {}
 
 def process_mitra():
-    rows = parse_xlsx('mitra-email.xlsx')
+    rows = parse_xlsx('temp_mitra.xlsx')
     petugas_list = []
     emails = []
     
@@ -99,7 +99,7 @@ def process_mitra():
     print(f"[OK] Parsed Mitra: {len(petugas_list)} petugas, {len(emails)} unique emails")
 
 def process_prelist():
-    rows = parse_xlsx('prelist_se2026.xlsx')
+    rows = parse_xlsx('temp_prelist.xlsx')
     
     sbr_data = {
         "kab": {},
