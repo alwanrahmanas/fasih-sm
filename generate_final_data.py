@@ -178,12 +178,12 @@ def process_prelist():
 
 def write_default_koseka():
     koseka_data = """kd_kec;nama_kec;koseka
-7409010;BONEGUNU;
-7409020;KULISUSU;
-7409030;KULISUSU BARAT;
-7409040;KULISUSU UTARA;
-7409050;KAMBOWA;
-7409060;WAKORUMBA UTARA;
+7409100;BONEGUNU;
+7409101;KAMBOWA;
+7409110;WAKORUMBA UTARA;
+7409120;KULISUSU;
+7409121;KULISUSU BARAT;
+7409122;KULISUSU UTARA;
 """
     with open('data/koseka.csv', 'w', encoding='utf-8') as f:
         f.write(koseka_data)
