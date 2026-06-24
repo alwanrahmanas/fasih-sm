@@ -874,7 +874,7 @@ export default function PetugasPage() {
             </div>
             <div>
               <h1 className="text-xs sm:text-sm md:text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                BPS Kabupaten Kepulauan Sangihe
+                BPS Kabupaten Buton Utara
               </h1>
               <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400">
                 Dashboard Monitoring Sensus Ekonomi 2026

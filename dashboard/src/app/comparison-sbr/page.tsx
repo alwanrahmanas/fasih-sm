@@ -396,8 +396,8 @@ export default function ComparisonSBRPage() {
     return comparisonRows.filter((r) => {
       const kodeMatch = r.kode.includes(q);
       let nameMatch = false;
-      if (activeLevel === "kab" && r.kode === "7103") {
-        nameMatch = "kepulauan sangihe".includes(q);
+      if (activeLevel === "kab" && r.kode === "7409") {
+        nameMatch = "buton utara".includes(q);
       } else if (activeLevel === "kec" && kosekaNames[r.kode]) {
         nameMatch = kosekaNames[r.kode].toLowerCase().includes(q);
       }
@@ -487,8 +487,8 @@ export default function ComparisonSBRPage() {
     ];
     const rows = filteredRows.map((r) => {
       let namaWilayah = "";
-      if (activeLevel === "kab" && r.kode === "7103") {
-        namaWilayah = "Kabupaten Kepulauan Sangihe";
+      if (activeLevel === "kab" && r.kode === "7409") {
+        namaWilayah = "Kabupaten Buton Utara";
       } else if (activeLevel === "kec" && kosekaNames[r.kode]) {
         namaWilayah = formatKecName(kosekaNames[r.kode]);
       }
@@ -596,7 +596,7 @@ export default function ComparisonSBRPage() {
             </div>
             <div>
               <h1 className="text-xs sm:text-sm md:text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                BPS Kabupaten Kepulauan Sangihe
+                BPS Kabupaten Buton Utara
               </h1>
               <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400">
                 Dashboard Monitoring Sensus Ekonomi 2026
@@ -931,9 +931,9 @@ export default function ComparisonSBRPage() {
                           }`}>
                             <div className="flex flex-col">
                               <span>{row.kode}</span>
-                              {activeLevel === "kab" && row.kode === "7103" && (
+                              {activeLevel === "kab" && row.kode === "7409" && (
                                 <span className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">
-                                  Kab. Kepulauan Sangihe
+                                  Kab. Buton Utara
                                 </span>
                               )}
                               {activeLevel === "kec" && kosekaNames[row.kode] && (

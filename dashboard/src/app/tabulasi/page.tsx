@@ -1138,7 +1138,7 @@ export default function TabulasiPage() {
             </div>
             <div>
               <h1 className="text-xs sm:text-sm md:text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                BPS Kabupaten Kepulauan Sangihe
+                BPS Kabupaten Buton Utara
               </h1>
               <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400">
                 Dashboard Monitoring Sensus Ekonomi 2026
@@ -1218,7 +1218,7 @@ export default function TabulasiPage() {
                 Tabel Kalkulasi Progres Pendataan
               </h2>
               <p className="text-xs sm:text-base md:text-lg text-orange-50 max-w-2xl font-light">
-                Perhitungan real-time target dan realisasi status sampel per Petugas (PCL) dan Kecamatan di wilayah Kabupaten Kepulauan Sangihe.
+                Perhitungan real-time target dan realisasi status sampel per Petugas (PCL) dan Kecamatan di wilayah Kabupaten Buton Utara.
               </p>
             </div>
             
@@ -1946,7 +1946,7 @@ export default function TabulasiPage() {
       {/* Footer */}
       <footer className="mt-auto border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-6 text-center text-xs text-slate-500 dark:text-slate-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 font-medium">
-          <p>© 2026 Badan Pusat Statistik (BPS) Kabupaten Kepulauan Sangihe. Hak Cipta Dilindungi.</p>
+          <p>© 2026 Badan Pusat Statistik (BPS) Kabupaten Buton Utara. Hak Cipta Dilindungi.</p>
           <p>
             Pengembang:{" "}
             <a
